@@ -1,0 +1,213 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+
+        <!-- Report Action -->
+        <report id="print_credit_report"
+            string="Debit/ Credit Note"
+            model="ikoyi.goods_return"
+            report_type="qweb-pdf"
+            name="ikoyi_module.print_creditdebit_template"
+            file="ikoyi_module.print_creditdebit_template"
+            menu="False"
+            />
+            
+
+            <report id="print_debitedit_report"
+                string="Debit /Credit Note"
+                model="ikoyi.goods_return"
+                report_type="qweb-pdf"
+                name="ikoyi_module.pdf_credebit_ikoyi"
+                file="ikoyi_module.pdf_credebit_ikoyi"
+                menu="True"
+            />
+
+            <template id = "pdf_credebit_ikoyi">
+                <t t-call="ikoyi_module.print_creditdebit_template">
+                </t>
+            </template>
+         
+            
+
+        <!-- Allocation Offer Letter Template -->
+        <template id="print_creditdebit_template">
+            <t t-call="report.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="report.external_layout">
+                        <div class="page">
+
+                            <div class="row">
+                                <h2>
+                                    <span>
+                                        <center><u>IKOYI CLUB 1938</u></center>
+                                    </span>
+                                </h2>
+                            </div>
+                            <div class="row">
+                                <center> <div class="watermark;col-xs-8" styles="position:absolute;opacity:0.8; font-size:50px;width:200%;z-index">
+                                    <img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:140px;max-width:100px;"/>
+                                    <!-- img src="https://imgur.com/gLIZY95.jpg" style="max-height: 150px"/ 
+                                    <div class="watermark;col-xs-6 col-xs-offset-10" styles="position:absolute;opacity:0.25; font-size:50px;width:200%;z-index">
+                                
+                                    -->
+                                </div></center>
+                            </div>
+
+                            <!--<div class="row">
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong><h3>Store No:<span t-field="o.name"/></h3></strong><br/>
+                                     <strong><h3>Store Name:<span t-field="o.location_dest_id.name"/></h3></strong><br/>
+                                      <strong><h3>Date:<span t-field="o.min_date"/></h3></strong><br/>
+                                       <strong><h3>Input Type:<span t-field="o.origin"/></h3></strong><br/>
+                                </div>
+                            </div>-->
+                            
+                            <div class="row">
+
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong>Ref No:<span t-field="o.name"/> </strong><br/>
+                                     <strong>GRN Number:<span t-field="o.stock_id.name"/> </strong><br/>
+                                      <strong>Date:<span t-raw="time.strftime('%Y-%m-%d')"/> </strong><br/>
+                                       <strong>Store Location:<span t-field="o.location.name"/> </strong><br/>
+                                </div>
+
+                             
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong></strong><br/>
+                                    <strong>PO NO:</strong> <span t-field="o.purchase_order_id.name"/><br/>
+                                    <strong>Supplier Name:</strong> <span t-field="o.partner_id.name"/><br/>
+                                    <strong>Supplier Address:</strong> <span t-field="o.partner_id.street2"/>
+                                </div>
+                            </div><br/><br/>
+
+                            
+                          <div class="row" style="font-size: 17px;">
+                                <t t-if="o.state not in ['to_vendor','update']">  
+                                    <span>
+                                        GRN Generated: <br/> <br/>  
+                                         
+                                    </span>
+                                </t>
+
+                                <t t-if="o.state in ['update','to_vendor']">
+                                            
+                                    <span>
+                                        This is to notify you that the items below have the following issues <br/> 
+                                        Issues here<br/> <br/> 
+                                        So we are issuing this Note to you to take necessary measures.
+                                         
+                                    </span>
+                                </t>
+                                
+                            </div>
+
+
+                            <div class="row" style="font-size: 17px;">
+                                <div class="col-xs-6" style="text-align:left">
+                                    <t t-if="o.state == 'update'">
+                                               <span><strong>Debit Note</strong></span>
+                                    </t>
+                                   
+                                    <t t-if="o.state == 'to_vendor'">
+                                    
+                                               <span><strong>Credit Note</strong></span>
+                                    </t>
+
+                                    <t t-if="o.state not in ['to_vendor','update']">
+                                    
+                                               <span><strong>GRO Note</strong></span>
+                                    </t>
+
+
+                            </div>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <table class="table table-bordered">
+                                <t t-set="qty" t-value="0"/>
+                                    <thead>
+                                        <tr>
+
+                                         
+                                            <th><strong>Product</strong></th>
+                                            <th><strong>Stock Location</strong></th>
+                                            <th><strong>Initial Qty</strong></th>
+                                            <th><strong>Returning Qty</strong></th>
+                                             <th><strong>Received Qty</strong></th>
+                                              <th><strong>Unit Price</strong></th>
+                                            <!--<th><strong>Status</strong></th>-->
+                                            <th><strong>Sub total</strong></th>
+                                            
+                                            <!--Return -->
+                                        </tr>
+                                    </thead>
+
+                                    
+                                <t t-foreach="o.order_line" t-as="line">
+                                    <tbody>
+										<tr>
+                                            <td> <span t-esc="line.product_id.name"/></td>
+                                            <td> <span t-esc="o.location.name"/></td>
+											<td> <span t-esc="line.initial_qty"/></td>
+                                            <td> <span t-esc="line.qty"/></td>
+
+                                            
+                                            <td> <span t-esc="line.receive_qty"/></td>
+                                            <td> <span t-esc="line.product_id.list_price"/></td>
+                                            <td> <span t-esc="line.qty * line.product_id.list_price"/> </td>
+                                                
+                                            <!--<td> <span t-esc="line.state"/></td>-->
+                                            
+										</tr>
+									</tbody>
+                                </t>
+
+                                <t>
+                                  
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td><strong>Net Total:</strong></td>
+
+                                    <td><span t-esc="sum(lines.qty * lines.product_id.list_price for lines in o.order_line)"/>
+                                           
+                                    </td>
+                                </t>
+                                
+                                </table>
+							</div>
+
+                           
+
+                            <div class="row">
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong>Signature:...................</strong><br/>
+                                    <strong>Vendor</strong>
+
+                                </div>
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong>Signature:................</strong><br/>
+                                    <strong>Ikoyi Club 1938</strong>
+
+                                </div>
+                                <!--<div class="col-xs-6 col-xs-offset-8" style="font-size: 17px;">
+                                    <strong>All Payments:</strong> <span t-field="o.all_payments"/><br/>
+                                    <strong>Outstanding:</strong> <span t-field="o.outstanding"/><br/>
+                                    <strong>Total:</strong> <span t-field="o.amount_total"/>
+                                </div>-->
+                                
+                            </div>
+						</div>
+					</t>
+				</t>
+			</t>
+		</template>
+
+         
+	</data>
+</odoo>
+
+
+

@@ -1,0 +1,371 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+
+        <!-- Hotel Report Action -->
+        <report id="print_grn_report"
+            string="Good Recieve Note"
+            model="stock.picking"
+            report_type="qweb-pdf"
+            name="ikoyi_module.print_grn_template"
+            file="ikoyi_module.print_grn_template"
+            menu="True"
+            />
+            <report id="print_gro_report"
+            string="Good Return Note"
+            model="stock.picking"
+            report_type="qweb-pdf"
+            name="ikoyi_module.print_gro_template"
+            file="ikoyi_module.print_gro_template"
+            menu="True"
+            />
+
+            <template id = "edit_grn_gro_ikoyi">
+                <t t-call="ikoyi_module.print_grn_template">
+                </t>
+            </template>
+          
+            
+
+        <!-- Allocation Offer Letter Template -->
+        <template id="print_grn_template">
+            <t t-call="report.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="report.external_layout">
+                        <div class="page">
+
+                            <div class="row">
+                                <h2>
+                                    <span>
+                                        <center><u>IKOYI CLUB 1938</u></center>
+                                    </span>
+                                </h2>
+                            </div>
+                            <div class="row">
+                                <center> <div class="watermark;col-xs-8" styles="position:absolute;opacity:0.25; font-size:50px;width:200%;z-index">
+                                    <img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:140px;max-width:100px;"/>
+                                    <!-- img src="https://imgur.com/gLIZY95.jpg" style="max-height: 150px"/ 
+                                    <div class="watermark;col-xs-6 col-xs-offset-10" styles="position:absolute;opacity:0.25; font-size:50px;width:200%;z-index">
+                                
+                                    -->
+                                </div></center>
+                            </div>
+
+                            <!--<div class="row">
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong><h3>Store No:<span t-field="o.name"/></h3></strong><br/>
+                                     <strong><h3>Store Name:<span t-field="o.location_dest_id.name"/></h3></strong><br/>
+                                      <strong><h3>Date:<span t-field="o.min_date"/></h3></strong><br/>
+                                       <strong><h3>Input Type:<span t-field="o.origin"/></h3></strong><br/>
+                                </div>
+                            </div>-->
+
+                            <div class="row">
+
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong>Store No:<span t-field="o.name"/> </strong><br/>
+                                     <strong>Store Name:<span t-field="o.location_dest_id.name"/> </strong><br/>
+                                      <strong>Date:<span t-raw="time.strftime('%Y-%m-%d')"/> </strong><br/>
+                                       <strong>Input Type:<span t-field="o.origin"/> </strong><br/>
+                                </div>
+
+                               <!-- <div class="col-xs-6 col-xs-offset-8" style="font-size: 17px;">-->
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong>LPO No:</strong> <span t-field="o.group_id.name"/><br/>
+                                    <strong>Supplier NO:</strong> <span t-field="o.partner_id.phone"/><br/>
+                                    <strong>Supplier Name:</strong> <span t-field="o.partner_id.name"/><br/>
+                                    <strong>Supplier Address:</strong> <span t-field="o.partner_id.street2"/>
+                                </div>
+                            </div><br/><br/>
+                           <!-- <div class="row">
+                                <div class="col-xs-12" style="font-size: 17px;">
+                                    <strong>
+                                        <p style="font-size: 17px;">
+                                           <strong> Total Duration: </strong>
+                                        </p>
+                                    </strong>
+                                    <p></p>
+                                </div>
+                            </div>-->
+
+                            <div class="row" style="font-size: 17px;">
+                                <div class="col-xs-6" style="text-align:left">
+                                    <span><strong>Good Received Items</strong></span>
+                                </div>
+                                <br/>
+                                <br/>
+                                <table class="table table-bordered">
+                                <t t-set="qty" t-value="0"/>
+                                    <thead>
+                                        <tr>
+                                            <th><strong>Stock No</strong></th>
+                                            <th><strong>Qty</strong></th>
+                                            <th><strong>Description</strong></th>
+                                            <th><strong>Unit Price</strong></th>
+                                            <!--<th><strong>Status</strong></th>-->
+                                            <th><strong>Value</strong></th>
+                                            
+                                            <!--Return -->
+                                        </tr>
+                                    </thead>
+
+                                    
+                                <t t-foreach="o.pack_operation_product_ids" t-as="line">
+                                    <tbody>
+										<tr>
+                                            <td> <span t-esc="line.location_id.name"/></td>
+                                            <td> <span t-esc="line.qty_done"/></td>
+											<td> <span t-esc="line.product_id.name"/></td>
+                                            <td> <span t-esc="line.product_id.list_price"/></td>
+                                            <t t-set="line.product_id.list_price" t-as="product"/>
+                                            <t t-set="line.qty_done" t-as="quantity_unit"/>
+                                            <td> <span t-esc="line.qty_done * line.product_id.list_price"/> </td>
+                                            
+                                            <!--<td> <span t-esc="line.state"/></td>-->
+                                            
+										</tr>
+									</tbody>
+                                </t>
+
+                                <t>
+                                  
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td><strong>Net Total:</strong></td>
+
+                                    <td><span t-esc="sum(lines.qty_done * lines.product_id.list_price for lines in o.pack_operation_product_ids)"/>
+                                           
+                                    </td>
+                                </t>
+                                
+                                </table>
+							</div>
+
+                            <!--<div class="row" style="font-size: 17px;">
+                                <div class="col-xs-6" style="text-align:left">
+                                    <span><strong>Service Activities</strong></span>
+                                </div>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th><strong>Description</strong></th>
+                                            <th><strong>Product</strong></th>
+                                            <th><strong>Quantity</strong></th>
+                                            <th><strong>Unit Price</strong></th>
+                                            <th><strong>Subtotal</strong></th>
+                                            
+                                        </tr>
+                                    </thead>
+                                <t t-foreach="o.service_lines" t-as="line">
+                                    <tbody>
+										<tr>
+											<td> <span t-esc="line.name"/></td>
+											<td> <span t-esc="line.product_id.name"/></td>
+                                            <td> <span t-esc="line.product_uom_qty"/></td>
+                                            <td> <span t-esc="line.price_unit"/></td>
+                                            <td> <span t-esc="line.price_subtotal"/> </td>
+                                          
+										</tr>
+									</tbody>
+                                </t>
+                                </table>
+							</div>-->
+
+                            <div class="row">
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong>Signature:.............</strong><br/>
+                                    <strong>Vendor</strong>
+
+                                </div>
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong>Customer Signature:.............</strong><br/>
+                                    <strong>Ikoyi Club 1938</strong>
+
+                                </div>
+                                <!--<div class="col-xs-6 col-xs-offset-8" style="font-size: 17px;">
+                                    <strong>All Payments:</strong> <span t-field="o.all_payments"/><br/>
+                                    <strong>Outstanding:</strong> <span t-field="o.outstanding"/><br/>
+                                    <strong>Total:</strong> <span t-field="o.amount_total"/>
+                                </div>-->
+                                
+                            </div>
+						</div>
+					</t>
+				</t>
+			</t>
+		</template>
+
+        <!-- Allocation Offer Letter Template -->
+        <template id="print_gro_template">
+            <t t-call="report.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="report.external_layout">
+                        <div class="page">
+
+                            <div class="row">
+                                <h2>
+                                    <span>
+                                        <center><u>IKOYI CLUB 1938</u></center>
+                                    </span>
+                                </h2>
+                            </div>
+                            <div class="row">
+                                <center> <div class="watermark;col-xs-8" styles="position:absolute;opacity:0.25; font-size:50px;width:200%;z-index">
+                                    <img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:140px;max-width:100px;"/>
+                                    <!-- img src="https://imgur.com/gLIZY95.jpg" style="max-height: 150px"/ 
+                                    <div class="watermark;col-xs-6 col-xs-offset-10" styles="position:absolute;opacity:0.25; font-size:50px;width:200%;z-index">
+                                
+                                    -->
+                                </div></center>
+                            </div>
+
+                            <!--<div class="row">
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong><h3>Store No:<span t-field="o.name"/></h3></strong><br/>
+                                     <strong><h3>Store Name:<span t-field="o.location_dest_id.name"/></h3></strong><br/>
+                                      <strong><h3>Date:<span t-field="o.min_date"/></h3></strong><br/>
+                                       <strong><h3>Input Type:<span t-field="o.origin"/></h3></strong><br/>
+                                </div>
+                            </div>-->
+
+                            <div class="row">
+
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong>Store No:<span t-field="o.name"/> </strong><br/>
+                                     <strong>Store Name:<span t-field="o.location_dest_id.name"/> </strong><br/>
+                                      <strong>Date:<span t-raw="time.strftime('%Y-%m-%d')"/> </strong><br/>
+                                       <strong>Input Type:<span t-field="o.origin"/> </strong><br/>
+                                </div>
+
+                               <!-- <div class="col-xs-6 col-xs-offset-8" style="font-size: 17px;">-->
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong>LPO No:</strong> <span t-field="o.group_id.name"/><br/>
+                                    <strong>Supplier NO:</strong> <span t-field="o.partner_id.phone"/><br/>
+                                    <strong>Supplier Name:</strong> <span t-field="o.partner_id.name"/><br/>
+                                    <strong>Supplier Address:</strong> <span t-raw="time.strftime('%Y-%m-%d')"/>
+                                </div>
+                            </div><br/><br/>
+                           <!-- <div class="row">
+                                <div class="col-xs-12" style="font-size: 17px;">
+                                    <strong>
+                                        <p style="font-size: 17px;">
+                                           <strong> Total Duration: </strong>
+                                        </p>
+                                    </strong>
+                                    <p></p>
+                                </div>
+                            </div>-->
+
+                            <div class="row" style="font-size: 17px;">
+                                <div class="col-xs-6" style="text-align:left">
+                                    <span><strong>Good Return Items</strong></span>
+                                </div>
+                                <br/>
+                                <br/>
+                                <table class="table table-bordered">
+                                <t t-set="qty" t-value="0"/>
+                                    <thead>
+                                        <tr>
+                                            <th><strong>Stock No</strong></th>
+                                            <th><strong>Qty</strong></th>
+                                            <th><strong>Description</strong></th>
+                                            <th><strong>Unit Price</strong></th>
+                                            <!--<th><strong>Status</strong></th>-->
+                                            <th><strong>Value</strong></th>
+                                            
+                                            <!--Return -->
+                                        </tr>
+                                    </thead>
+
+                                    
+                                <t t-foreach="o.pack_operation_product_ids" t-as="line">
+                                    <tbody>
+										<tr>
+                                            <td> <span t-esc="line.location_id.name"/></td>
+                                            <td> <span t-esc="line.qty_done"/></td>
+											<td> <span t-esc="line.product_id.name"/></td>
+                                            <td> <span t-esc="line.product_id.list_price"/></td>
+                                            <t t-set="line.product_id.list_price" t-as="product"/>
+                                            <t t-set="line.qty_done" t-as="quantity_unit"/>
+                                            <td> <span t-esc="line.qty_done * line.product_id.list_price"/> </td>
+                                            
+                                            <!--<td> <span t-esc="line.state"/></td>-->
+                                            
+										</tr>
+									</tbody>
+                                </t>
+
+                                <t>
+                                  
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td><strong>Net Total:</strong></td>
+
+                                    <td><span t-esc="sum(lines.qty_done * lines.product_id.list_price for lines in o.pack_operation_product_ids)"/>
+                                           
+                                    </td>
+                                </t>
+                                
+                                </table>
+							</div>
+
+                            <!--<div class="row" style="font-size: 17px;">
+                                <div class="col-xs-6" style="text-align:left">
+                                    <span><strong>Service Activities</strong></span>
+                                </div>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th><strong>Description</strong></th>
+                                            <th><strong>Product</strong></th>
+                                            <th><strong>Quantity</strong></th>
+                                            <th><strong>Unit Price</strong></th>
+                                            <th><strong>Subtotal</strong></th>
+                                            
+                                        </tr>
+                                    </thead>
+                                <t t-foreach="o.service_lines" t-as="line">
+                                    <tbody>
+										<tr>
+											<td> <span t-esc="line.name"/></td>
+											<td> <span t-esc="line.product_id.name"/></td>
+                                            <td> <span t-esc="line.product_uom_qty"/></td>
+                                            <td> <span t-esc="line.price_unit"/></td>
+                                            <td> <span t-esc="line.price_subtotal"/> </td>
+                                          
+										</tr>
+									</tbody>
+                                </t>
+                                </table>
+							</div>-->
+
+                            <div class="row">
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong>Signature:.............</strong><br/>
+                                    <strong>Vendor</strong>
+
+                                </div>
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong>Signature:.............</strong><br/>
+                                    <strong>Ikoyi Club 1938</strong>
+
+                                </div>
+                                <!--<div class="col-xs-6 col-xs-offset-8" style="font-size: 17px;">
+                                    <strong>All Payments:</strong> <span t-field="o.all_payments"/><br/>
+                                    <strong>Outstanding:</strong> <span t-field="o.outstanding"/><br/>
+                                    <strong>Total:</strong> <span t-field="o.amount_total"/>
+                                </div>-->
+                                
+                            </div>
+						</div>
+					</t>
+				</t>
+			</t>
+		</template>
+	</data>
+</odoo>
+
+
+

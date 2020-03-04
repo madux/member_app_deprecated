@@ -1,0 +1,331 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+
+        <!-- Report Action -->
+        <report id="receipt_invoice_report"
+            string="Membership Receipt"
+            model="account.invoice"
+            report_type="qweb-pdf"
+            name="member_app.receipt_invoice_template"
+            file="member_app.receipt_invoice_template"
+            menu="True"
+            />
+			
+		<report id="receipt_invoice_single_report"
+            string="Print Membership Receipt"
+            model="member.app"
+            report_type="qweb-pdf"
+            name="member_app.receipt_invoice_single_template"
+            file="member_app.receipt_invoice_single_template"
+            menu="True"
+            />
+  
+        <template id="receipt_invoice_template">
+            <t t-call="report.html_container">
+				<t t-foreach="docs" t-as="o">
+					<div class="header">
+						<div class="row">
+							<div class="col-xs-3" style="font-size: 9px;">
+								<!-- <img t-if="o.create_uid.company_id.logo" t-att-src="'data:image/png;base64,%s' %o.create_uid.company_id.logo" style="max-width: 100px; max-height: 80px;"/> -->
+								<p style="text-align: left; font-weight: bold; font-size: 12px;">
+									<span t-esc="res_company.name"/><br/>
+									<span t-esc="res_company.street"/>, <span t-esc="res_company.street2"/>, <span t-esc="res_company.city"/>,<br/>
+									<span t-esc="res_company.state_id.name"/>, <span t-esc="res_company.country_id.name"/>
+								</p>
+                        	</div>
+							
+							<!-- <div class="col-xs-offset-2 text-right">
+								<img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:80px;max-width:60px;"/>
+							</div> -->
+							<br/>
+
+						</div>
+					</div>
+                
+                    <t t-call="report.external_layout">
+                        <div class="page">
+
+                            <div class="row" >
+								<div class="col-xs-3" style="font-size: 18px;">
+										<b><span> IKOYI CLUB 1938</span></b><br/>
+										<b><span t-esc="res_company.name"/></b><br/>
+										<b><span t-esc="res_company.state_id.name"/></b><br/>
+										<b><span t-esc="res_company.country_id.name"/></b><br/>
+								</div>
+							
+                           <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                <center> <div class="watermark;col-xs-8" styles="position:absolute;opacity:0.8; font-size:50px;width:200%;z-index">
+                                    <img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:140px;max-width:100px;"/>
+                                     
+                                </div></center>
+                            </div>
+							</div> 
+                            <div class="row" style="font-size: 18px;">
+								<span><strong><u>Member Name:</u></strong></span> <span t-field="o.partner_id.name"/><br/>
+                                <span><strong><u>Receipt Allocated As Follows:</u></strong></span>
+                                <br/>
+								 
+                                <table class="table table-bordered"> 
+									<t t-if="o.invoice_line_ids">
+										<span><strong>Invoice Details </strong></span>
+											<thead>
+												<tr>
+													<th><strong>Product Name</strong></th>
+													<th><strong>Unit Price</strong></th>
+													<th><strong>Account</strong></th>
+													<th><strong>Invoice Number</strong></th>
+													<th><strong> </strong></th>
+													<th><strong>Total</strong></th>
+												</tr>
+											</thead>
+											<t t-foreach="o.invoice_line_ids" t-as="inv">
+												<tbody>
+													<tr>
+														<td> <span t-esc="inv.product_id.name"/></td>
+														<td> <span t-esc="inv.price_unit"/></td>
+														<td><span t-esc="inv.account_id.name"/></td>
+														<td> <span t-esc="o.name"/></td>
+														<td> </td>
+														<td>&#8358; <span t-esc="inv.price_subtotal"/></td>
+													</tr>
+												</tbody>
+											</t> 
+											<t>
+												<td></td>
+												<td></td>
+												<td></td> 
+												<td></td> 
+												<td><strong>Total:</strong></td> 
+												<td>&#8358; <span t-esc="sum(line.price_subtotal for line in o.invoice_line_ids)"/></td> 
+											 
+											</t>
+										</t> 
+ 
+                                </table>
+
+								<table class="table table-condensed">
+                                 
+									<t t-if="o.payment_ids">
+										<span><strong>Payments </strong></span>
+											<thead>
+												<tr>
+													<th><strong>Name</strong></th>
+													<th><strong>Journal</strong></th>
+													<th><strong>Reference</strong></th>
+													<th><strong>Bank</strong></th>
+													<th><strong>Payment Date</strong></th>
+													<th><strong>Amount Paid</strong></th>
+													<th><strong>Balance</strong></th>
+												</tr>
+											</thead>
+											<t t-foreach="o.payment_ids" t-as="pay">
+												<tbody>
+													<tr>
+														<td> <span t-esc="pay.name"/></td>
+														<td> <span t-esc="pay.journal_id.name"/></td>
+														<td><span t-esc="pay.additional_ref"/></td>
+														<td><span t-esc="pay.bank.name"/></td>
+														<td><span t-esc="pay.payment_date"/></td>
+														<td>&#8358; <span t-esc="pay.amount"/></td>
+														<td>&#8358;<span t-esc="'{0:,}'.format(int(pay.balances))"/></td>
+													</tr>
+												</tbody>
+											</t> 
+											<t>
+												<td></td>
+												<td></td>
+												<td></td> 
+												<td></td> 
+												<td><strong>Total:</strong></td> 
+												<td>&#8358; <span t-esc="sum(line.amount for line in o.payment_ids)"/></td>  
+											</t>
+										</t>
+										
+									 
+                                </table><br/><br/> 
+                               
+							</div>
+							<div class="row">
+                                <div class="col-xs-3" style="font-size: 20px;">
+                                    <strong>Total Paid</strong><br/>
+									&#8358; <span t-esc="sum(p_amount.price_subtotal for p_amount in o.invoice_line_ids)"/>
+                                    <!-- <strong>&#8358; <span t-field="o.total"/></strong> -->
+                                </div>
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 20px;">
+                                    <strong>Outanding</strong><br/>
+                                    <strong>&#8358; <span t-esc="sum(line.balances for line in o.payment_ids)"/></strong>
+                                </div>
+                            </div><br/><br/>
+
+                            <div class="row">
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong>Signature:.....................</strong><br/>
+                                    <strong>Member</strong>
+
+                                </div>
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong>Signature:.....................</strong><br/>
+                                    <strong>Ikoyi Club 1938</strong>
+                                </div>
+                            </div>
+						</div>
+					</t>
+				</t>
+			</t>
+		</template>
+
+
+		<template id="receipt_invoice_single_template">
+            <t t-call="report.html_container">
+				<t t-foreach="docs" t-as="o">
+					<div class="header">
+						<div class="row">
+							<div class="col-xs-3" style="font-size: 9px;">
+								<!-- <img t-if="o.create_uid.company_id.logo" t-att-src="'data:image/png;base64,%s' %o.create_uid.company_id.logo" style="max-width: 100px; max-height: 80px;"/> -->
+								<p style="text-align: left; font-weight: bold; font-size: 12px;">
+									<span t-esc="o.create_uid.company_id.name"/><br/>
+									<span t-esc="o.create_uid.company_id.street"/>, <span t-esc="o.create_uid.company_id.street2"/>, <span t-esc="o.create_uid.company_id.city"/>,<br/>
+									<span t-esc="o.create_uid.company_id.state_id.name"/>, <span t-esc="o.create_uid.company_id.country_id.name"/>
+								</p>
+                        	</div>
+							
+							<!-- <div class="col-xs-offset-2 text-right">
+								<img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:80px;max-width:60px;"/>
+							</div> -->
+							<br/>
+
+						</div>
+					</div>
+                
+                    <t t-call="report.external_layout">
+                        <div class="page">
+
+                            <div class="row" >
+								<div class="col-xs-3" style="font-size: 18px;">
+										<b><span> IKOYI CLUB 1938</span></b><br/>
+										<b><span t-esc="o.create_uid.company_id.name"/></b><br/>
+										<b><span t-esc="o.create_uid.company_id.state_id.name"/></b><br/>
+										<b><span t-esc="o.create_uid.company_id.country_id.name"/></b><br/>
+								</div>
+							
+								<div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+										<center> 
+											<div class="watermark;col-xs-8" styles="position:absolute;opacity:0.8; font-size:50px;width:200%;z-index">
+												<img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:140px;max-width:100px;"/>
+											</div>
+										</center>
+                            	</div>
+							</div> 
+                            <div class="row" style="font-size: 18px;">
+								<span><strong><u>Member Name:</u></strong></span> <span t-field="o.partner_id.name"/> <br/>
+                                <span><strong><u>Receipt Allocated As Follows:</u></strong></span>
+                                <br/>
+								 
+                                <table class="table table-bordered"> 
+									<t t-if="o.invoice_id">
+										<span><strong>Invoice Details </strong></span>
+											<thead>
+												<tr>
+													<th><strong>Product Name</strong></th>
+													<th><strong>Unit Price</strong></th>
+													<th><strong>Account</strong></th>
+													<th><strong> </strong></th>
+													<th><strong> </strong></th>
+													<th><strong>Total</strong></th>
+												</tr>
+											</thead>
+											<t t-foreach="o.invoice_id" t-as="inv_id">
+												<t t-foreach="inv_id.invoice_line_ids" t-as="inv">
+													<tbody>
+														<tr>
+															<td> <span t-esc="inv.product_id.name"/></td>
+															<td> <span t-esc="inv.price_unit"/></td>
+															<td><span t-esc="inv.account_id.name"/></td>
+															<td> </td>
+															<td> </td>
+															<td>&#8358; <span t-esc="inv.price_subtotal"/></td>
+														</tr>
+													</tbody>
+												</t>  
+											</t> 
+										</t>
+ 
+                                </table>
+
+								<table class="table table-condensed">
+                                 
+									<t t-if="o.invoice_id">
+										<span><strong>Payments </strong></span>
+											<thead>
+												<tr>
+													<th><strong>Name</strong></th>
+													<th><strong>Journal</strong></th>
+													<th><strong>Reference</strong></th>
+													<th><strong>Bank</strong></th>
+													<th><strong>Payment Date</strong></th>
+													<th><strong>Amount Paid</strong></th>
+													<th><strong>Balance</strong></th>
+												</tr>
+											</thead>
+											<t t-foreach="o.invoice_id" t-as="pay_id">
+												<t t-foreach="pay_id.payment_ids" t-as="pay">
+													<tbody>
+													<tr>
+														<td> <span t-esc="pay.name"/></td>
+														<td> <span t-esc="pay.journal_id.name"/></td>
+														<td><span t-esc="pay.additional_ref"/></td>
+														<td><span t-esc="pay.bank.name"/></td>
+														<td><span t-esc="pay.payment_date"/></td>
+														<td>&#8358; <span t-esc="pay.amount"/></td>
+														<td>&#8358; <span t-esc="'{0:,}'.format(int(pay.balances))"/></td>
+ 
+													</tr>
+												</tbody>
+												</t>  
+										</t>
+										</t>
+										
+									 
+                                </table><br/><br/> 
+                               
+							</div>
+							<div class="row">
+                                <div class="col-xs-3" style="font-size: 20px;">
+                                    <strong>Total Paid</strong><br/>
+									<!-- <t t-foreach="o.invoice_id" t-as="inv_id">
+									&#8358; <span t-esc="sum(p_amount.price_subtotal for p_amount in inv_id.invoice_line_ids)"/>
+                                   
+									</t> -->
+									<strong>&#8358; <span t-esc="o.total_subsequent"/></strong>
+                                </div>
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 20px;">
+                                    <strong>Outanding</strong><br/>
+									 
+                                    <strong>&#8358; <span t-esc="o.balance_total"/></strong>
+									 
+                                </div>
+                            </div><br/><br/>
+
+                            <div class="row">
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong>Signature:.....................</strong><br/>
+                                    <strong>Member</strong>
+
+                                </div>
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong>Signature:.....................</strong><br/>
+                                    <strong>Ikoyi Club 1938</strong>
+                                </div>
+                            </div>
+						</div>
+					</t>
+				</t>
+			</t>
+		</template>
+
+	</data>
+</odoo>
+
+
+

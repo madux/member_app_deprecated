@@ -1,0 +1,183 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+
+        <!-- Report Action -->
+         
+
+		<report id="single_receipt_spouse"
+            string="Spouse Receipt"
+            model="register.spouse.member"
+            report_type="qweb-pdf"
+            name="member_app.spouse_single_receipt_template"
+            file="member_app.spouse_single_receipt_template"
+            menu="True"
+            />
+      
+        <!-- Allocation Offer Letter Template -->
+        <template id="spouse_single_receipt_template">
+            <t t-call="report.html_container">
+				<t t-foreach="docs" t-as="o">
+					<div class="header">
+						<div class="row">
+							<div class="col-xs-3" style="font-size: 10px;">
+								
+								<p style="text-align: left; font-weight: bold; font-size: 12px;">
+									<span t-esc="o.create_uid.company_id.name"/><br/>
+									<span t-esc="o.create_uid.company_id.street"/>, <span t-esc="o.create_uid.company_id.street2"/>, <span t-esc="o.create_uid.company_id.city"/>,<br/>
+									<span t-esc="o.create_uid.company_id.state_id.name"/>, <span t-esc="o.create_uid.company_id.country_id.name"/>
+								</p>
+                        	</div>
+							
+							<!-- <div class="col-xs-offset-2 text-right">
+								<img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:80px;max-width:60px;"/>
+							</div> -->
+							<br/>
+
+						</div>
+					</div>
+                
+                    <t t-call="report.external_layout">
+                        <div class="page">
+
+                            <div class="row" >
+								<div class="col-xs-3" style="font-size: 18px;">
+										<b><span> IKOYI CLUB 1938</span></b><br/>
+										<b><span t-esc="o.create_uid.company_id.name"/></b><br/>
+										<b><span t-esc="o.create_uid.state_id.name"/></b><br/>
+										<b><span t-esc="o.create_uid.country_id.name"/></b><br/>
+								</div>
+							
+								<div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+										<center> 
+											<div class="watermark;col-xs-8" styles="position:absolute;opacity:0.8; font-size:50px;width:200%;z-index">
+												<img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:140px;max-width:100px;"/>
+												<!-- img src="https://imgur.com/gLIZY95.jpg" style="max-height: 150px"/ 
+												<div class="watermark;col-xs-6 col-xs-offset-10" styles="position:absolute;opacity:0.25; font-size:50px;width:200%;z-index">
+
+												-->
+											</div>
+										</center>
+								</div>
+							</div> 
+                            
+                          
+
+                            <div class="row" style="font-size: 18px;">
+                               
+								<span><strong><u>Spouse Receipt</u></strong></span>
+                            	
+                                <br/>
+								<t t-if="o.state in ['wait', 'account','confirm']">
+									<div class="col-xs-3" style="font-size: 18px;">
+										<strong>Customer: </strong><span t-field="o.partner_id.name"/><br/>
+										<strong>Address: </strong><span t-field="o.street"/>,<span t-field="o.state_id.name"/> <br/>
+										<strong>City: </strong><span t-field="o.city"/>, <span t-field="o.country_id.name"/><br/>
+										<strong>Email </strong><span t-field="o.email"/><br/>
+										
+									</div>
+								 	
+																	
+									<div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 18px;">
+										<b>Date: </b><span t-raw="time.strftime('%Y-%m-%d')"/>
+									</div>
+																	
+								</t>
+							</div>	
+								
+                                <br/>
+                                <br/>
+                                <table class="table table-bordered">
+                                 
+									<t t-if="o.spouse_subscription">
+										<!-- <span><strong>Spouse Details </strong></span>
+										
+											<div class="row" >
+												<div class="col-xs-3" style="font-size: 17px;">
+													<b>Spouse Name: <span t-esc="o.partner_id.name"/></b><br/>
+													 
+												</div>
+											
+												<div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+													
+													<b>Date: </b><span t-raw="time.strftime('%Y-%m-%d')"/>
+												</div>
+											</div> -->
+											
+											
+											<thead>
+													<tr>
+														<th><strong>Subscription</strong></th>
+														<th><strong>Period</strong></th>
+														<th><strong>Subscription fee</strong></th>
+														<th><strong>Subscription Levy</strong></th>
+														<th><strong>Entry Fee</strong></th>
+														<th><strong>Special Levy</strong></th>
+																	
+													</tr>
+											</thead>
+												
+											<t t-foreach="o.spouse_subscription" t-as="pack_line">
+												<tbody>
+														<tr>
+																		 
+															<td> <span t-esc="pack_line.subscription.name"/></td>
+															<td><span t-esc="pack_line.subscription.subscription_period"/></td>
+															<td>&#8358; <span t-esc="pack_line.member_price"/></td>
+															<td>&#8358; <span t-esc="pack_line.sub_levy"/></td>
+															<td>&#8358; <span t-esc="pack_line.entry_price"/></td>
+															<td>&#8358; <span t-esc="pack_line.special_levy"/></td>
+														</tr>
+												</tbody>
+											</t>
+											 
+											<t>
+												<td></td>
+												<td><strong>Net Total.:</strong></td> 
+												<td><span t-esc="sum(line.member_price for line in o.spouse_subscription)"/></td>
+												<td><span t-esc="sum(line.sub_levy for line in o.spouse_subscription)"/></td>
+												<td><span t-esc="sum(line.entry_price for line in o.spouse_subscription)"/></td>
+												<td><span t-esc="sum(line.special_levy for line in o.spouse_subscription)"/></td>
+																	
+											</t> 
+														
+										
+									</t> 
+								  
+								 </table>
+							
+							<div class="row">
+                                <div class="col-xs-3" style="font-size: 20px;">
+                                    <strong>Total</strong><br/>
+									<!-- &#8358; <span t-esc="sum(p_amount.paid_amount for p_amount in o.payment_line2)"/> -->
+                                    <strong>&#8358; <span t-field="o.total"/></strong>
+                                </div>
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 20px;">
+                                    <strong>Outanding</strong><br/>
+                                    <!-- <strong>&#8358; <span t-esc="sum(line.balance for line in o.payment_line2)"/></strong> -->
+                                </div>
+                            </div><br/><br/>
+
+                            <div class="row">
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong>Signature:.....................</strong><br/>
+                                    <strong>Member</strong>
+
+                                </div>
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong>Signature:.....................</strong><br/>
+                                    <strong>Ikoyi Club 1938</strong>
+                                </div>
+                            </div>
+						 </div>
+					</t>
+				</t>
+			</t>
+		</template>
+
+ 
+	</data>
+</odoo>
+
+
+

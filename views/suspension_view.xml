@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE xml>
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="suspension_formxfvv">
+                <field name="name">Suspension</field>
+                <field name="model">suspension.model</field>
+                <field name="priority">50</field>
+                <field name="arch" type="xml">
+                    <form string="Suspension ">   
+                                <header>
+                                    <button name="send_to_hon" string="Send to Honourary" type="object" icon="fa-registered" class="btn-primary"
+                                    attrs="{'invisible': [('state','not in',['draft'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" 
+        />
+
+                                    <button name="send_hon_to_manager" string="Approve" type="object" icon="fa-registered" class="btn-primary"
+                                    attrs="{'invisible': [('state','not in',['hon_sec'])]}" groups="base.group_system,member_app.membership_honour_ikoyi"/>
+
+                                    <button name="send_manager_to_approve" string="Confirm Suspension" type="object" icon="fa-registered" class="btn-primary"
+                                    attrs="{'invisible': [('state','not in',['manager_approve'])]}" groups="member_app.manager_member_ikoyi"/>
+                                    <button name="send_to_hon_back" string="Reject" type="object" icon="fa-registered" class="btn-primary"
+                                    attrs="{'invisible': [('state','not in',['hon_sec'])]}" groups="member_app.membership_honour_ikoyi"/>
+                                     <button name="payment_button" string="Register Payment" type="object" icon="fa-registered" class="btn-primary"
+                                    attrs="{'invisible': [('state','not in',['member'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi"/>
+
+                                    <field name="state" widget="statusbar" statusbar_visible="draft,hon_sec,manager_approve,suspend"/>
+                                </header>
+                        <sheet>
+                            
+                            <label for="partner_id" string = "Member Name" class="oe_edit_only"/>
+                            <h1>
+                                <field name="partner_id" default_focus="1" placeholder="Name" options="{'limit': 1}"/>
+                            </h1>
+                        <group attrs="{'readonly': [('state','not in',['draft'])]}">
+                            <group>
+                                <field name="member_id" />
+                                <field name="email" widget="email" />
+                                <field name="account_id" options="{&quot;no_open&quot;: True}" />
+                                <field name="identification"/>    
+                                <field name="mode" required="1"/>                  
+                            </group>
+                            <group>
+                                <field name="date" string="Request Date"/>
+                                <field name="suspension_date"/>
+                                <field name="users_followers" widget="many2many_tags"/> 
+                                <field name="package" readonly="0" widget="many2many_tags" invisible="1" string="Sessions" required="0"/>
+                                <field name="balance_total" readonly="0"/>
+                                
+                                <!-- <field name="invoice_id" invisible="0" string ="Invoices" widget="many2many_tags"/>
+                                     -->
+                            </group>
+                        </group>
+
+                        <notebook colspan="4">
+                            <page name="suspension_payment" string="Membership Payments">
+                                <separator string="Additional Payment History" colspan="4"/>
+                                <field name="payment_ids" attrs="{'invisible':[('state','=','draft')]}" readonly="0">
+                                 
+                                    <tree string="Payments" editable="bottom"> 
+                                        <field name="name"/>
+                                        <field name="journal_id"/>
+                                        <field name="bank"/>
+                                        <field name="amount_to_pay" invisible="0"/>
+                                        <field name="amount" string="Paid Amount"/>
+                                        <field name="balances" invisible="0"/>
+                                        <field name="payment_date"/>
+                                        <field name="additional_ref"/>
+                                    </tree>
+                                </field>
+                            </page>
+                           
+                            <!-- <page name="section_package" string="Sections">
+                                <field name="subscription" readonly="0" attrs="{'readonly': [('state', '!=', 'draft')]}">
+                                <p style="color: red;">* See Sections</p>
+                                <tree string="Sections" editable="bottom">
+                                    <field name="name"/>
+                                    <field name="member_price" string = "subscription Amount"/>                               
+                                    <field name="subscription_period" string="Subscription Period"/>
+                                    <field name="pdate" string="Date"/>
+                                </tree>
+                                </field>
+                                <separator string="Packages" colspan="4"/>
+                                <field name="package" readonly="0">
+                                <p style="color: red;">* See Payments</p>
+                                <tree string="Packages" editable="bottom">
+                                <field name="name"/>
+                                    <field name="package_cost" string = "Package Amount"/>                               
+                                    <field name="subscription_period" string="Subscription Period"/>
+                                    <field name="pdate" string="Date"/>
+                                    
+                                </tree>
+                                </field>
+                            </page> -->
+
+                        </notebook>
+
+                    </sheet>
+                    </form>
+                </field>
+            </record>
+            <record model="ir.ui.view" id="suspension_treex">
+                <field name="name">Suspension</field>
+                <field name="model">suspension.model</field>
+                <field name="priority">50</field>
+                <field name="arch" type="xml">
+                    <tree string="Section">
+                            <field name="partner_id"/>
+                                    <field name="member_id"/>
+                                <field name="email" widget="email" />
+                                
+                                <field name="identification"/>  
+                                <field name="date"/>
+                                <field name="suspension_date"/>
+                                <field name="users_followers" widget="many2may_tags"/>
+                                
+                    </tree>
+                </field>
+            </record>
+
+
+
+        <act_window id="suspension_action_main"
+            name="Suspension"
+            res_model="suspension.model"
+            domain="[]"
+            view_mode="tree,form"/>
+
+            
+
+        <menuitem id ="menu_memapp_suspension" name="Suspension" parent="member_app.menu_memapp_all" sequence="4" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi,member_app.membership_honour_ikoyi"/>
+              <menuitem id ="menu_memapp_susp" name="Suspend Members" sequence="1" parent="menu_memapp_suspension" action="suspension_action_main"/>
+        
+
+</data>
+ </odoo>

@@ -1,0 +1,260 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+
+        <!-- Report Action -->
+        <report id="receipt_membership_report"
+            string="Membership Receipt"
+            model="member.app"
+            report_type="qweb-pdf"
+            name="member_app.membership_receipt_template"
+            file="member_app.membership_receipt_template"
+            menu="False"
+            />
+      
+        <!-- Allocation Offer Letter Template -->
+        <template id="membership_receipt_template">
+            <t t-call="report.html_container">
+				<t t-foreach="docs" t-as="o">
+					<div class="header">
+						<div class="row">
+							<div class="col-xs-3" style="font-size: 9px;">
+
+								<!--HHHHHH--> 
+							</div>
+							<div class="col-xs-offset-2 text-right">
+								<img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:80px;max-width:60px;"/>
+							</div>
+							<hr/>
+
+						</div>
+					</div>
+                
+                    <t t-call="report.external_layout">
+                        <div class="page">
+
+                            <div class="row" >
+								<div class="col-xs-3" style="font-size: 14px;">
+										<b><span> IKOYI CLUB 1938</span></b><br/>
+										<b><span t-esc="o.create_uid.company_id.name"/></b><br/>
+										<b><span t-esc="o.create_uid.state_id.name"/></b><br/>
+										<b><span t-esc="o.create_uid.country_id.name"/></b><br/>
+								</div>
+							
+                           <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                <center> <div class="watermark;col-xs-8" styles="position:absolute;opacity:0.8; font-size:50px;width:200%;z-index">
+                                    <img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:140px;max-width:100px;"/>
+                                    <!-- img src="https://imgur.com/gLIZY95.jpg" style="max-height: 150px"/ 
+                                    <div class="watermark;col-xs-6 col-xs-offset-10" styles="position:absolute;opacity:0.25; font-size:50px;width:200%;z-index">
+
+                                    -->
+                                </div></center>
+                            </div>
+							</div> 
+                            
+                          <!--<div class="row" style="font-size: 17px;">
+                                <t t-if="o.state not in ['to_vendor','update']">
+                                    <span>
+                                        GRN Generated: <br/> <br/>
+                                         
+                                    </span>
+                                </t>
+
+                                <t t-if="o.state in ['update','to_vendor']">
+                                            
+                                    <span>
+                                        This is to notify you that the items below have the following issues <br/> 
+                                        Issues here<br/> <br/> 
+                                        So we are issuing this Note to you to take necessary measures.           
+                                    </span>
+                                </t>
+                                
+                            </div>-->
+
+
+                            <div class="row" style="font-size: 17px;">
+                                <div class="col-xs-6" style="text-align:left">
+									<span><strong>Receipt Allocated As Follows: </strong></span>
+                            	</div>
+                                <br/>
+								<t t-if="o.state in ['draft','white','green','interview','wait','issue_green']">
+														<strong>White form Cost: </strong><span t-field="o.int_form_price"/><br/>
+														<strong>Harmony Magazine: </strong><span t-field="o.harmony"/><br/>
+														<strong>Green Form Cost: </strong><span t-field="o.green_form_price"/><br/>
+														<strong>Delay Charges: </strong><span t-field="o.delay_charges"/> <br/>
+														<strong>Main House Cost: </strong><span t-field="o.main_house_cost"/><br/>
+														<strong>Coffee Cost: </strong><span t-field="o.coffee_book"/><br/>
+								</t>
+                                <br/>
+                                <br/>
+                                <table class="table table-bordered">
+                                 
+									<t t-if="o.package">
+										<span><strong>Package Details and </strong></span>
+											<thead>
+												<tr>
+													<th><strong>Name</strong></th>
+													<th><strong>Period</strong></th>
+													<th><strong>Package Cost</strong></th>
+													<th><strong>Date</strong></th>
+													<th><strong>.</strong></th>
+													<th><strong>.</strong></th>
+														
+												</tr>
+											</thead>
+											<t t-foreach="o.package" t-as="pack">
+												<tbody>
+													<tr>
+														<td> <span t-esc="pack.name"/></td>
+														<td> <span t-esc="pack.subscription_period"/></td>
+														<td> <span t-esc="pack.package_cost"/></td>
+														<td> <span t-esc="pack.pdate"/></td>
+														<td> </td>
+														<td> </td>
+													</tr>
+												</tbody>
+											</t> 
+											<t>
+												<td></td>
+												<td></td>
+												<td><strong>Net Total:</strong></td> 
+												<td><span t-esc="sum(line.package_cost for line in o.package)"/></td>
+												<td> </td>
+												<td> </td>
+											</t>
+									</t>
+
+									<t t-if="o.subscription">
+										<span><strong>Section Details </strong></span>
+											<thead>
+												<tr>
+													<th><strong>Name</strong></th>
+													<th><strong>Period</strong></th>
+													<th><strong>Package Cost</strong></th>
+													<th><strong>Date</strong></th>
+													<th><strong>.</strong></th>
+													<th><strong>.</strong></th>
+													
+												</tr>
+											</thead>
+											<t t-foreach="o.subscription" t-as="sub">
+												<tbody>
+													<tr>
+														<td> <span t-esc="sub.name"/></td>
+														<td> <span t-esc="sub.subscription_period"/></td>
+														<td> <span t-esc="sub.member_price"/></td>
+														<td> <span t-esc="sub.pdate"/></td>
+														<td> </td>
+														<td> </td>
+													</tr>
+												</tbody>
+											</t> 
+											<t>
+												<td></td>
+												<td></td>
+												<td><strong>Net Total:</strong></td> 
+												<td><span t-esc="sum(line.member_price for line in o.subscription)"/></td>
+												<td> </td>
+												<td> </td>
+												
+											</t>
+										</t>
+                                </table>
+
+								<table class="table table-condensed">
+                                 
+									<t t-if="o.payment_line2">
+										<span><strong>Payments History</strong></span>
+											<thead>
+												<tr>
+													<th><strong>Name</strong></th>
+													<th><strong>Cost</strong></th>
+													<th><strong>Penalty</strong></th>
+													<th><strong>Amount Paid</strong></th>
+													<th><strong>Balance</strong></th>
+													<th><strong>Date</strong></th>
+													
+												</tr>
+											</thead>
+											<t t-foreach="o.payment_line2" t-as="pay">
+												<tbody>
+													<tr>
+														<td> <span t-esc="pay.name"/></td>
+														<td> <span t-esc="pay.member_price"/></td>
+														<td> <span t-esc="pay.penalty_fee"/></td>
+														<td> <span t-esc="pay.paid_amount"/></td>
+														<td> <span t-esc="pay.balance"/></td>
+														<td> <span t-esc="pay.pdate"/></td>
+													</tr>
+												</tbody>
+											</t> 
+											<t>
+												<td><strong>Total:</strong></td> 
+												<td><span t-esc="sum(t_price.member_price for t_price in o.payment_line2)"/></td>
+												<td><span t-esc="sum(p_line.penalty_fee for p_line in o.payment_line2)"/></td>
+												<td><span t-esc="sum(p_amount.paid_amount for p_amount in o.payment_line2)"/></td> 
+												<td><span t-esc="sum(line.balance for line in o.payment_line2)"/></td>
+											
+											</t>
+									</t>
+									<t t-if="o.sub_line">
+									
+										<span><strong>and Subscription Payments </strong></span>
+											<thead>
+												<tr>
+													<th><strong>Name</strong></th>
+													<th><strong>Amount</strong></th>
+													<th><strong>Renewal period</strong></th>
+													<th><strong>Paid Amount</strong></th>
+													<th><strong>Balance</strong></th>
+													<th><strong>Date</strong></th>
+													
+												</tr>
+											</thead>
+											<t t-foreach="o.sub_line" t-as="sub">
+												<tbody>
+													<tr>
+														<td> <span t-esc="sub.name"/></td>
+														<td> <span t-esc="sub.total_price"/></td>
+														<td> <span t-esc="sub.periods_month"/></td>
+														<td> <span t-esc="sub.paid_amount"/></td>
+														<td> <span t-esc="sub.balance"/></td>
+														<td> <span t-esc="sub.pdate"/></td>
+													</tr>
+												</tbody>
+											</t> 
+											<t>
+												<td></td>
+												<td></td>
+												<td><strong>Line Total:</strong></td> 
+												<td><span t-esc="sum(line.paid_amount for line in o.sub_line)"/></td>
+												<td><span t-esc="sum(line.balance for line in o.sub_line)"/></td>
+												<td></td>
+												
+											</t>
+										</t>
+                                
+                                </table>
+							</div>
+
+                            <div class="row">
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong>Signature:.....................</strong><br/>
+                                    <strong>Vendor</strong>
+
+                                </div>
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong>Signature:.....................</strong><br/>
+                                    <strong>Ikoyi Club 1938</strong>
+                                </div>
+                            </div>
+						</div>
+					</t>
+				</t>
+			</t>
+		</template>
+	</data>
+</odoo>
+
+
+

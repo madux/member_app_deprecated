@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE xml>
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="guestregister_formxfvv">
+            <field name="name">Guest</field>
+            <field name="model">register.guest</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <form string="Guest  "> 
+                     
+                            <header>
+                                <button name="button_send_hon" string="Apply" type="object" icon="fa-registered" class="btn-primary"
+                                attrs="{'invisible': [('state','not in',['draft'])]}" groups="member_app.membership_officer_ikoyi,member_app.manager_member_ikoyi"/>
+
+                                <button name="button_send_hon_invocie" string="Approve" type="object" icon="fa-registered" class="btn-primary"
+                                 attrs="{'invisible': [('state','not in',['honourary'])]}" groups="member_app.membership_honour_ikoyi"/>
+
+                                <button name="button_send_invocie_wait" string="Create Invoice and Verify" type="object" icon="fa-registered" class="btn-primary"
+                                attrs="{'invisible': [('state','not in',['invoice'])]}"/>
+
+                                <button name="button_send_gen_Manager" string="Send to GM" type="object" icon="fa-registered" class="btn-primary"
+                                attrs="{'invisible': [('state','not in',['wait'])]}" groups="member_app.membership_officer_ikoyi,member_app.manager_member_ikoyi"/>
+
+                                <button name="button_gen_Manager_hon2" string="Approve" type="object" icon="fa-registered" class="btn-primary"
+                                 attrs="{'invisible': [('state','not in',['general_manager'])]}" groups="ikoyi_module.gm_ikoyi"/>
+
+                                <button name="button_hon2_approve" string="Approve" type="object" icon="fa-registered" class="btn-primary"
+                                attrs="{'invisible': [('state','not in',['honourary_two'])]}" groups="member_app.membership_honour_ikoyi"/>
+
+                                <button name="button_officer_confirm" string="Approve" type="object" icon="fa-registered" class="btn-primary"
+                                attrs="{'invisible': [('state','not in',['verify'])]}" groups="member_app.membership_officer_ikoyi,member_app.manager_member_ikoyi"/>
+
+                                <field name="state" widget="statusbar" statusbar_visible="draft,wait,invoice,general_manager,confirm"/>
+
+                             </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                                    
+                                    <button name="see_breakdown_invoice" string="View and Pay Invoices" type="object" class="oe_stat_button" icon="fa-shirtsinbulk" attrs="{'invisible':[('state','=','draft')]}">
+                                            <!--<field name="see_invoice" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>-->
+                                        </button>
+
+                                    </div>
+                        <field name="image" widget="image" class="oe_avatar"/>
+                        <label for="Name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="partner_id" invisible="1" default_focus="1" required ="0" attrs="{'readonly':[('state','not in',['draft'])]}"
+                             placeholder="Name" options="{&quot;no_open&quot;: True,'limit': 1}"/>
+                        </h1>
+                    <group>
+                        <group>
+                            <field name="surname" attrs="{'readonly':[('state','not in',['draft'])],'required':[('state','in',['draft'])]}"/>
+                            <field name="first_name" attrs="{'readonly':[('state','not in',['draft'])],'required':[('state','in',['draft'])]}"/>
+                            <field name="middle_name" attrs="{'readonly':[('state','not in',['draft'])],'required':[('state','in',['draft'])]}"/>
+                            <label for="street" string="Address"/>
+                            <div class="o_address_format">
+                                <field name="street" placeholder="Street..." class="o_address_street"/>
+                                <field name="city" placeholder="City" class="o_address_city"/>
+                                <field name="state_id" class="o_address_state" placeholder="State" options="{&quot;no_open&quot;: True}" />
+                                <field name="country_id" placeholder="Country" class="o_address_country" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}"/>
+                            </div>
+                            <field name="url" widget="url" placeholder="e.g. www.ikoyiclub.com"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="email" widget="email" />
+                            <field name="occupation"/>
+                             <field name="position_holder" required="0"/>  
+                            <field name="member_condition" required="0"/>  
+                            
+                        </group>
+                        <group>
+                            
+                            
+                            <field name="title" options="{&quot;no_open&quot;: True}" />
+                            <field name="nok"/>
+                            <field name="dob"/>
+                            <field name="member_age"/>
+                            <field name="date_order" required="1"/>
+                            
+                        </group>
+                         <group>
+                           
+                            <field name="sponsor" string ="Sponsor" />
+                            <field name="relationship"/>
+
+                            <field name="place_of_work" string="Place Of Work" required="1"/>
+                            <field name="address_work" colspan="20" string="Work Address" invisible= "1" required="0"/>
+                             <field name="work_place_manager_name" string ="Manager's Name" required="1"/>  
+                            <field name="email_work" widget="email" required="1"/>
+                            <field name="binary_attach_letter" filename="binary_fname_letter" invisible="0"/>
+                            <field name="binary_fname_letter" required="0" invisible="1" />
+
+                             
+                         </group>
+
+                         <group>
+                         <field name="account_id" required="1"/>   
+                            <field name="binary_attach_receipt" filename="binary_fname_receipt" attrs="{'required':[('state','in',['verify'])]}" invisible="0"/>
+                            <field name="binary_fname_receipt" required="0" invisible="1" />
+                         </group>
+
+                        <group>
+                             
+                            <field name="abroad_address" required="0"/>  
+                            <field name="passport_number" required="0"/>
+                            
+                         </group>
+                         <group>
+                           <field name="resident_permit" required="0"/> 
+                            <field name="purpose_visit" required="0"/>  
+                            
+                         </group>
+                
+
+                         <group>
+                            <field name="product_id"/>
+                             <field name="subscription" invisible="1" required="0" widget="many2many_tags"/>
+                            <field name="package" invisible="1" required="0" widget="many2many_tags"/>
+                            
+                         </group>
+                         <group>
+                            <field name="member_price" invisible="1" readonly="0"/>
+                            <field name="package_cost" invisible="1"/>
+                            <field name="total"/>
+                            
+                         </group>
+                
+                         
+                    </group>
+
+                </sheet>
+                 </form>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="guest_treexxx">
+            <field name="name">Guest</field>
+            <field name="model">register.guest</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <tree string="Section">
+                            <field name="partner_id"/>
+                            <field name="member_age"/>
+                            <field name="date_order"/>
+                            <field name="total"/>
+                            <field name="state"/> 
+                            
+
+                </tree>
+            </field>
+        </record>
+
+        
+
+
+        <act_window id="guest_action_main"
+            name="Guest"
+            res_model="register.guest"
+            domain="[]"
+            view_mode="tree,form"/>
+
+        <menuitem id ="menu_memapp_guest" name="Guest Registration" parent="member_app.menu_memapp_all" sequence="4" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi,member_app.membership_honour_ikoyi"/>
+              <menuitem id ="menu_memapp_guest_sub" name="Guest Ticket" sequence="1" parent="menu_memapp_guest" action="guest_action_main"/>
+        
+
+</data>
+ </odoo>

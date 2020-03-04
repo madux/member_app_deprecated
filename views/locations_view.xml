@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <data>
+
+    <!-- window action -->
+    <!-- the following tag is an action definition for a "window action",
+         that is an action opening a view or sets of views
+    -->
+    <record id="action_res_location_form" model="ir.actions.act_window">
+      <field name="name">Locations</field>
+      <field name="type">ir.actions.act_window</field>
+      <field name="res_model">member.locations</field>
+      <field name="view_type">form</field>
+      <field name="view_mode">tree,form</field>
+      <field name="help" type="html">
+        <p class="oe_view_nocontent_create">Create Location</p>
+      </field>
+    </record>
+
+
+    <!-- views -->
+    <!-- form view -->
+    <record id="locations_form_view" model="ir.ui.view">
+      <field name="name">locations.form</field>
+      <field name="model">member.locations</field>
+      <field name="arch" type="xml">
+        <form>
+          <sheet>
+            <group>
+              <field name="name"/>
+              <field name="code"/>
+              <field name="parent_id"/>
+            </group>
+          </sheet>
+        </form>
+      </field>
+    </record>
+
+    <!-- List view -->
+    <record model="ir.ui.view" id="locations_list_view">
+      <field name="name">locations.tree</field>
+      <field name="model">member.locations</field>
+      <field name="priority" eval="3"/>
+      <field name="arch" type="xml">
+        <tree string="List of Lab Tests">
+          <field name="name"/>
+          <field name="parent_id"/>
+          <field name="code"/>
+          <field name="create_uid" />
+          <field name="create_date" />
+        </tree>
+      </field>
+    </record>
+
+  </data>
+</odoo>

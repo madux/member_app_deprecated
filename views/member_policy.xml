@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE xml>
+<odoo>
+    <data> 
+        <!-- Line 8 TO Line 12 is to generate form view
+            Make sure you provide the id of the form e.g 
+            is in line 8 -->
+        <record model="ir.ui.view" id="memberpolicy_form_view">
+            <field name="name">member.policy.form</field>
+            <field name="model">member.policy</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <!-- Line 16 opens the <form> to allow you
+                    define the fields you created in the models or python file
+                -->
+                <form string="Member Policy">   
+                    <!-- Line 21 is the <header> to allow you
+                    define the methods/functions in form of a button that
+                    you created in the models or python file
+                    -->
+                    <header>
+                           <button name="preview_changes" string='Preview' type="object" icon="fa-registered" class="btn-primary"
+                            attrs="{'invisible':[('state','not in',['Draft'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" />
+
+                            <button name="confirm_deactivation" string='Confirm Deactivation' type="object" icon="fa-registered" class="btn-primary"
+                            attrs="{'invisible':[('state','not in',['Draft'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" />
+
+                            <button name="confirm_activation" string='Confirm Activation' type="object" icon="fa-registered" class="btn-primary"
+                            attrs="{'invisible':[('state','not in',['Deactivation'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" />
+                        
+                            <button name="calculate_bill" string='Calculate Bill' type="object" icon="fa-registered" class="btn-primary"
+                            attrs="{'invisible':[('state','not in',['Activation'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" />
+                            <field name="state" widget="statusbar" statusbar_visible="Draft,Deactivation,Activation"/>
+                    </header>
+                    <sheet> 
+                        <h3>
+                             <p style="color: red;">* Please ensure you follow instructions before proceeding</p>
+                        </h3>
+                         
+                    <group colspan= "4" cols="2">
+                        <group>
+                            <field name="periods_month" string="Periods"/>
+                            <field name="operation_type" string="Operation Type" 
+                            attrs="{'readonly':[('state','not in',['Draft','Deactivation'])]}"/>
+                        </group>
+                        <group> 
+                            <field name="date_start" attrs="{'readonly':[('state','not in',['Draft'])]}"/>
+                            <field name="date_end" attrs="{'readonly':[('state','not in',['Draft'])]}"/>
+                             
+                        </group>
+                    </group>
+                    <p style="color: red;">
+                        <b>Select operation type to determine what display</b><br/>
+                        </p>
+
+                    <!-- Line 63 is the <notebook> that  allows you
+                    define the one2many or many2many type of fields in the 
+                    in form view
+                    To define one2many or many2many, check LINE 65 and it closes At line 79
+                        it is a field that calls another field, the attributes are defined inside a <tree> at line 67
+                    -->
+                    <notebook colspan="4">
+                        <page name="get_member_page" string="Deactivated Members">
+                            <field name="get_member_ids" attrs="{'readonly':[('state','not in',['Draft'])]}">
+                                <p style="color: red;">* See Members</p>
+                                <tree string="Members" editable="bottom">
+                                    <field name="partner_id"/>
+                                    <field name="identification" string = "ID"/>                               
+                                    <field name="sex" string="Sex"/>
+                                    <field name="depend_name" widget="many2many_tags"/>
+                                    <field name="package" widget="many2many_tags"/>
+                                    <field name="subscription" widget="many2many_tags"/>
+                                    <field name="spouse_amount" sum="Total"/>
+                                    <field name="balance_total" sum="Total"/>
+                                    <field name="total" sum="Total"/>
+                                        
+                                </tree>
+                            </field>
+                           
+                        </page>
+                        <page name="policy_member_ids_page" string="Activated Members" attrs="{'invisible':[('state','in',['Draft'])]}">
+                            <field name="policy_member_ids" attrs="{'readonly':[('state','not in',['Deactivation'])]}">
+                                <p style="color: red;">* See Members</p>
+                                <tree string="Members" editable="bottom">
+                                    <field name="member_id" string="Name"/>
+                                    <field name="identification" string = "ID"/>                               
+                                    <field name="depend_name" string = "Dependents" widget="many2many_tags"/>
+                                    <field name="package" string = "Packages" widget="many2many_tags"/>
+                                    <field name="subscription" string = "Subs." widget="many2many_tags"/>
+                                    <field name="activation_date" string = "Activation date"/>
+                                    <field name="due_dates" string = "Due date"/>  
+                                    <field name="total" sum="Total"/>
+                                    <field name="balance_total" sum="Total"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Line 106 to 118 is used to create list view of a model -->
+
+        <record model="ir.ui.view" id="member_policy_treex">
+            <field name="name">member.policy</field>
+            <field name="model">member.policy</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <tree string="Membership Policy">
+                    <field name="periods_month"/>
+                    <field name="state" string="status"/>
+                    <field name="date_start"/>
+                    <field name="date_end"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Line 122 to 140 is used to create list view of a model -->
+
+        <record model="ir.ui.view" id="membership_policy_search">
+            <field name="name">MEMBERSHIP POLICY</field>
+            <field name="model">member.policy</field>
+		    <field name="arch" type="xml">
+				 <search string="Search Membership Policy">
+					    <field name="periods_month"/>
+                        <field name="state" string="status"/>
+                        <field name="date_start"/>
+                        <field name="date_end"/>
+
+					 <group expand="0" string="Group By">
+				       <filter string="Period" icon="terp-personal" domain="[]" context="{'group by':'periods_month'}" />
+                       <filter string="Status" icon="terp-personal" domain="[]" context="{'group by':'state'}" />
+					   <!-- <filter string="State" icon="terp-personel" domain="[]" context="{'group by':'state'}" />
+                       <filter string="Date" icon="terp-personal" domain="[]" context="{'group by':'date'}" /> -->
+                    </group>
+			  </search>
+		 	</field>
+	    </record>
+
+<!-- Line 145 does the same thing in the above tutorial but only difference is that
+i am changing the model (LINE 148), id on LINE 146  -->
+
+
+        <record model="ir.ui.view" id="member_policy_line_form_view">
+            <field name="name">member.policy.line.form</field>
+            <field name="model">member.policy.line</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <form string="Member Policy">   
+                    <header>
+                           
+                            <button name="calculate_bill" string='Regenerate Bill' type="object" icon="fa-registered" class="btn-primary"
+                            attrs="{'invisible':[('state','not in',['Draft'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" />
+                            <field name="state" widget="statusbar" statusbar_visible="Draft,Generated"/>
+                    </header>
+                    <sheet> 
+                        <label for="member_id" class="oe_edit_only"/>
+                        <h1>
+                            <field name="member_id" string="Member Name"
+                            attrs="{'readonly':[('state','not in',['Generated'])]}"/>
+                        </h1>
+                         
+                    <group colspan= "4" cols="2">
+                        <group>
+                        
+                            <field name="email" string="Email"/> 
+                            <field name="invoice_id" string="Invoice"/> 
+                            
+                        </group>
+                        <group> 
+                            <field name="total" readonly="1"/>
+                            <field name="balance_total" readonly="1"/>  
+                        </group>
+                    </group>
+                     
+                    <notebook colspan="4">
+                        <page name="subscription_policy" string="Subscription">
+                            <field name="subscription" attrs="{'readonly':[('state','not in',['Draft'])]}">
+                                <p style="color: red;">* See Members</p>
+                                <tree string="Members" editable="bottom">
+                                    <field name="name"/>
+                                    <field name="name"/>
+                                    <field name="member_price" string = "subscription Amount"/>                               
+                                    <field name="subscription_period" string="Period"/>
+                                    <field name="mainhouse_price" sum="Total"/>
+                                    <field name="entry_price" sum="Total"/>
+                                    <field name="sub_levy" sum="Total"/>
+                                    <field name="special_levy" sum="Total"/>
+                                        
+                                </tree>
+                            </field>
+                           
+                        </page>
+                        <page name="depends_policy" string="Members Dependents">
+                            <field name="depend_name" widget="many2many_kanban" attrs="{'readonly':[('state','not in',['Draft'])]}">
+                                <kanban quick_create="false" create="true" delete="true">
+                                    <field name="partner_id"/>
+                                    <field name="email"/>
+                                    <templates>
+                                    <t t-name="kanban-box">
+                                        <div class="oe_kanban_global_click" style="position: relative">
+                                            <a t-if="! read_only_mode" type="delete" style="position: absolute; right: 0; padding: 4px; diplay: inline-block">X</a>
+                                            <div class="oe_module_vignette">
+                                                <!--<img t-att-src="kanban_image('res.users', 'image_small', record.id.value)" class="oe_avatar oe_kanban_avatar_smallbox"/>-->
+                                                <img t-att-src="kanban_image('register.spouse.member', 'image', record.id.value)" class="oe_avatar oe_kanban_avatar_smallbox"/>
+
+                                                    <div class="o_kanban_tags_section oe_kanban_partner_categories"/>
+                                                        <b>Name:<field name="first_name"/>, <field name="surname"/></b><br/>
+                                                        <b>Email:<field name="email"/></b>
+
+                                            </div>
+                                        </div>
+                                    </t>
+                                    </templates>
+                                </kanban>
+                             
+                            </field>
+                        </page>
+
+                        <page name="package_policy" string="Member Packages">
+                            <field name="package" attrs="{'readonly':[('state','not in',['Draft'])]}">
+                                <p style="color: red;">* See Members</p>
+                                <tree string="Members" editable="bottom">
+                                    <field name="name"/>
+                                    <field name="package_cost" string = "Package Amount"/>                               
+                                    <field name="subscription_period" string="Subscription Period"/>
+                                    <field name="pdate" string="Date"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                </form>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="member_policy_line_tree">
+            <field name="name">member.policy.line</field>
+            <field name="model">member.policy.line</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <tree string="Membership Policy">
+                    <field name="member_id" string="Member Name"/>
+                    <field name="identification"/> 
+                    <field name="activation_date"/>
+                    <field name="state" string="Status"/>
+                    <field name="total" sum="Total" readonly="1"/>
+                    <field name="balance_total" sum="Total" readonly="1"/> 
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="memapp_line_policy_search">
+            <field name="name">MEMBERSHIP POLICY</field>
+            <field name="model">member.policy.line</field>
+		    <field name="arch" type="xml">
+				 <search string="Search Membership Policy">
+					    <field name="member_id" string="Member Name"/>
+                        <field name="identification"/> 
+                        <field name="activation_date"/>
+                        <field name="state" string="Status"/>
+
+					 <group expand="0" string="Group By">
+				       <filter string="Name" icon="terp-personal" domain="[]" context="{'group by':'member_id'}" />
+                       <filter string="ID" icon="terp-personal" domain="[]" context="{'group by':'identification'}" />
+					   <filter string="State" icon="terp-personel" domain="[]" context="{'group by':'state'}" />
+                       <filter string="Activated Date" icon="terp-personal" domain="[]" context="{'group by':'activation_date'}" />
+                    </group>
+			  </search>
+		 	</field>
+	    </record>
+
+<!-- Line 276 TO 280 IS a SIMPLE WAY TO CREATE ACTION VIEWS FOR A PARTICULAR MODEL(member.policy)  -->
+
+        <act_window id="member_policy_action"
+            name="Membership Policy"
+            res_model="member.policy"
+            domain="[('active', '=', True)]"
+            view_mode="tree,form"/>
+
+<!-- Line 284 TO 287 IS USED TO CREATE ACTION VIEWS FOR ANOTHER PARTICULAR MODEL(member.policy.line)  -->
+
+        <act_window id="member_policy_bill_action"
+            name="Membership Policy"
+            res_model="member.policy.line"
+            view_mode="tree,form"/>
+
+<!-- Line 291 TO 293 IS USED TO CREATE MENU FOR ACTIONS IN LINE 284 AND 276-->
+
+    <menuitem id ="member_policy_main_menu" name="Policy" parent="member_app.menu_memapp_all" sequence="8" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi"/>
+        <menuitem id ="member_policy_menu_one" name="Session Policy" sequence="1" parent="member_policy_main_menu" action="member_policy_action"/>
+        <menuitem id ="member_policy_menu_two" name="Generate Policy Bills" sequence="2" parent="member_policy_main_menu" action="member_policy_bill_action"/>
+         
+</data>
+ </odoo>

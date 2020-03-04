@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+<data>
+	<template id="dev_mem_detail_report">
+          <div class="header">
+            <div class="row">
+                <div class="col-xs-3">
+
+                </div>
+                 <div class="col-xs-offset-2 text-center">
+
+                </div>
+                <div class="col-xs-offset-2 text-center">
+                    <hr/>
+                </div>
+            </div>
+        </div><br/>
+	         <t t-set="o" t-value="o.with_context({'name':o.partner_id.name})" />
+			<div class="page" style="font-size:16px">
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~1st ROW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+				<div class="row">
+						<div class="row" style="margin-top:60px;">
+						<h2><center><strong>Members Profile</strong></center></h2>
+							<div class="col-xs-12" style="margin-top:20px;">
+								<table width="100%">
+									<tr>
+									    <td width="30%" rowspan="8">
+											<img t-if="o.image" t-att-src="'data:image/png;base64,%s' % o.image" style="height: 140px;width: 200px;border-radius: 50px;"/>
+										</td>
+
+                                        <div class="watermark" style="position:absolute;opacity:0.090;font-size:3em;width:100%;height:60%;text-align:center;z-index:1000;">
+                                            <img t-att-src="'data:image/png;base64,'+ res_company.logo"/>
+                                        </div>
+										<td width="15%" >
+											<strong>Name</strong>
+										</td>
+										<td width="10%">
+											<strong>:</strong>
+										</td>
+										<td width="44%">
+											<t t-esc="o.partner_id.name"/>
+										</td>
+									</tr><br/>
+									<tr>
+										<td>
+											<strong>ID Number</strong>
+										</td>
+										<td >
+											<strong>:</strong>
+										</td>
+										<td >
+
+											<t t-esc="o.identification"/>
+										</td>
+									</tr><br/>
+									<tr>
+										<td>
+											<strong>Work Email</strong>
+										</td>
+										<td >
+											<strong>:</strong>
+										</td>
+										<td >
+											<t t-esc="o.email"/>
+										</td>
+									</tr><br/>
+									<tr>
+										<td>
+											<strong>Work Phone</strong>
+										</td>
+										<td >
+											<strong>:</strong>
+										</td>
+										<td >
+											<t t-esc="o.phone"/>
+										</td>
+									</tr> <br/>
+									<tr>
+										<td>
+											<strong>Date of Reg</strong>
+										</td>
+										<td >
+											<strong>:</strong>
+										</td>
+										<td >
+											<span t-field="o.date_order" t-field-options="{&quot;format&quot;: &quot;dd-MM-yyyy&quot;}" />
+										</td>
+									</tr><br/>
+
+                                  <tr>
+										<td>
+											<strong>Current Rank</strong>
+										</td>
+										<td >
+											<strong>:</strong>
+										</td>
+										<td >
+										<t t-esc="o.product_id.name" />
+										</td>
+									</tr> <br/>
+									<tr>
+										<td>
+											<strong><br/></strong>
+										</td>
+										<td >
+											<strong><br/></strong>
+										</td>
+										<td >
+											<strong><br/></strong>
+										</td>
+									</tr> <br/>
+									<tr>
+										<td>
+											<strong><br/></strong>
+										</td>
+										<td >
+											<strong><br/></strong>
+										</td>
+										<td >
+											<strong><br/></strong>
+										</td>
+									</tr>
+								</table>
+<!--							</div>-->
+						</div>
+					</div>
+					<div class="col-xs-4">
+					</div>
+				</div>
+				<hr />
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~2nd ROW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+				<div class="row">
+
+							<div class="col-xs-5">
+						        <h4><strong>Contact Information</strong></h4>
+								<table width="100%" style="empty-cells: hide;">
+									<tr>
+										<td width="40%">
+											<strong>Working Address</strong>
+										</td>
+										<td width="10%">
+											:
+										</td>
+										<td width="50%">
+										    <span t-if="o.address_id.street"><span t-field="o.address_id.street"/></span><br/>
+											<span t-if="o.address_id.city"><span t-field="o.address_id.city"/>,</span><span t-if="o.address_id.state_id"><span t-field="o.address_id.state_id.name"/>,</span><span t-field="o.address_id.zip"/>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<strong>Work Mobile</strong>
+										</td>
+										<td>
+											:
+										</td>
+										<td>
+										   <span t-if="o.mobile_phone">
+											    <span t-field="o.mobile_phone" />
+										    </span>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<strong>Office Location</strong>
+										</td>
+										<td>
+											:
+										</td>
+										<td>
+										   <span t-if="o.work_location">
+											    <span t-field="o.work_location" />
+										    </span>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<strong>Related User</strong>
+										</td>
+										<td>
+											:
+										</td>
+										<td>
+										   <span t-if="o.user_id.name">
+											    <span t-field="o.user_id.name" />
+										    </span>
+										</td>
+									</tr>
+
+								</table>
+						</div>
+						<div class="col-xs-7 pul-left" >
+						    <h4><strong>Position</strong></h4>
+						    <table width="100%" >
+									<tr>
+										<td width="25%">
+											<strong>Department</strong>
+										</td>
+										<td width="3%">
+											:
+										</td>
+										<td width="65%">
+											<t t-esc="o.department_id.name" />
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<strong>Job Title</strong>
+										</td>
+										<td>
+											:
+										</td>
+										<td>
+											<t t-esc="o.job_id.name" />
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<strong>Manager</strong>
+										</td>
+										<td>
+											:
+										</td>
+										<td>
+											<t t-esc="o.parent_id.name" />
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<strong>Coach</strong>
+										</td>
+										<td>
+											:
+										</td>
+										<td>
+											<t t-esc="o.coach_id.name" />
+										</td>
+									</tr>
+								</table>
+						</div>
+				</div>
+				<hr/>   -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~3rd ROW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+				<!--<div class="row">
+					<div class="col-xs-5">
+					    <h4><strong>Citizenship &# 38; Other Info</strong></h4>
+								<table width="100%">
+									<tr>
+										<td width="50%">
+											<strong>Nationality</strong>
+										</td>
+										<td width="15%">
+										    :
+										</td>
+										<td width="40%">
+										    <t t-esc="o.country_id.name"/>
+										</td>
+
+									</tr>
+									<tr>
+										<td>
+											<strong>Identification No</strong>
+										</td>
+										<td>
+										    :
+										</td>
+										<td>
+										    <t t-esc="o.identification_id" />
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<strong>Passport No</strong>
+										</td>
+										<td>
+										    :
+										</td>
+										<td>
+										    <t t-esc="o.passport_id" />
+										</td>
+									</tr>
+								</table>
+					</div>
+					<div class="col-xs-7">
+					<h4><strong>Status</strong></h4>
+							<table width="100%">
+								<tr>
+									<td width="25%">
+										<strong>Gender</strong>
+									</td>
+									<td width="3%">
+									:
+									</td>
+									<td width="72%">
+									<t t-esc="o.gender" />
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<strong>Marital Status</strong>
+									</td>
+									<td>
+									:
+									</td>
+									<td>
+									    <t t-esc="o.marital" />
+									</td>
+								</tr>
+							</table>
+					</div>
+				</div>  -->
+			</div>
+
+	</template>
+
+	<template id="member_profile_report_template">
+		<t t-call="report.html_container">
+		     <t t-foreach="docs" t-as="o">
+            <t t-call="member_app.dev_mem_detail_report" t-lang="o.partner_id.name"/>
+        </t>
+		</t>
+	</template>
+</data>
+</openerp>
+

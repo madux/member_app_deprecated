@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+
+        <!-- Report Action -->
+        <report id="print_biodata_report"
+            string="BIO DATA"
+            model="reinstatement.model"
+            report_type="qweb-html"
+            name="member_app.print_biodata_template"
+            file="member_app.print_biodata_template"
+            menu="True"
+            /> 
+        <!-- Allocation Offer Letter Template -->
+        <template id="print_biodata_template">
+            <t t-call="report.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="report.external_layout">
+                        <div class="page">
+
+                            <div class="row">
+                                <h2>
+                                    <span>
+                                        <center><u>IKOYI CLUB 1938</u></center>
+                                    </span>
+                                </h2>
+                            </div>
+                            <div class="row">
+                           <center> <div class="watermark" style="position:absolute;opacity:0.090;font-size:3em;width:150%;height:80%;text-align:center;z-index:1000;">
+                                <!--<center> <div class="watermark; col-xs-8" styles="position:absolute;opacity:0.08; font-size:50px;width:200%;z-index">-->
+                                    <img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:140px;max-width:100px;"/>
+                                    <!-- img src="https://imgur.com/gLIZY95.jpg" style="max-height: 150px"/ 
+                                    <div class="watermark;col-xs-6 col-xs-offset-10" styles="position:absolute;opacity:0.25; font-size:50px;width:200%;z-index">
+                                
+                                    -->
+                                </div></center>
+                            </div>
+
+                            
+                            
+                            <div class="row">
+
+                                <div class="col-xs-3" style="font-size: 18px;">
+                                      
+											<img t-if="o.member_id.image" t-att-src="'data:image/png;base64,%s' % o.member_id.image" style="height: 200px;width: 140px;border-radius: 50px;"/><br/><br/>
+                                            <strong>Name: </strong><span t-field="o.member_id.partner_id.name"/> <br/><br/>
+                                            <strong></strong> <br/>
+                                            <strong></strong><br/>
+                                   
+                                </div>
+
+                             
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 18px;">
+                                    <strong></strong><br/>
+                                    <strong></strong> <br/>
+                                    <strong>Date:</strong> <span t-raw="time.strftime('%Y-%m-%d')"/>
+                                    <strong></strong> <br/>
+                                </div>
+                            </div><br/><br/>
+
+                            
+                          <div class="row">
+                                <h2>
+                                    <span>
+                                        <center><b><u>BIO DATA FORM</u></b></center>
+                                    </span>
+                                </h2>
+                            </div>
+
+
+                        <div class="row">
+                                <div class="col-xs-3" style="font-size: 18px;">
+                                    <strong>Street: </strong><span t-field="o.member_id.street"/> <br/><br/>
+                                    <strong>City: </strong><span t-field="o.member_id.city"/> <br/><br/>
+                                    <strong>State: </strong><span t-field="o.member_id.state_id.name"/> <br/><br/>
+                                    <strong>Country: </strong><span t-field="o.member_id.country_id.name"/> <br/><br/>
+                                </div>
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong>Phone: </strong><span t-field="o.member_id.phone"/> <br/><br/>
+                                    <strong>Email: </strong><span t-field="o.member_id.email"/> <br/><br/>
+                                    <strong>Next of Kin: </strong><span t-field="o.member_id.nok.name"/> <br/><br/>
+                                </div> 
+                            </div>
+
+                        <div class="row">
+                                <div class="col-xs-3" style="font-size: 18px;">
+                                    <strong>Date of birth: </strong><span t-field="o.member_id.dob"/> <br/><br/>
+                                    <strong>Age: </strong><span t-field="o.member_id.member_age"/> <br/><br/>
+                                    <strong>Occupation: </strong><span t-field="o.member_id.occupation"/> <br/><br/>
+                                    <strong>Membership ID: </strong><span t-field="o.member_id.identification"/> <br/><br/>
+                                </div>
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 18px;">
+                                    <strong>Current State: </strong><span t-field="o.member_id.activity"/> <br/><br/>
+                                    <strong>Membership Level: </strong><span t-field="o.member_id.state"/> <br/><br/>
+                                    <strong>Active: </strong><span t-field="o.member_id.active"/> <br/><br/>
+                                </div> 
+                            </div><br/><br/><br/><br/><br/><br/>
+
+ 
+                           
+
+                            <div class="row">
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong>Signature:...................</strong><br/>
+                                    <strong>Member</strong>
+
+                                </div>
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong>Signature:................</strong><br/>
+                                    <strong>Ikoyi Club 1938</strong>
+
+                                </div>
+                                <!--<div class="col-xs-6 col-xs-offset-8" style="font-size: 17px;">
+                                    <strong>All Payments:</strong> <span t-field="o.all_payments"/><br/>
+                                    <strong>Outstanding:</strong> <span t-field="o.outstanding"/><br/>
+                                    <strong>Total:</strong> <span t-field="o.amount_total"/>
+                                </div>-->
+                                
+                            </div>
+						</div>
+					</t>
+				</t>
+			</t>
+		</template>
+
+         
+	</data>
+</odoo>
+
+
+

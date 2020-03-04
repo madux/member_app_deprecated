@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE xml>
+<odoo>
+    <data>
+        <record model="ir.module.category" id="category_ikoyi_member_club">
+           <field name="name">Ikoyi Membership</field>
+           <field name="description">Ikoyi Membership Module</field>
+           <field name="sequence">32</field>
+        </record>
+
+        <record id="manager_member_ikoyi" model="res.groups">
+            <field name="name">Membership Manager</field>
+            <field name="category_id" ref="category_ikoyi_member_club"/>
+            <field name="users" eval="[(4, ref('base.user_root'))]"/>
+        </record>
+
+        <record id="membership_officer_ikoyi" model="res.groups">
+            <field name="name">Membership Officer</field>
+            <field name="category_id" ref="category_ikoyi_member_club"/>
+            <field name="users" eval="[(4, ref('base.user_root'))]"/>
+        </record>
+
+        <record id="membership_honour_ikoyi" model="res.groups">
+            <field name="name">Honourary Secretary</field>
+            <field name="category_id" ref="category_ikoyi_member_club"/>
+            <field name="users" eval="[(4, ref('base.user_root'))]"/>
+        </record>
+
+        <!--<record id="chairman_ikoyi" model="res.groups">
+            <field name="name">Chairman</field>
+            <field name="category_id" ref="category_ikoyi_general_club" />
+        </record>
+
+        <record id="main_committee_ikoyi" model="res.groups">
+            <field name="name">Committe Members</field>
+            <field name="category_id" ref="category_ikoyi_general_club" />
+        </record>
+
+        <record id="ikoyi_authorize" model="res.groups">
+            <field name="name">Authorize Group</field>
+            <field name="category_id" ref="category_ikoyi_general_club" />
+        </record>
+        <record id="ikoyi_hod" model="res.groups">
+            <field name="name">HOD</field>
+            <field name="category_id" ref="category_ikoyi_general_club" />
+        </record>
+
+        <record id="ikoyi_hou" model="res.groups">
+            <field name="name">HOU</field>
+            <field name="category_id" ref="category_ikoyi_general_club" />
+        </record>
+
+        <record model="ir.module.category" id="category_ikoyi_account_club">
+           <field name="name">Ikoyi Finance /Accounts</field>
+           <field name="description">Ikoyi Finance Module</field>
+           <field name="sequence">33</field>
+        </record>
+
+        <record id="account_payable_ikoyi" model="res.groups">
+            <field name="name">Account Payable</field>
+            <field name="category_id" ref="category_ikoyi_account_club" />
+        </record>
+
+        <record id="accountant_ikoyi" model="res.groups">
+            <field name="name">Accountant</field>
+            <field name="category_id" ref="category_ikoyi_account_club" />
+        </record>
+        <record id="account_boss_ikoyi" model="res.groups">
+            <field name="name">Finance &amp; Admin Manager</field>
+            <field name="category_id" ref="category_ikoyi_account_club" />
+        </record>
+
+
+         <record model="ir.module.category" id="category_ikoyi_Audit_club">
+           <field name="name">Ikoyi Internal control</field>
+           <field name="description">Ikoyi Internal control</field>
+           <field name="sequence">34</field>
+        </record>
+
+        <record id="internal_control_ikoyi" model="res.groups">
+            <field name="name">Internal Control Officer</field>
+            <field name="category_id" ref="category_ikoyi_Audit_club" />
+        </record>
+        <record id="audit_boss_ikoyi" model="res.groups">
+            <field name="name">Internal Control Manager</field>
+            <field name="category_id" ref="category_ikoyi_Audit_club" />
+        </record>
+
+         <record model="ir.module.category" id="category_ikoyi_procure_club">
+           <field name="name">Ikoyi Procurement</field>
+           <field name="description">Ikoyi Pocurement Module</field>
+           <field name="sequence">35</field>
+        </record>
+        <record id="procurement_officer_ikoyi" model="res.groups">
+            <field name="name">Procurement Officer</field>
+            <field name="category_id" ref="category_ikoyi_procure_club" />
+        </record>
+
+
+        <record id="procurement_manager_ikoyi" model="res.groups">
+            <field name="name">Procurement Manager</field>
+            <field name="category_id" ref="category_ikoyi_procure_club" />
+        </record>
+
+        <record model="ir.module.category" id="category_ikoyi_costing">
+           <field name="name">Ikoyi Costing</field>
+           <field name="description">Costing Right</field>
+           <field name="sequence">36</field>
+        </record>
+        <record id="costing_officer_ikoyi" model="res.groups">
+            <field name="name">Costing Officer</field>
+            <field name="category_id" ref="category_ikoyi_costing" />
+        </record>
+        <record id="costing_manager_ikoyi" model="res.groups">
+            <field name="name">Costing Manager</field>
+            <field name="category_id" ref="category_ikoyi_costing" />
+        </record>
+
+        <record model="ir.module.category" id="category_ikoyi_inventory_club">
+           <field name="name">Ikoyi Store</field>
+           <field name="description">Ikoyi Store Module</field>
+           <field name="sequence">36</field>
+        </record>
+        <record id="store_keeper_ikoyi" model="res.groups">
+            <field name="name">Store Keeper</field>
+            <field name="category_id" ref="category_ikoyi_inventory_club" />
+        </record>
+        <record id="inventory_manager_ikoyi" model="res.groups">
+            <field name="name">Store Manager</field>
+            <field name="category_id" ref="category_ikoyi_inventory_club" />
+        </record>
+    </data>
+
+
+  <data noupdate="0">
+
+
+        <record id="administrator_see_all_memo_request" model="ir.rule">
+            <field name="name">Material Request See All</field>
+            <field name="model_id" ref="model_material_request"/>
+            <field name="groups" eval="[(6, 0 , [ref('base.group_system')])]"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+        </record>
+
+        <record id="material_employee_see_own_rule" model="ir.rule">
+            <field name="name">Material Request Employee Access</field>
+            <field name="model_id" ref="model_material_request"/>
+            <field name="groups" eval="[(6, 0 , [ref('internal_memo_test.group_memo_xx_emp'),ref('internal_memo_test.group_memo_xx_emp')])]"/>
+            <field name="domain_force">[('employee_id.user_id.id','=', user.id)]</field>
+        </record>
+
+
+        <record id="gm_material_request" model="ir.rule">
+            <field name="name">Material Request Managers Rule</field>
+            <field name="model_id" ref="model_material_request"/>
+            <field name="groups" eval="[(6, 0 , [ref('internal_memo_test.group_memo_xx_manager'),ref('purchase.group_purchase_manager')])]"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+        </record>
+        </data>-->
+        </data>
+
+</odoo>

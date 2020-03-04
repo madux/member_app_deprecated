@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE xml>
+<odoo>
+    <data>
+        <record id="ir_cron_generate_inactive_members" model="ir.cron">
+            <field name="name">Schedulerx Cron check for Inactive and Dormant Members</field>
+            <!--<field name="user_id" ref="base.user_root"/>-->
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field eval="'False'" name="doall"/>
+            <field eval="'True'" name="active"/>
+            <field eval="'member.app'" name="model"/>
+            <field eval="'_run_cron'" name="function"/>
+        </record>
+
+        <!--<record id="ir_cron_generate_inactive_members" model="ir.cron">
+            <field name="name">Automatic Cron check for Inactive and Dormant Members</field>
+            <field eval="True" name="active"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="True"/>
+            <field name="model">member.app</field>
+            <field name="function">_run_crons</field>
+            <field name="args">()</field>
+            <field name="priority">1</field>
+        </record>
+
+        <record id="ir_cron_scheduler_employee_action2" model="ir.cron">
+            <field name="name">Employee scheduler Update Task</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">2</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">1</field>
+            <field eval="False" name="doall"/>
+            <field eval="'employee.task'" name="model"/>
+            <field eval="'check_compute'" name="function"/>
+        </record>-->
+   </data>
+ </odoo>

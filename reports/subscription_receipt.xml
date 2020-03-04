@@ -1,0 +1,147 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+
+        <!-- Report Action -->
+        <report id="receipt_subscription_report"
+            string="Subscription Receipt"
+            model="subscription.model"
+            report_type="qweb-pdf"
+            name="member_app.subscription_receipt_template"
+            file="member_app.subscription_receipt_template"
+            menu="False"
+            />
+
+		 
+        <!-- Allocation Offer Letter Template -->
+        <template id="subscription_receipt_template">
+            <t t-call="report.html_container">
+				<t t-foreach="docs" t-as="o">
+					<div class="header">
+						<div class="row">
+							<div class="col-xs-3" style="font-size: 9px;">
+
+								<!--HHHHHH--> 
+							</div>
+							<div class="col-xs-offset-2 text-right">
+								<img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:80px;max-width:60px;"/>
+							</div>
+							<br/>
+
+						</div>
+					</div>
+                
+                    <t t-call="report.external_layout">
+                        <div class="page">
+
+                            <div class="row" >
+								<div class="col-xs-3" style="font-size: 14px;">
+										<b><span> IKOYI CLUB 1938</span></b><br/>
+										<b><span t-esc="o.create_uid.company_id.name"/></b><br/>
+										<b><span t-esc="o.create_uid.state_id.name"/></b><br/>
+										<b><span t-esc="o.create_uid.country_id.name"/></b><br/>
+								</div>
+							
+                           <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                <center> <div class="watermark;col-xs-8" styles="position:absolute;opacity:0.8; font-size:50px;width:200%;z-index">
+                                    <img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:140px;max-width:100px;"/>
+                                    <!-- img src="https://imgur.com/gLIZY95.jpg" style="max-height: 150px"/ 
+                                    <div class="watermark;col-xs-6 col-xs-offset-10" styles="position:absolute;opacity:0.25; font-size:50px;width:200%;z-index">
+
+                                    -->
+                                </div></center>
+                            </div>
+							</div> 
+                             
+
+
+                            <div class="row" style="font-size: 17px;">
+                                <div class="col-xs-3" style="text-align:left">
+									<span><strong>Receipt Allocated As Follows: </strong></span>
+                            	</div>
+                                <br/>
+								<t t-if="o.state not in ['draft']">
+														<strong>Customer: </strong><span t-field="o.member_id.partner_id.name"/><br/>
+														<strong>Address: </strong><span t-field="o.member_id.street"/>, 
+														<span t-field="o.member_id.city"/>, <span t-field="o.member_id.state_id.name"/><br/>
+														<span t-field="o.member_id.country_id.name"/>
+														
+														<br/>
+														<br/>
+														<strong>Period: </strong><span t-field="o.periods_month"/><br/>
+														<strong>Type: </strong><span t-field="o.p_type"/><br/>
+														<strong>Date: </strong><span t-field="o.date"/> <br/>
+														<strong>Total: </strong><span t-field="o.total"/><br/>
+														
+								</t>
+                                <br/>
+                                <br/>
+                                <table class="table table-bordered">
+                                 
+									<t t-if="o.subscription">
+										
+											<thead>
+												<span><strong>Sections Details </strong></span>
+												<tr>
+													<th><strong>Name</strong></th>
+													<th><strong>Period</strong></th>
+													<th><strong>Package Cost</strong></th>
+													<th><strong>Date</strong></th>
+													<th><strong>.</strong></th>
+													<th><strong>.</strong></th>
+														
+												</tr>
+											</thead>
+											<t t-foreach="o.subscription" t-as="sub">
+												<tbody>
+													<tr>
+														<td> <span t-esc="sub.name"/></td>
+														<td> <span t-esc="sub.subscription_period"/></td>
+														<td> <span t-esc="sub.member_price"/></td>
+														<td> <span t-esc="sub.pdate"/></td>
+														<td> </td>
+														<td> </td>
+													</tr>
+												</tbody>
+											</t> 
+											<t>
+												
+												<td></td>
+												<td><strong>Net Total:</strong></td> 
+												<td><span t-esc="sum(line.member_price for line in o.subscription)"/></td>
+												 
+												<td> </td>
+												<td></td>
+												<td></td>
+											</t>
+									</t>
+
+                                </table>
+
+								
+							</div>
+
+                            <div class="row">
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong>Signature:.....................</strong><br/>
+                                    <strong>Vendor</strong>
+
+                                </div>
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong>Signature:.....................</strong><br/>
+                                    <strong>Ikoyi Club 1938</strong>
+                                </div>
+                            </div>
+						</div>
+					</t>
+				</t>
+			</t>
+		</template>
+
+
+		 
+	</data>
+</odoo>
+
+
+

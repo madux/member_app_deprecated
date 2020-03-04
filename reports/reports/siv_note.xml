@@ -1,0 +1,325 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+
+        <!-- Hotel Report Action -->
+        <report id="print_siv_report"
+            string="Store Issuance Voucher"
+            model="requisition.inventory"
+            report_type="qweb-pdf"
+            name="ikoyi_module.print_siv_template"
+            file="ikoyi_module.print_siv_template"
+            menu="False"
+            />
+
+            <report id="print_sivgen_report"
+            string="Store Issuance Voucher"
+            model="requisition.inventory"
+            report_type="qweb-pdf"
+            name="ikoyi_module.print_sivgen_template"
+            file="ikoyi_module.print_sivgen_template"
+            menu="True"
+            />
+
+            <report id="print_sivview_report"
+            string="Store Issuance Voucher"
+            model="requisition.inventory"
+            report_type="qweb-html"
+            name="ikoyi_module.edit_siv_ikoyi"
+            file="ikoyi_module.edit_siv_ikoyi"
+            menu="True"
+            />
+
+            <template id = "edit_siv_ikoyi">
+                <t t-call="ikoyi_module.print_siv_template">
+                </t>
+            </template>
+            
+        <template id="print_siv_template">
+            <t t-call="report.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="report.external_layout">
+                        <div class="page">
+
+                            <div class="row">
+                                <h2>
+                                    <span>
+                                        <center><u>IKOYI CLUB 1938</u></center>
+                                    </span>
+                                </h2>
+                            </div>
+                            <div class="row">
+                                <center> <div class="watermark;col-xs-8" styles="position:absolute;opacity:0.25; font-size:50px;width:200%;z-index">
+                                    <img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:140px;max-width:100px;"/>
+                                    <!-- img src="https://imgur.com/gLIZY95.jpg" style="max-height: 150px"/ 
+                                    <div class="watermark;col-xs-6 col-xs-offset-10" styles="position:absolute;opacity:0.25; font-size:50px;width:200%;z-index">
+                                
+                                    -->
+                                </div></center>
+                            </div>
+ 
+                            <div class="row">
+
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong> </strong><br/>
+                                     <strong> </strong><br/>
+                                     
+                                       <strong> </strong><br/>
+                                </div>
+                            </div>
+                                <div class="row">
+                               <!-- <div class="col-xs-6 col-xs-offset-8" style="font-size: 17px;">-->
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong> </strong> <br/>
+                                    <strong>  </strong><br/>
+                                    <strong>Date:</strong> <span t-raw="time.strftime('%Y-%m-%d')"/>
+                                </div>
+                                </div>
+
+                                <div class="row">
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong>Requisition No:<u><span t-field="o.id"/> </u></strong><br/>
+                                     
+                                </div>
+
+                               <!-- <div class="col-xs-6 col-xs-offset-8" style="font-size: 17px;">-->
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong>Issue To:</strong><span t-field="o.employee_id.name"/><br/>
+                                   
+                                </div>
+                            </div><br/><br/>
+                            
+                            <div class="row" style="font-size: 17px;">
+                                <div class="col-xs-6" style="text-align:left">
+                                    <span><strong>SIV Items</strong></span>
+                                </div>
+                                <br/>
+                                <br/>
+                                <table class="table table-bordered">
+                                <t t-set="qty" t-value="0"/>
+                                    <thead>
+                                        <tr>
+                                            <th><strong>Code No</strong></th>
+                                            <th><strong>Description</strong></th>
+                                            <th><strong>Qty</strong></th>
+                                            <th><strong>Unit Price</strong></th>
+                                            <!--<th><strong>Status</strong></th>-->
+                                            <th><strong>Value</strong></th>
+                                            <th><strong>Ac/Code</strong></th>
+                                            
+                                            <!--Return -->
+                                        </tr>
+                                    </thead>
+                                <t t-foreach="o.order_line" t-as="line">
+                                    <tbody> 
+										<tr>
+                                            <td> <span t-esc="line.product_id.default_code"/></td>
+                                            
+											<td> <span t-esc="line.product_id.name"/></td>
+                                            <td> <span t-esc="line.qty"/></td>
+                                            <td> <span t-esc="line.product_id.list_price"/></td>
+                                            <!--<t t-set="line.product_id.list_price" t-as="product"/>
+                                            <t t-set="line.qty_done" t-as="quantity_unit"/>-->
+                                            <td> <span t-esc="line.qty * line.product_id.list_price"/> </td>
+                                            <td> </td>
+                                            
+                                            <!--<td> <span t-esc="line.state"/></td>-->
+                                            
+										</tr>
+									</tbody>
+                                </t>
+
+                                <t>
+                                  
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td><strong>Net Total:</strong></td>
+                                    <td><span t-esc="sum(lines.qty * lines.product_id.list_price for lines in o.order_line)"/>
+                                           
+                                    </td>
+                                </t>
+                                
+                                </table>
+							</div>
+
+                             
+                            <div class="row">
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong><span t-field="o.employee_id.name"/></strong><br/>
+                                    <strong>Collected by</strong>
+
+                                </div>
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                     .
+                                </div><br/>
+
+                             </div>
+
+                                <div class="row">
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong>Signature:.............</strong><br/>
+                                    <strong>Store Keeper</strong>
+
+                                </div>
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong>..............</strong><br/>
+                                    <strong>Collectors Signature</strong>
+
+                                </div>
+                                <!--<div class="col-xs-6 col-xs-offset-8" style="font-size: 17px;">
+                                    <strong>All Payments:</strong> <span t-field="o.all_payments"/><br/>
+                                    <strong>Outstanding:</strong> <span t-field="o.outstanding"/><br/>
+                                    <strong>Total:</strong> <span t-field="o.amount_total"/>
+                                </div>-->
+                                
+                            </div>
+						</div>
+					</t>
+				</t>
+			</t>
+		</template>
+
+
+
+
+        <template id="print_sivgen_template">
+            <t t-call="report.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="report.external_layout">
+                        <div class="page">
+
+                            <div class="row">
+                                <h2>
+                                    <span>
+                                        <center><u>IKOYI CLUB 1938 SIV REPORT</u></center>
+                                    </span>
+                                </h2>
+                            </div>
+                            <div class="row">
+                                <center> <div class="watermark;col-xs-8" styles="position:absolute;opacity:0.25; font-size:50px;width:200%;z-index">
+                                    <img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:140px;max-width:100px;"/>
+                                    <!-- img src="https://imgur.com/gLIZY95.jpg" style="max-height: 150px"/ 
+                                    <div class="watermark;col-xs-6 col-xs-offset-10" styles="position:absolute;opacity:0.25; font-size:50px;width:200%;z-index">
+                                
+                                    -->
+                                </div></center>
+                            </div>
+ 
+                            <div class="row">
+
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong>Generated by: </strong><span t-esc="o.create_uid.name"/><br/>
+                                     <strong> </strong><br/>
+                                     
+                                       <strong> </strong><br/>
+                                </div>
+                            </div>
+                                <div class="row">
+                               <!-- <div class="col-xs-6 col-xs-offset-8" style="font-size: 17px;">-->
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong> </strong> <br/>
+                                    <strong>  </strong><br/>
+                                    <strong>Date:</strong> <span t-raw="time.strftime('%Y-%m-%d')"/>
+                                </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-xs-3" style="font-size: 17px;">
+                                        <strong>Requisition No:<u><span t-field="o.id"/> </u></strong><br/>
+                                        
+                                    </div>
+
+                                <!-- <div class="col-xs-6 col-xs-offset-8" style="font-size: 17px;">-->
+                                    <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                        
+                                    </div>
+                                </div><br/><br/>
+                                
+                            <div class="row" style="font-size: 17px;">
+                                <div class="col-xs-6" style="text-align:left">
+                                    <span><strong>SIV Items</strong></span>
+                                </div>
+                                <br/>
+                                <br/>
+                                <table class="table table-bordered">
+                                <t t-set="qty" t-value="0"/>
+                                    <thead>
+                                        <tr>
+                                            <th><strong>Description</strong></th>
+                                        
+                                            <th><strong>Issued To</strong></th>
+                                            <th><strong>Department</strong></th>
+                                            <th><strong>Section</strong></th>
+                                            <th><strong>Total</strong></th>
+                                            <!--<th><strong>Status</strong></th>-->
+                                            <th><strong>Date</strong></th>
+                                            
+                                            
+                                            <!--Return -->
+                                        </tr>
+                                    </thead>
+                                
+                                    <tbody> 
+										<tr>
+                                            <td> <span t-esc="o.name"/></td>
+                                            
+											<td> <span t-esc="o.employee_id.name"/></td>
+                                            <td> <span t-esc="o.department_id.name"/></td>
+                                            <td> <span t-esc="o.branch_id.name"/></td>
+                                            <td> <span t-esc="o.date_order"/></td>
+                                            
+                                            <td> <span t-esc="o.total_amount"/></td>
+                                            
+                                            
+										</tr>
+									</tbody>
+                               
+
+                                <t>
+                                  
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td><strong>Grand Total:</strong></td>
+                                    <td><span t-esc="sum(lines.total_amount for lines in o)"/>
+                                           
+                                    </td>
+                                </t>
+                                
+                                </table>
+							</div>
+
+                         
+
+                            <div class="row">
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong>Signature:.............</strong><br/>
+                                    <strong>Store Keeper</strong>
+
+                                </div>
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong>..............</strong><br/>
+                                    <strong>Manager's Signature</strong>
+
+                                </div>
+                                <!--<div class="col-xs-6 col-xs-offset-8" style="font-size: 17px;">
+                                    <strong>All Payments:</strong> <span t-field="o.all_payments"/><br/>
+                                    <strong>Outstanding:</strong> <span t-field="o.outstanding"/><br/>
+                                    <strong>Total:</strong> <span t-field="o.amount_total"/>
+                                </div>-->
+                                
+                            </div>
+						</div>
+					</t>
+				</t>
+			</t>
+		</template>
+
+         
+	</data>
+</odoo>
+
+
+

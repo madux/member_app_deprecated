@@ -1,0 +1,1422 @@
+<?xml version="1.0"?>
+<odoo>
+       <data>
+
+            <record model="ir.ui.view" id="allocation_addonxx1x_t" >
+                <field name="name">account.payment</field>
+                <field name="model">account.payment</field>
+                <field name="inherit_id" ref="account.view_account_payment_form" />
+                <field name="arch" type="xml">
+
+                    <xpath expr="//field[@name='payment_date']" position="after">
+                        <field name="member_id" states="draft" invisible="1"/>
+                        <field widget="binary" height="64" name="filex" filename="file_namex" required="0" string="Evidence of Payment"
+                        />
+                        <field name="modes_payment"/>
+                        <field name="file_namex" invisible="1"/>
+                        <field name="bank"/>
+                        <field name="balances" invisible="0"/>
+                        <field name="amount_to_pay" string="To pay"/>
+                    </xpath>
+                </field>
+            </record>
+
+            <record model="ir.ui.view" id="account_payment_invoice_form" >
+                <field name="name">account.payment.invoice</field>
+                <field name="model">account.payment</field>
+                <field name="inherit_id" ref="account.view_account_payment_invoice_form" />
+                <field name="arch" type="xml">
+
+                    <xpath expr="//field[@name='payment_date']" position="after">
+                        <!-- <field name="member_id" states="draft" invisible="0"/> -->
+                        <field widget="binary" height="64" name="filex" filename="file_namex" required="0" string="Evidence of Payment"/>
+                        <field name="file_namex" invisible="1"/>
+                        <field name="modes_payment"/>
+                        <field name="bank"/>
+                        <field name="additional_ref"/>
+                        
+                        <field name="balances" invisible="0"/>
+                        <field name="amount_to_pay" string="To pay"/> 
+                    </xpath>
+
+                </field>
+            </record>
+
+            <record model="ir.ui.view" id="account_invoice_form" >
+                <field name="name">account.invoice.form</field>
+                <field name="model">account.invoice</field>
+                <field name="inherit_id" ref="account.invoice_form" />
+                <field name="arch" type="xml">
+                <xpath expr="//button[@name='action_invoice_cancel']" position="before">
+                        <button type="object"  name="print_membership_invoice_receipt"
+                        class="oe_link" string="Print Invoice/Payments"
+                        attrs="{'invisible':[('payment_ids','=',[]), ('invoice_line_ids','=',[])]}"
+                        />
+
+                        <button type="object"  name="action_view_payments"
+                        class="oe_link" string="View Payments"
+                        colspan="2"
+                        attrs="{'invisible':[('payment_ids','=',[])]}"
+                        groups="account.group_account_user"/>
+
+                 </xpath>
+
+                    <xpath expr="//page[@name='other_info']" position="after">
+                            <page name="paymentss" string="All payments">
+                               <field name="payment_ids" readonly="1"> 
+                              
+                                <field name="name"/>
+                                <field name="journal_id"/>
+                                <field name="bank"/>
+                                <field name="amount"/>
+                                <field name="payment_date"/>
+                                <field name="additional_ref"/>
+                            </field> 
+                            </page>
+                    </xpath>
+
+                </field>
+            </record>
+
+            <record id="register_payment_wizard_member_form" model="ir.ui.view">
+            <field name="name">Register Payment Form</field>
+            <field name="model">register.payment.member</field>
+            <field name="arch" type="xml">
+                <form String="Register Payment">
+                <header>
+                    <button name="button_pay" type="object" string="Pay" confirm ="Are you sure you want to confirm payment?" class="oe_highlight"/>
+                </header>
+                    <group>
+                        <group>
+
+                            <field name="partner_id" required="1"/>
+                            <field name="member_ref" required="1" invisible="0"/>
+                            <field name="name" required="1"/>
+                            <field name="p_type" required="0"/>
+                            <field name="mode_payment" required="0"/>
+                            <field name="to_pay" widget="monetary"/>
+                            <field name="amount" widget="monetary"/>
+                            <field name="spouse_amount"  invisible="1" widget="monetary"/>
+                            <field name="num" invisible="1"/>
+
+                            <field name="users_followers" widget="many2many_tags" invisible="0"/>
+
+                        </group>
+                        <group>
+                         <field name="payment_method" />
+                         <field name="date"/>
+                         <field name="bank"/>
+                         <field name="reference"/>
+                         
+                         <field widget="binary" height="64" name="filex" filename="file_namex" required="0" string="Evidence of Payment" />
+                            <field name="advance_account" invisible="1"/>
+                            <field name="date"/>
+                            <field name="state" widget="statusbar" statusbar_visible="draft,pay,cancel"/>
+                             <field name="print_memo" invisible="0" string="Enable Memo Print"/>
+
+                        </group>
+                        <footer>
+                        <button name="print_memo_addition" type="object" string="Print Memo" class="oe_highlight" attrs="{'invisible':[('print_memo','=', False)]}"/>
+                        <!--<button name ="button_cancel" string="Cancel" class="oe_link"/>-->
+                        </footer>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <record id="memapp_form" model="ir.ui.view">
+                <field name="name">MEMBERSHIP FORM</field>
+                    <field name="model">member.app</field>
+                <field eval="25" name="priority"/>
+                <field name="arch" type="xml">
+                <form string="Membership form">
+                        <header>
+
+                            <button name="button_confirm_white_payments_first" string="Register" type="object" icon="fa-registered" class="btn-primary" attrs="{'invisible': [('state','in',['draft','induction','white penalty','wait','manager_two','jun','ord','temp','suspension','issue_green','green','manager','hon','life','interview','account'])]}"/>
+                            <button name="button_white_payments" string="Issue White Form" type="object" icon="fa-registered" class="btn-primary" attrs="{'invisible': [('state','in',['white','white penalty','wait','jun','ord','manager','manager_two','temp','issue_green','suspension','induction','green','manager','hon','life','interview','account'])]}"/>
+
+                            <button name="button_confirm_white_delay_payments" string="Check Delay" type="object"
+                            icon="fa-registered" class="btn-primary" attrs="{'invisible': ['|',('payment_status', 'in', ['white_fee_delay']),('state','not in',['white penalty'])]}"/>
+                                                    
+                            <button name="check_green_delay" string="Check and Confirm" type="object"
+                            icon="fa-registered" class="btn-primary" attrs="{'invisible': ['|',('payment_status', 'in', ['green_fee_delay']),('state','not in',['issue_green'])]}"/>
+                            <button name="button_print_green_card" string="Print Card" type="object" icon="fa-registered" class="btn-primary"
+                            attrs="{'invisible': ['|',('payment_status', 'in', ['issue','paid']),('state','in',['draft','white','white penalty','wait','suspension','interview','temp','manager_two','green','induction','manager','jun','hon','ord','account','life'])]}"/>
+
+
+                            <button name="create_invoice_green" string="Issue Green Card / Payment" type="object" icon="fa-registered" class="btn-primary"
+                            attrs="{'invisible': [('state','not in',['interview'])]}"/>
+                            
+                            <button name="make_ordinary_or_junior" string="Promote to Ordinary" type="object" icon="fa-registered" class="btn-primary"
+                            attrs="{'invisible': [('state','in',['draft','white penalty','issue_green','manager_two','suspension','white','temp','wait','manager','jun','hon','life','ord','interview','account','green'])]}"/>
+                            
+                            <button name="button_make_induction" string="Send Induction" type="object" icon="fa-registered" class="btn-primary"
+                            attrs="{'invisible': [('state','in',['draft','white penalty','issue_green','white','suspension','manager','manager_two','wait','induction','jun','hon','life','ord','interview','account','green'])]}"/>
+                            
+                            <button name="make_manager_confirms" string="Manager Approve" type="object" icon="fa-registered" class="btn-primary"
+                            attrs="{'invisible': [('state','not in',['manager'])]}" groups="member_app.manager_member_ikoyi"/>
+
+                            <button name="make_manager_life_confirms" string="Confirm to Life" type="object" icon="fa-registered" class="btn-primary"
+                            attrs="{'invisible': [('state','not in',['manager_two'])]}" groups="member_app.manager_member_ikoyi"/>
+    
+                            <button name="life_member" string="Promote to Life" type="object" icon="fa-registered" class="btn-primary"
+                            attrs="{'invisible': [('state','in',['draft','white','white penalty','issue_green','wait','temp','manager_two','suspension','induction','hon','manager','life','interview','account','green'])]}"/>
+                        
+                            <button name="button_send_interview" string="Set to Interview" type="object" icon="fa-registered" class="btn-primary" attrs="{'invisible': [('state','not in',['wait'])]}"/>
+                            <button name="button_account_to_temp_payments" string="Register Payments" type="object" icon="fa-registered" class="btn-primary"
+                            attrs="{'invisible': [('state','not in',('green','account'))]}"/>
+
+                            <button name="reverse_draft" string="Drop Applicants" type="object" icon="fa-registered" class="btn-primary" groups="base.group_system,member_app.manager_member_ikoyi"
+                            attrs="{'invisible': [('state','in',['draft','ord','wait','issue_green','induction','jun','life','suspension','green','manager','manager_two','hon','temp','account'])]}"/>
+
+                            <button name="reverse_white" string="Reverse" type="object" icon="fa-registered" class="btn-primary" groups="base.group_system,member_app.manager_member_ikoyi"
+                            attrs="{'invisible': [('state','in',['draft','white','issue_green','induction','ord','jun','manager','suspension','manager_two','life','interview','temp','account'])]}"/>
+
+                            <button name="reverse_green" string="Reverse" type="object" icon="fa-registered" class="btn-primary" groups="base.group_system,member_app.manager_member_ikoyi"
+                            attrs="{'invisible': [('state','in',['draft','wait','green','white penalty','ord','temp_id','issue_green','suspension','induction','manager_two','manager','jun','white','life','interview','account'])]}"/>
+                            <button name="reverse_induction" string="Reject" type="object" icon="fa-registered" class="btn-primary" groups="base.group_system,member_app.manager_member_ikoyi"
+                            attrs="{'invisible': [('state','in',['draft','wait','ord','white penalty','issue_green','induction','suspension','temp','jun','white','green','hon','interview','manager_two','account'])]}"/>
+
+                            <button name="reverse_ord" string="Reverse" type="object" icon="fa-registered" class="btn-primary" groups="base.group_system,member_app.manager_member_ikoyi"
+                            attrs="{'invisible': [('state','in',['draft','wait','ord','white penalty','issue_green','induction','suspension','temp','jun','white','green','hon','interview','manager','manager_two','account'])]}"/>
+
+                            <!-- <button name="dummy_back_green" string="green" type="object" icon="fa-registered" class="btn-primary" />
+
+                            <button name="dummy_back_issue_green" string="issue" type="object" icon="fa-registered" class="btn-primary" />
+
+                            <button name="dummy_back_interview" string="interview" type="object" icon="fa-registered" class="btn-primary" /> -->
+
+
+                            <button name="reverse_life" string="Reverse" type="object" icon="fa-registered" class="btn-primary" groups="base.group_system,member_app.manager_member_ikoyi"
+                            attrs="{'invisible': [('state','in',['draft','wait','induction','white penalty','life','issue_green','suspension','temp','white','jun','manager','green','manager_two','ord','interview','account'])]}"/>
+                            <field name="state" id ="status_member" widget="statusbar" statusbar_visible="draft,white,green,ord,life"/>
+                            <button name="run_crons" string="Change Status" confirm ="Are you sure you want to Confirm this Member to Inactive Or Dormant" help="Clicking this button will check the members last payment date and set to Dormant, InActive" type="object" icon="fa-registered" attrs="{'invisible': [('state','in',['draft','green','issue_green','wait','white'])]}" class="btn-primary" groups="base.user_root"/>
+                        
+                            </header>
+                            <sheet>
+                                <div class="oe_button_box" name="button_box">
+                                    <button name="membership_invoice" string="Create Invoice" type="object" icon="fa-registered" invisible ="1" class="oe_stat_button"
+                                        attrs="{'invisible': [('state','in',['draft','interview','induction','hon'])]}"/>
+                                    <button name="print_receipt" string="Print Receipt" type="object" icon="fa-registered"  class="oe_stat_button"
+                                    attrs="{'invisible': [('state','in', ['draft','white'])]}"/>
+                                    
+                                    <button name="button_register_spouse" string="Register Dependants" type="object" icon="fa-registered" class="btn-primary"
+                                            attrs="{'invisible': [('state','in',['draft','white','white penalty','wait','suspension','interview','green'])]}"/>
+                                    <button name="see_breakdown_invoice" string="See Invoices" type="object" class="oe_stat_button" icon="fa-shirtsinbulk" attrs="{'invisible': [('state','in',['draft'])]}"></button>
+                                    <button name="print_id_card" string="Print card" type="object" class="oe_stat_button" icon="fa-print" attrs="{'invisible':[('state','in',['draft','white penalty','wait','white','jun','suspension','issue_green'])]}"></button>
+                                </div>
+                                <field name="image" widget="image" class="oe_avatar"/>
+                
+
+                                <group>
+                                    <group>
+                                    
+                                        <field name="partner_id" string="Name" default_focus="1" attrs="{'invisible':[('is_existing','=', False)],'required':[('is_existing','=',True)]}" required="0" placeholder="Surname First"
+                                        options="{&quot;no_open&quot;: True,'no_quick_create':False,'no_create_edit':True,'limit': 1}"/>
+                                    <field name="is_existing"/>
+                                    <field name="surname" attrs="{'readonly':[('state','not in',['draft'])],'invisible':[('is_existing','=', True)],'required':[('is_existing','=',False)]}"/>
+                                    <field name="first_name" attrs="{'readonly':[('state','not in',['draft'])],'invisible':[('is_existing','=', True)],'required':[('is_existing','=',False)]}"/>
+                                    <field name="middle_name" attrs="{'readonly':[('state','not in',['draft'])],'invisible':[('is_existing','=', True)],'required':[('is_existing','=',False)]}"/>
+                                        <label for="street" string="Address"/>
+                                        <div class="o_address_format">
+                                            
+                                            <field name="street" placeholder="Street..." class="o_address_street" attrs="{'required': [('state', '=', 'draft')], 'readonly': [('state', '!=', 'draft')]}"/>
+
+                                            <field name="city" placeholder="City" class="o_address_city" attrs="{'readonly': [('state', '!=', 'draft')],'required': [('state', '=', 'draft')]}"/>
+                                            <field name="state_id" class="o_address_state" placeholder="State" options="{&quot;no_open&quot;: True}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                            <field name="country_id" placeholder="Country" class="o_address_country" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'required': [('state', '=', 'draft')], 'readonly': [('state', '!=', 'draft')]}"/>
+                                        </div>
+
+                                        <field name="url" widget="url" placeholder="e.g. www.ikoyiclub.com"/>
+                                        <field name="binary_attach_cv" filename="binary_fname_cv" attrs="{'required': [('state', '!=', 'white')], 'readonly':[('state','not in',['draft','white'])]}" invisible="0" />
+                                        <field name="binary_fname_cv" required="0" invisible="1" />
+
+                                        <field name="binary_attach_letter" filename="binary_fname_letter" attrs="{'readonly':[('state','not in',['draft','white'])]}" invisible="0"/>
+                                        <field name="binary_fname_letter" required="0" invisible="1" />
+
+                                        <field name="section_heads" attrs="{'readonly':[('state','not in',['draft','white','white penalty'])]}" widget="many2many_tags"/>
+                                        <field name="users_followers"  options="{'no_create': True}" widget="many2many_tags"/>
+                                    </group>
+                                    <group>
+                                        <field name="phone" id ="phone_member" widget="phone" placeholder="eg. 09067959499" attrs="{'readonly': [('state', '!=', 'draft')],'required': [('state', '=', 'draft')]}"/>
+                                        <field name="email" widget="email" attrs="{'readonly': [('state', '!=', 'draft')],'required': [('state', '=', 'draft')]}"/>
+                                        <field name="title" options="{&quot;no_open&quot;: True}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                        <field name="nok"/>
+                                        <field name="occupation"/>
+                                        <field name="dob"/>
+                                        <field name="white_member_price" invisible="1"/>
+                                        <field name="member_age"/> 
+                                        <field name="sex" required="1"/>
+                                        <field name="marital_status" required="1"/> 
+                                        <field name="active" readonly="0" gropu="base.group_system"/>
+                                    </group>
+                                </group>
+
+                                <notebook colspan="4">
+                                    <page name="Member Form" string="Membership Form">
+                                    <p style="color: red;">* Other fields will appear on respective states</p>
+                                        <group name="container_row_2">
+                                            <group string="Membership" name="memb" >
+                                                <!-- <field name="sponsor"  attrs="{'readonly': [('state', '!=', 'draft')]}" widget="many2many_tags" required="1" /> -->
+
+                                                <field name="date_pickup" string = "White Form Submission" attrs="{'readonly':[('state','not in',['white','white penalty'])],
+                                                'invisible':[('state','not in',['white penalty','wait', 'ord'])]}"/>
+                                                <field name="date_issue_white" string = "White Form Issued on" attrs="{'readonly':[('state','not in',['white'])],
+                                                'invisible':[('state','not in',['white penalty','wait', 'ord'])]}"/> 
+                                                <field name="date_green_pickup" string="Green Form Submission Date" invisible="1"/>
+                                                <field name="date_issue_green" attrs="{'invisible':[('state','not in',['issue_green','green', 'ord'])]}"/> <!--inx-->
+
+                                                <field name="duration_pick" string = "Pickup Duration(Days)" invisible="1"/>
+                                                <field name="date_of_temp" string="Date Joined" invisible="0" readonly="0" attrs="{'readonly':[('state','not in',['draft','white','green','temp'])],'invisible':[('state','in',['draft','white','issue_green','wait','interview','green'])]}"/>
+                                                <field name="binary_attach_interview" filename="binary_fname_interview" string="Upload Interview Report" attrs="{'invisible':[('state','in',['draft','white','wait'])]}"/> 
+                                                <field name="binary_fname_interview" required="0" invisible="1" />
+                    
+                                                <field name="product_id" invisible="1" string="Membership Type"  options="{'no_create': True}"/>
+                                            
+                                                <field name="date_of_interview" attrs="{'invisible':[('state','not in',['wait'])]}"/>
+                                                <field name="account_id" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'readonly':[('state','not in',['draft','white','green','issue_green'])],
+                                                'required': [('state','in',['white','issue_green'])],
+                                                'invisible':[('state','not in',['draft','white','green','issue_green'])]}"/>
+                                                <!-- <label for="associate_member"/>
+                                                    <div>
+                                                    <field name="associate_member" attrs="{'invisible':[('state','not in',['draft'])]}"/>
+                                                        <button name="asso_button" type="object" string="Associate"
+                                                            class="oe_link"/>
+                                                </div> -->
+
+                                                <field name="date_order" readonly="1"/>
+                                                <field name="due_date" invisible="1"/>
+                                                <field name="membership_date_from" invisible="1"/>
+                                                <field name="membership_date_to" invisible="1"/>
+                                                <field name="activity" readonly="1"/>
+                                                <button name="inactivate" string="Inactivate Member" type="object" icon="fa-registered" class="btn-primary" 
+                                                attrs="{'invisible': [('state','in',['draft','white','issue_green','green','interview','wait','life'])]}"/>
+                                            </group>
+                                            <group string="Identity &amp; Subscriptions" name="identity">
+
+                                                <field name="identification" string="Member ID"
+                                                attrs="{'invisible': [('state','in',['draft','white','white penalty','green penalty'])], 'readonly':[('state','not in',['induction'])]}" placeholder=" eg. A34555"/>
+                                                
+                                                <field name="temp_id"
+                                                attrs="{'readonly':[('state','not in',['temp'])],'invisible':[('state','in',['draft','white','wait','interview','white penalty','green penalty'])]}"/>
+                                            
+                                            <field name="green_id" string="Green Card ID:" attrs="{'readonly':[('state','not in',['issue_green','green'])],'invisible':[('state','in',['draft','white','wait','interview', 'issue_green','white penalty','green penalty'])]}"/>
+                                                
+                                            <field name="subscription_period" 
+                                        attrs="{'readonly':[('state','not in',['green'])],'invisible': [('state','not in',['green','ord','issue_green','manager','temp','life','white penalty','green penalty'])]}"/>
+
+                                        <field name="duration_period" string="Duration Type"
+                                        attrs="{'readonly':[('state','not in',['green'])],'required': [('subscription_period','=',True)],'invisible': [('state','not in',['green','ord','issue_green','manager','temp','life','white penalty','green penalty'])]}"/>
+                                            
+                                        <field name="number_period" 
+                                        attrs="{'readonly':[('state','not in',['green'])], 'required': [('duration_period','in',['Months','Full Year'])],'invisible': [('duration_period','not in',['Months','Full Year'])]}"/>
+                                                <field name="package" invisible="0" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" widget="many2many_tags" attrs="{'invisible':[('state','in',['draft','white','issue_green','interview','wait'])],'readonly':[('state','not in',['green'])]}"/>
+                                                <field name="subscription" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" widget="many2many_tags" string="Subscriptions" 
+                                                attrs="{'invisible':[('state','in',['draft','white','issue_green','interview','wait','white penalty','green penalty'])],'readonly':[('state','not in',['green'])]}"/>
+                                            
+                                            </group>
+                                            <group string="Payment Plan" >
+                                                <field name="payment_type" invisible="0" attrs="{'readonly':[('state','not in',['draft','white','wait','interview'])]}"/>
+                                                <field name="payment_plan" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" readonly="0" attrs="{'invisible': [('payment_type','==','outright')],'required': [('payment_type','==','installment')],'readonly':[('state','not in',['draft','white','wait','interview'])]}"/>
+                                                <field name="invoice_id" invisible="1" string ="Invoices" widget="many2many_tags"/>
+                                                <field name="payment_status" widget="statusbar" statusbar_visible="draft,open,paid"/>    
+
+                                            </group>
+                                            <group string="Cost">
+                                                    <field name="main_house_cost" invisible="1"/>
+                                                    
+                                                    <field name="delay_charges" invisible="1"/>
+                                                    <field name="int_form_price" invisible="1"/> 
+                                                    <field name="coffee" invisible="1"/> 
+                                                    <field name="coffee_book" invisible="1"/> 
+
+
+                                                    <field name="green_form_price" invisible="1"/> 
+
+                                                    <field name="harmony" invisible="1"/>  
+                                                    <field name="package_cost" string ="Compulsory Package Cost" invisible="0" attrs="{'invisible':[('state','in',['draft','white','interview','wait','white penalty','green penalty'])],
+                                                    'readonly':[('state','not in',['draft','white'])]}" />
+                                                <field name="member_price" string="Section Cost" attrs="{'invisible': [('state','in',['draft','white','wait','interview'])],'readonly':[('state','not in',['draft','white'])]}"/>
+
+                                                    <field name="spouse_amount" readonly="1" invisible="0" attrs="{'invisible': [('state','not in',['green','induction'])]}"/>
+                                                    <field name="entry_fee" string="Entry Fee" readonly="1" invisible="1"/>
+                                                    <field name="special_levy" readonly="1" invisible="1"/>
+                                                    <field name="sub_levy" readonly="1" invisible="1"/>
+                                                    
+                                                    <div class="oe_title">
+                                                        <label string="Total (Including Main House Fee - [Spouse Exclusive])"/>
+                                                            <h1>
+                                                                <field name="total" string="Total (Invoice Total Bills)" 
+                                                                attrs="{'invisible': [('state','not in',['temp','manager','induction','ord','life','hon','account'])]}"/>
+                                                                    
+                                                            </h1>
+                                                        </div><br/>
+                                                        <div class="oe_title">
+                                                        <label string="Subsequent Payment"/>
+                                                            <h1>
+                                                                <field name="total_subsequent" string="Total Payments" attrs="{'invisible': [('state','not in',['ord','life','hon','account','white penalty', 'green penalty'])]}"/>
+                                                            </h1>
+                                                        </div><br/> 
+                                                        <div class="oe_title">
+                                                        <label string="Outstandings"/>
+                                                            <h2>
+                                                                <field name="balance_total" string="Outstandings" attrs="{'invisible': [('state','not in',['ord','life','hon','account', 'temp', 'white penalty', 'green penalty'])]}"/>
+                                                            </h2>
+                                                        </div>
+
+                                        </group>
+            
+                                        </group>
+                                    </page>
+                                    <page name="medical" string="Medical Status" invisible="1">
+                                        <field name="medical_status" attrs="{'invisible':[('state', '=', 'draft')]}"/>
+                                        <field name="medical_desc" placeholder="Medical Description..." attrs="{'invisible': ['|', ('medical_status', '!=', True), ('state', '=', 'draft')]}"/>
+                                    </page>                  
+                                    <page name="depends_mem" string="Sponsor/Dependants">
+                                    <!-- attrs="{'readonly': [('state','in',['draft','wait','issue_green'])]}" -->
+                                    <separator string="Dependants" colspan="4"/>
+                                        <field name="depend_name" readonly ="0" widget="many2many_kanban">
+                                            <kanban quick_create="false" create="true" delete="true">
+                                                <p><field name="surname"/> <field name="first_name"/> </p>
+                                                <field name="email"/>
+                                                <templates>
+                                                    <t t-name="kanban-box">
+                                                    <div class="oe_kanban_global_click" style="position: relative">
+                                                        <a t-if="! read_only_mode" type="delete" style="position: absolute; right: 0; padding: 4px; diplay: inline-block">X</a>
+                                                        <div class="oe_module_vignette">
+                                                            <!--<img t-att-src="kanban_image('res.users', 'image_small', record.id.value)" class="oe_avatar oe_kanban_avatar_smallbox"/>-->
+                                                            <img t-att-src="kanban_image('register.spouse.member', 'image', record.id.value)" class="oe_avatar oe_kanban_avatar_smallbox"/>
+
+                                                                <div class="o_kanban_tags_section oe_kanban_partner_categories"/>
+                                                                    <b>Name:<field name="partner_id"/></b><br/>
+                                                                    <b>Email:<field name="email"/></b>
+
+                                                        </div>
+                                                    </div>
+                                                    </t>
+                                                </templates>
+                                            </kanban>
+                                        </field>
+                                        <separator string="Sponsors" colspan="4"/>
+
+                                        <field name="sponsor" readonly ="0" domain="[('is_member','=', True)]" attrs="{'required': [('state', '=', 'white')]}" widget="many2many_kanban">
+                                            <kanban quick_create="false" create="true" delete="true">
+                                                <p><field name="name"/> </p>
+                                                <field name="email"/>
+                                                <templates>
+                                                    <t t-name="kanban-box">
+                                                    <div class="oe_kanban_global_click" style="position: relative">
+                                                        <a t-if="! read_only_mode" type="delete" style="position: absolute; right: 0; padding: 4px; diplay: inline-block">X</a>
+                                                        <div class="oe_module_vignette">
+                                                            <!--<img t-att-src="kanban_image('res.users', 'image_small', record.id.value)" class="oe_avatar oe_kanban_avatar_smallbox"/>-->
+                                                            <img t-att-src="kanban_image('res.partner', 'image', record.id.value)" class="oe_avatar oe_kanban_avatar_smallbox"/>
+
+                                                                <div class="o_kanban_tags_section oe_kanban_partner_categories"/>
+                                                                    <b>Name:<field name="name"/></b><br/>
+                                                                    <b>Email:<field name="email"/></b><br/>
+                                                                    <b>Member ID:<field name="identification"/></b> 
+                                                        </div>
+                                                    </div>
+                                                    </t>
+                                                </templates>
+                                            </kanban>
+                                        </field>
+                                    </page>
+
+                                    <page name="other_info" string="Other Information" invisible="0">
+                                        <group>
+                                            <group>
+                                                <field name="place_of_work"/>
+                                                <field name="work_place_manager_name"/>
+                                                <field name="email_work" required="0"/>
+                                                <field name="address_work"/>
+                                                
+                                                <field name="business_address"/>
+
+                                                <field name="position_holder"/>
+                                                <field name="nationality" string = "Nationality"/>
+                                            </group>
+                                            <group>
+                                                <field name="passport_number"/>
+                                                <field name="nok_address_work" string = "Next of Kin Address"/> 
+                                                <field name="nok_relationship"/>
+                                                <field name="resident_permit"/>
+                                                
+                                                
+                                            </group>
+                                        </group>
+                                        
+                                    </page>
+
+
+                                    <page name="member_payment" string="Membership Payments">
+                                        
+                                        <separator string="Additional Payment History" colspan="4"/>
+                                        <div class="oe_button_box" name="buttons_result" style="box-shadow: none;">
+                                            <button type="object" class="oe_inline oe_stat_button" name="get_payment_ids" style="width: 215px !important;margin-right: 1%;margin-top: 3%;border:none;" string="Refresh Payments" icon="fa-refresh"/>
+                                        </div>
+                                        
+
+                                        <field name="payment_ids" attrs="{'invisible':[('state','=','draft')]}" readonly="0">
+                                        <p style="color: red;">* See invoice Payments</p>
+                                        <tree string="Payments" editable="bottom"> 
+                                            <field name="name"/>
+                                            <field name="journal_id"/>
+                                            <field name="bank"/>
+                                            
+                                            <field name="amount_to_pay" invisible="0"/>
+                                            <field name="amount" string="Paid Amount"/>
+                                            <field name="balances" invisible="0"/>
+
+                                            <field name="payment_date"/>
+                                            <field name="additional_ref"/>
+                                        </tree>
+                                        </field>
+                                        <field name="payment_line2" invisible="1" readonly="0">
+                                        <p style="color: red;">* See Payments</p>
+                                        <tree string="Payments" editable="bottom"> 
+                                            <field name="name"/>
+                                            <field name="member_price" string="Price"/>
+                                            <field name="spouse_amount" string="Spouse amount"/>
+                                            <field name="paid_amount" string="Amount Paid"/>
+                                            <field name="balance" invisible="1" string="Balance"/>
+                                            <field name="penalty_fee"/>
+
+                                            <field name="pdate"/>
+                                        </tree>
+                                        </field>
+
+                                        <separator string="All Packages / Sections Payments" colspan="4"/>
+                                        <field name="payment_line" readonly="0" attrs="{'readonly': [('state', '!=', 'draft')]}">
+                                        <p style="color: red;">* See Subscriptions</p>
+                                        <tree string="Payments" editable="bottom">
+                                            <field name="product_id"/>
+                                            <field name="member_price"/>
+                                            <field name="paid_amount" string="Amount Paid"/>
+                                            <field name="balance" string="Balance"/>
+
+
+                                            <field name="pdate" string="Paid Date"/>
+                                        </tree>
+                                        </field>
+                                    </page>
+
+                                    <page string="Renewals and Payments">
+                                        <field name="sub_line" readonly="0">
+                                        <p style="color: red;">* Save record to see renewals,periods and payment</p>
+                                        <tree string="Subscription Renewal" editable="bottom">
+                                            <field name="name"/>
+                                            <field name="sub_order" string ="Reference"/>
+                                            
+
+                                            <field name="total_price"/>
+                                            <field name="pdate"/>
+                                            <field name="periods_month" string ="Renewal Period"/>
+                                            <field name="paid_amount"/>
+                                            <field name="balance"/>
+                                        </tree>
+                                        </field>
+                                    </page>
+
+                                    <page string="Subscription &amp; Help settings">
+                                        
+                                        <p style="color: red;">* Set subscription settings</p>
+                                        <group>
+                                            <group>
+                                                <field name="section_duration"/>
+                                                <field name="section_int" />
+                                                <field name="date_of_last_sub"/>
+                                                <field name="due_dates"/>
+                                                
+                                            </group>
+                                            <group>
+                                                
+                                                <p style="color: red;">
+                                                <b>Go to Levies menu in the configuration and set Period levies</b><br/>
+                                                <b>Do same for sections and packages</b><br/>
+                                                * Create a member --> Fill in the necessary information<br/>
+                                                * Click the issue "white form button" <br/>
+                                                * Next fill the account field and click register button<br/>
+                                                * Set the white form submission date to check delay delay_charges<br/>
+                                                * Set interview date -- click set to interview button<br/>
+                                                * Issue green card and make payment - next check and confirm button<br/>
+                                                * <b><u>Important</u></b><br/>
+                                                * Go to the settings &amp; help tab to ensure select the subscription<br/>
+                                                mode.<br/>
+                                                * Set period --> select the Duration Type --> Enter the Number of <br/>
+                                                months /Years.<br/>
+                                                * Enter the subscriptions (The system will calcuate the prorated bill to pay <br/>
+                                                and add to the section cost.<br/>
+                                                * Click send to induction button if the member date of temp confirmation <br/>
+                                                is up to three months.<br/>
+                                                * Click on Promote to ordinary button - The system auto generate the<br/>
+                                                unique ID using the First -two letters and based on the last member ID. <br/>
+                                                * After manager's approval, you can also promote to manager (When member is more than<br/>
+                                                25 years in the club and over 65 years.<br/>
+                                                
+                                                
+                                                </p> 
+                                            </group>
+                                        </group>         
+                                    </page>
+                                    <!-- <page string="Payment Breakdown">
+                                        <field name="payment_breakdown" readonly="0">
+                                        <p style="color: red;">* Save record to see payment breakdown</p>
+                                        <tree string="Breakdown payments" editable="bottom">
+                                            <field name="name"/>
+                                            <field name="amount_to_pay"/>
+                                            <field name="interval"/>
+                                            <field name="due_date"/>
+                                        </tree>
+                                        </field>
+                                    </page> -->
+                                </notebook>
+                            </sheet>
+            </form>
+            </field>
+    </record>
+
+       <record id="memapp_form_tree" model="ir.ui.view">
+            <field name="name">MEMBERSHIP Tree</field>
+            <field name="model">member.app</field>
+            <field name="arch" type="xml">
+                <tree string="Membership Records">
+
+                    <field name="partner_id"/>
+                    <field name="identification"/>
+                    <field name="sex"/>
+                    <field name="marital_status"/>
+                    <field name="state"/>
+                    <field name="date_order"/>
+
+                </tree>
+            </field>
+        </record>
+
+    <record model="ir.ui.view" id="memapp_search">
+       <field name="name">MEMBERSHIP FORM SEARCH</field>
+            <field name="model">member.app</field>
+		    <field name="arch" type="xml">
+				 <search string="Search Membership Records">
+
+
+					   <field name="partner_id" />
+                       <field name="identification"/>
+					   <field name="state" />
+                       <field name="product_id" />
+                        <field name="date_order" />
+                         <field name="occupation" />
+
+					 <group expand="0" string="Group By">
+				       <filter string="Name" icon="terp-personal" domain="[]" context="{'group by':'partner_id'}" />
+                       <filter string="Identity Number" icon="terp-personal" domain="[]" context="{'group by':'identification'}" />
+					   <filter string="State" icon="terp-personel" domain="[]" context="{'group by':'state'}" />
+                       <filter string="Member type" icon="terp-personal" domain="[]" context="{'group by':'product_id'}" />
+                       <filter string="Date" icon="terp-personal" domain="[]" context="{'group by':'date_order'}" />
+                        <filter string="Occupation" icon="terp-personal" domain="[]" context="{'group by':'occupation'}" />
+                        <filter string="Active" icon="terp-personal" domain="[]" context="{'group by':'active'}" />
+                    </group>
+			  </search>
+		 	</field>
+	  </record>
+
+
+
+      <record model="ir.ui.view" id="member_app_kanban_view">
+            <field name="name">member.app.kanban</field>
+            <field name="model">member.app</field>
+            <field name="arch" type="xml">
+                <kanban class="o_res_partner_kanban">
+                    <field name="partner_id"/>
+                    <field name="city"/>
+                    <field name="phone"/>
+                    <field name="email"/>
+                    <field name="country_id"/>
+                    <field name="state_id"/>
+                    <field name="image"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_global_click o_res_partner_kanban">
+                                <div class="o_kanban_tags_section oe_kanban_partner_categories"/>
+                                <div class="o_kanban_image">
+                                    <t t-if="record.image.raw_value">
+                                        <img t-att-src="kanban_image('member.app', 'image', record.id.value)"/>
+                                    </t>
+
+                                </div>
+                                <div class="oe_kanban_details">
+                                    <strong class="oe_partner_heading"><field name="partner_id"/></strong>
+                                    <ul>
+                                        <li t-if="record.partner_id.raw_value and !record.product_id.raw_value"><field name="partner_id"/></li>
+
+                                        <li t-if="record.partner_id.raw_value and record.product_id.raw_value"><field name="partner_id"/> Membership: <field name="product_id"/></li>
+                                        <li t-if="record.city.raw_value and !record.country_id.raw_value"><field name="city"/></li>
+                                        <li t-if="!record.city.raw_value and record.country_id.raw_value"><field name="country_id"/></li>
+                                        <li t-if="record.city.raw_value and record.country_id.raw_value"><field name="city"/>, <field name="country_id"/></li>
+                                        <li t-if="record.email.raw_value" class="o_text_overflow"><field name="email"/></li>
+                                    </ul>
+                                    <div class="oe_kanban_partner_links"/>
+                                </div>
+                            </div>
+
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+
+
+      <record id="memapp_action" model="ir.actions.act_window">
+                    <field name="name">MEMBERSHIP</field>
+                    <field name="res_model">member.app</field>
+                    <field name="view_mode">kanban,tree,form</field>
+                    <field name="domain">[('activity','=', 'act')]</field>
+                     
+                    <field name="help" type="html">
+                      <p class="oe_view_nocontent_create">
+                        Click to create records.
+                      </p>
+
+                    </field>
+      </record>
+
+       <record model="ir.ui.view" id="res_partner_mem" >
+            <field name="name">res.partner</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form" />
+            <field name="arch" type="xml">
+
+                <xpath expr="//field[@name='lang']" position="after">
+                           <field name="is_member" string="Is Member" invisible="0"/>
+                           <field name="identification" string="Member ID" attrs="{'invisible': [('is_member', '=', False)]}"/>
+
+                </xpath>
+
+            </field>
+        </record>
+ 
+        <!-- MEMBERSHIP/MEMBERSHIP PRODUCTS -->
+
+        <record model="ir.ui.view" id="membership_product_search_form_viewx">
+            <field name="name">membership.product.search.formx</field>
+            <field name="model">product.template</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <search string="Membership Types">
+                    <field name="name" string="Membership Types"/>
+                    <filter string="Inactive" domain="[('active','=',0)]"/>
+                    <field name="categ_id" operator="child_of"/>
+                    <group  expand='0' string='Group by...'>
+                        <filter string='Category' domain="[]" context="{'group_by' : 'categ_id'}"/>
+                        <filter string='From Month' domain="[]" context="{'group_by' : 'membership_date_fromx'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+ 
+        <record model="ir.ui.view" id="membership_products_treex">
+            <field name="name">Membership Types</field>
+            <field name="model">product.template</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <tree string="Membership Types">
+                    <field name="name"/>
+                    <field name="membership_date_fromx"/>
+                    <field name="membership_date_tox"/>
+                    <field name="list_price" string="Membership Fee"/>
+                    <field name="categ_id" invisible="1"/>
+                    <field name="uom_id" invisible="1"/>
+                    <field name="type" invisible="1"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="membership_products_formx">
+            <field name="name">Membership Products</field>
+            <field name="model">product.template</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <form string="Membership products">
+                    <label for="name" class="oe_edit_only"/>
+                    <h1>
+                        <field name="name"/>
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="default_code"/>
+                            <field name="categ_id"/>
+                            <field name="membershipx" string = "Is Membership" invisible="0"/>
+
+                            <field name="company_id"
+                                groups="base.group_multi_company"
+                                options="{'no_create': True}"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <label for="membership_date_fromx" string="Membership Duration"/>
+                            <div>
+                                <field name="membership_date_fromx" required="0" invisible="1" class="oe_inline"/> -
+                                <field name="membership_date_tox" required="0" invisible="1" class="oe_inline"/>
+                            </div>
+                            <div>
+                                <field name="membershipx_white" string = "Is White" invisible="0" class="oe_inline"/> -
+                                 <field name="membershipx_green" string = "Is Green" invisible="0" class="oe_inline"/>
+                            </div>
+                            <div>
+                                <field name="membershipx_ord" string = "Is Ordinary" invisible="0" class="oe_inline"/>-
+
+                                <field name="membershipx_life" string = "Is Life" invisible="0" class="oe_inline"/>
+
+                            </div>
+                            <field name="list_price" string="Membership Fee"/>
+                            <field name="subscription" widget="many2many_tags" string="Activities"/>
+                            <field
+                                name="property_account_income_id"/>
+                            <field name="taxes_id" widget="many2many_tags" string="Taxes"/>
+                        </group>
+                    </group>
+                    <label for="description"/>
+                    <field colspan="4" name="description" placeholder="Add a description..."/>
+                    <label for="description_sale"/>
+                    <field colspan="4" name="description_sale" placeholder="This note will be displayed on quotations..."/>
+                 </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_membership_productsx">
+            <field name="name">Membership Types</field>
+            <field name="res_model">product.template</field>
+            <field name="domain">[('membershipx','=',True), ('type', '=', 'service')]</field>
+            <field name="context">{'membershipx':True, 'type':'service', 'default_membershipx': True, 'default_type': 'service'}</field>
+            <field name="search_view_id" ref="membership_products_treex"/>
+             <field name="view_mode">tree,form</field>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="action_membership_product_view_treex">
+            <field name="sequence" eval="1"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="membership_products_treex"/>
+            <field name="act_window_id" ref="action_membership_productsx"/>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="action_membership_product_view_formx">
+            <field name="sequence" eval="2"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="membership_products_formx"/>
+            <field name="act_window_id" ref="action_membership_productsx"/>
+        </record>
+ 
+        <!--<record model="ir.ui.view" id="subscription_search_form_viewx">
+            <field name="name">subscription.search.formx</field>
+            <field name="model">product.template</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <search string="Subscription Types">
+                    <field name="name" string="subscription Types"/>
+                    <filter string="Inactive" domain="[('active','=',0)]"/>
+                    <field name="categ_id" operator="child_of"/>
+                    <group  expand='0' string='Group by...'>
+                        <filter string='Category' domain="[]" context="{'group_by' : 'categ_id'}"/>
+                        <filter string='From Month' domain="[]" context="{'group_by' : 'membership_date_fromx'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+ 
+
+        <record model="ir.ui.view" id="membership_products_treex">
+            <field name="name">Membership Types</field>
+            <field name="model">product.template</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <tree string="Membership Types">
+                    <field name="name"/>
+                    <field name="membership_date_fromx"/>
+                    <field name="membership_date_tox"/>
+                    <field name="list_price" string="Membership Fee"/>
+                    <field name="categ_id" invisible="1"/>
+                    <field name="uom_id" invisible="1"/>
+                    <field name="type" invisible="1"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="membership_products_formx">
+            <field name="name">Membership Products</field>
+            <field name="model">product.template</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <form string="Membership products">
+                    <label for="name" class="oe_edit_only"/>
+                    <h1>
+                        <field name="name"/>
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="default_code"/>
+                            <field name="categ_id"/>
+                            <field name="membershipx" string = "Is Membership" invisible="0"/>
+                            <field name="membershipx_white" string = "Is White" invisible="0"/>
+
+                            <field name="company_id"
+                                groups="base.group_multi_company"
+                                options="{'no_create': True}"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <label for="membership_date_fromx" string="Membership Duration"/>
+                            <div>
+                                <field name="membership_date_fromx" required="1" class="oe_inline"/> -
+                                <field name="membership_date_tox" required="1" class="oe_inline"/>
+                            </div>
+                            <field name="list_price" string="Membership Fee"/>
+                            <field name="subscription" widget="many2many_tags" string="Activities"/>
+                            <field
+                                name="property_account_income_id"/>
+                            <field name="taxes_id" widget="many2many_tags" string="Taxes"/>
+                        </group>
+                    </group>
+                    <label for="description"/>
+                    <field colspan="4" name="description" placeholder="Add a description..."/>
+                    <label for="description_sale"/>
+                    <field colspan="4" name="description_sale" placeholder="This note will be displayed on quotations..."/>
+                 </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_membership_productsx">
+            <field name="name">Membership Types</field>
+            <field name="res_model">product.template</field>
+            <field name="domain">[('membershipx','=',True), ('type', '=', 'service')]</field>
+            <field name="context">{'membershipx':True, 'type':'service', 'default_membershipx': True, 'default_type': 'service'}</field>
+            <field name="search_view_id" ref="membership_products_treex"/>
+             <field name="view_mode">tree,form</field>
+        </record>   -->
+
+       <!--Showing badges on menu-->
+
+        <record model="ir.ui.view" id="subscription_search_form_viewxx">
+            <field name="name">member.payment.new</field>
+            <field name="model">member.payment.new</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <search string="Subscription Payments">
+
+                    <filter string="product_id"/>
+                    <field name="pdate"/>
+
+                    <group  expand='0' string='Group by...'>
+
+                        <filter string='Member type' domain="[]" context="{'group_by' : 'product_id'}"/>
+                        <filter string='From Month' domain="[]" context="{'group_by' : 'pdate'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="membership_products_treexxx">
+            <field name="name">Membership payments</field>
+            <field name="model">member.payment.new</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <tree string="Membership payments">
+                    <field name="member_idx" invisible="1"/>
+
+                    <field name="product_id"/>
+                    <field name="member_price" string="Membership Fee"/>
+                    <field name="paid_amount" invisible="0"/>
+                    <field name="balance" invisible="0"/>
+
+                    <field name="pdate" invisible="0"/>
+
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="membership_products_formxfvv">
+            <field name="name">Membership payment</field>
+            <field name="model">member.payment.new</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <form string="Membership payments">
+                    <label for="name" class="oe_edit_only"/>
+                    <h1>
+                        <field name="member_idx" invisible="1" />
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="product_id"/>
+                            <field name="member_price"/>
+                            <field name="paid_amount" invisible="0"/>
+
+
+                        </group>
+                        <group>
+                            <field name="balance" invisible="0"/>
+
+                            <field name="pdate"/>
+
+                        </group>
+                    </group>
+
+                 </form>
+            </field>
+        </record>
+
+        <act_window id="payment_action"
+        name="Members Payment"
+        res_model="member.payment.new"
+        view_mode="tree,form"/>
+        
+        
+        <record model="ir.ui.view" id="packages_formxfvv">
+            <field name="name">Packages</field>
+            <field name="model">package.model</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <form string="Packages  ">
+                    <label for="name" string="Name" class="oe_edit_only"/>
+                    <h1>
+                        <field name="name" invisible="0" />
+                    </h1>
+
+                    <group>
+                        <group>
+
+                             <field name="subscription_period" invisible="0"/>
+                        </group>
+                        <group>
+                            <field name="package_cost"/>
+
+                            <field name="pdate"/>
+
+                        </group>
+                    </group>
+
+                 </form>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="package_treexxx">
+            <field name="name">Packages</field>
+            <field name="model">package.model</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <tree string="Packages">
+                    <field name="name"/>
+                    <field name="subscription_period" invisible="0"/>
+                    <field name="package_cost"/>
+                    <field name="pdate"/>
+
+                </tree>
+            </field>
+        </record>
+
+        <act_window id="package_action"
+        name="Packages"
+        res_model="package.model"
+        view_mode="tree,form"
+        />
+
+        <record model="ir.ui.view" id="sections_formxfvv">
+            <field name="name">Sections</field>
+            <field name="model">subscription.payment</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <form string="Sections  ">
+                    <label for="name" string="Name" class="oe_edit_only"/>
+                    <h1>
+                        <field name="name" invisible="0" />
+                    </h1>
+                    <group>
+                        <group>
+                             <field name="subscription_period" required="1" invisible="0"/>
+                             <field name="pdate"/>
+                             <field name="special_subscription"/>
+                        </group>
+                        <group>
+                            <field name="member_price" string = "Subscription"/>
+                             <!-- <field name="product_id"/> -->
+                            <field name="entry_price"/>
+                            <field name="sub_levy"/>
+                             <field name="special_levy"/>
+                             <field name="total_cost"/>
+
+                        </group>
+                    </group>
+
+                 </form>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="sectionds_treexxx">
+            <field name="name">Section</field>
+            <field name="model">subscription.payment</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <tree string="Section">
+                    <field name="name"/>
+                             <field name="subscription_period" invisible="0"/>
+                              <field name="member_price" string = "Subscription"/>
+                            <field name="pdate"/>
+                            <field name="product_id"/>
+                            <field name="entry_price"/>
+                            <field name="sub_levy"/>
+                             <field name="special_levy"/>
+                             <field name="total_cost"/>
+
+                </tree>
+            </field>
+        </record>
+
+
+        <act_window id="subscription_section_action"
+        name="Sections  "
+        res_model="subscription.payment"
+        view_mode="tree,form"/>
+
+        <record model="ir.ui.view" id="spouse_formxfvv">
+            <field name="name">Dependant</field>
+            <field name="model">register.spouse.member</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <form string="Dependant">
+                     
+                            <header>
+                                <button name="button_make_wait" string="Register" type="object" icon="fa-registered" class="btn-primary"
+                                attrs="{'invisible': [('state','not in',['draft'])]}"/>
+
+                                <button name="button_make_payment" string="Register Payment" type="object" icon="fa-registered" class="btn-primary"
+                                 attrs="{'invisible': [('state','not in',['wait'])]}"/>
+
+                                <button name="button_make_confirm" string="Confirm Member" type="object" icon="fa-registered" class="btn-primary"
+                                attrs="{'invisible': [('state','not in',['account'])]}"/>
+
+                                <button name="button_cancel" string="Cancel" type="object" icon="fa-registered" class="btn-primary"
+                                attrs="{'invisible': [('state','not in',['wait'])]}"/>
+                                <button name="print_receipt" string="Print Receipt" type="object" icon="fa-registered"  class="oe_stat_button"
+                                />
+                                
+                                <field name="state" widget="statusbar" statusbar_visible="draft,wait,confirm"/>
+
+                             </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                                    
+                                    <button name="see_breakdown_invoice" string="See Invoices" type="object" class="oe_stat_button" icon="fa-shirtsinbulk">
+                                            <!--<field name="see_invoice" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>-->
+                                        </button>
+
+                                    </div>
+                        <field name="image" widget="image" class="oe_avatar"/>
+                        <label for="Name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="partner_id" default_focus="1" required= "0" invisible="1" placeholder="Name" options="{&quot;no_open&quot;: True,'limit': 1}"/>
+                        </h1>
+                    <group colspan="4" col="2">
+                        <group>
+                            <field name="surname" attrs="{'readonly':[('state','not in',['draft'])],'required':[('state','in',['draft'])]}"/>
+                            <field name="first_name" attrs="{'readonly':[('state','not in',['draft'])],'required':[('state','in',['draft'])]}"/>
+                            <field name="middle_name" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+                            <label for="street" string="Address"/>
+                            <div class="o_address_format">
+                                <field name="street" required="0" placeholder="Street..." class="o_address_street"/>
+                                <field name="city" placeholder="City" class="o_address_city"/>
+                                <field name="state_id" class="o_address_state" placeholder="State" options="{&quot;no_open&quot;: True}" />
+                                <field name="country_id" placeholder="Country" class="o_address_country" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}"/>
+                            </div>
+                            <field name="url" widget="url" placeholder="e.g. www.ikoyiclub.com"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="email" widget="email" />
+                            <field name="sex" required="1"/> 
+                            <field name="marital_status" required="1"/>
+                            <field name="title" options="{&quot;no_open&quot;: True}" />
+                        </group>
+                        <group>
+                            
+                            <field name="nok"/> 
+                            <field name="nok_relationship"/>
+                            <field name="occupation"/>
+                            <field name="dob"/>
+                            <field name="member_age"/>
+                            <field name="mode"/>
+                            <field name="relationship"/>
+
+                        </group>
+                         <group>
+                            <field name="product_id" invisible="1"/>
+                             <field name="account_id" string = "Account Recievable" required="1"/>  
+                             <field name="sponsor" />
+                            
+                            <field name="date_order" />
+                            <field name="active" readonly="1"/>
+
+                            
+                         </group>
+                            
+
+                         <group>
+                             <!-- <field name="subscription" widget="many2many_tags"> -->
+                            <field name="package" required="0" invisible="1" widget="many2many_tags"/>
+                            <field name="member_price" readonly="1" string="Subscription Fee"/>
+                            <field name="package_cost" required="0" invisible="1"/>
+                            <field name="total"/>
+                         </group> 
+
+                    </group>
+
+                    <notebook>
+                            <page name="sub-page_spouse" string="Subscription">
+                            
+                            <separator string="Subscription list" colspan="20"/>
+                            <field name="spouse_subscription" readonly="0">
+                              
+                              <tree string="Subscription" editable="bottom">
+                                <field name="subscription" required="0"/>
+                                <field name="member_price" string="Subscription Fee"/>
+                                <field name="sub_levy"/>
+                                <field name="entry_price"/>
+                                <field name="special_levy"/>
+                                 <field name="total_fee"/>
+                              </tree>
+                            </field>
+                             </page>
+                             <page name="payment-page_spouse" string="Payments">
+                                <field name="payment_ids" attrs="{'invisible':[('state','=','draft')]}" readonly="0">
+                                    <p style="color: red;">* See invoice Payments</p>
+                                    <tree string="Payments" editable="bottom"> 
+                                        <field name="name"/>
+                                        <field name="journal_id"/>
+                                        <field name="bank"/>
+                                        
+                                        <field name="amount_to_pay" invisible="0"/>
+                                        <field name="amount" string="Paid Amount"/>
+                                        <field name="balances" invisible="0"/>
+
+                                        <field name="payment_date"/>
+                                        <field name="additional_ref"/>
+                                    </tree>
+                                    </field>
+                            </page>
+
+                            <page string="Help settings">
+                                        
+                                        <p style="color: red;">* settings</p>
+                                        <group>
+                                            <group>
+                                                <!-- <field name="section_duration"/>
+                                                <field name="section_int" />
+                                                <field name="date_of_last_sub"/>
+                                                 -->
+                                            </group>
+                                            <group>
+                                                
+                                                <p style="color: red;">
+                                                <b>Go to Levies menu in the configuration and set Period levies</b><br/>
+                                                <b>Do same for sections and packages</b><br/>
+                                                * Create a member --> Fill in the necessary information<br/>
+                                                * Click the issue "white form button" <br/>
+                                                * Next fill the account field and click register button<br/>
+                                                * Set the white form submission date to check delay delay_charges<br/>
+                                                * Set interview date -- click set to interview button<br/>
+                                                * Issue green card and make payment - next check and confirm button<br/>
+                                                * <b><u>Important</u></b><br/>
+                                                * Go to the settings &amp; help tab to ensure select the subscription<br/>
+                                                mode.<br/>
+                                                * Set period --> select the Duration Type --> Enter the Number of <br/>
+                                                months /Years.<br/>
+                                                * Enter the subscriptions (The system will calcuate the prorated bill to pay <br/>
+                                                and add to the section cost.<br/>
+                                                * Click send to induction button if the member date of temp confirmation <br/>
+                                                is up to three months.<br/>
+                                                * Click on Promote to ordinary button - The system auto generate the<br/>
+                                                unique ID using the First -two letters and based on the last member ID. <br/>
+                                                * After manager's approval, you can also promote to manager (When member is more than<br/>
+                                                25 years in the club and over 65 years.<br/>
+                                                
+                                                
+                                                </p> 
+                                            </group>
+                                        </group>         
+                                    </page>
+                    </notebook>
+
+
+                </sheet>
+                 </form>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="spouse_treexxx">
+            <field name="name">Dependant</field>
+            <field name="model">register.spouse.member</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <tree string="Section">
+                              <field name="surname"/>
+                              <field name="first_name"/>
+                            <field name="member_age"/>
+                             <field name="date_order"/>
+                            <field name="total"/>
+                </tree>
+            </field>
+        </record>
+
+
+
+        <record id="action_send_all_induction" model="ir.actions.server"> 
+             <field name="name">Send Members to induction</field> 
+            <field name="model_id" ref="model_member_app"/>
+            <field name="state">code</field>
+            <field name="code">
+                if context.get('active_model') == 'member.app' and context.get('active_ids'):
+                    if object:env['member.app'].with_context(context).browse(context.get('active_ids', [])).button_make_induction2()
+            </field>
+        </record>
+        <record id="confirm_send_all_induction" model="ir.values">
+                <field name="name">name1</field>
+                <field name="model">member.app</field>
+                <field name="key">action</field>
+                <field name="key2">client_action_multi</field>
+                <field name="value" eval="'ir.actions.server,%d' %action_send_all_induction"/>
+        </record> 
+
+        <record id="action_send_all_interview_main" model="ir.actions.server">
+                <field name="name">Set Selected to Interview</field>
+                <field name="model_id" ref="model_member_app"/>
+                <field name="state">code</field>
+                <field name="condition">True</field>
+                <field name="code">if context.get('active_model') == 'member.app' and context.get('active_ids'):
+                    if object: 
+                        env['member.app'].with_context(context).browse(context.get('active_ids', [])).function_sendall_interview()</field>
+        </record>
+        <record id="confirm_send_interview_all" model="ir.values">
+                <field name="name">name2</field>
+                <field name="model">member.app</field>
+                <field name="key">action</field>
+                <field name="key2">client_action_multi</field>
+                <field name="value" eval="'ir.actions.server,%d' %action_send_all_interview_main"/>
+        </record>
+
+        <!-- <record id="test_send_all_interview" model="ir.values">
+            <field eval="'client_action_multi'" name="key2"/>
+            <field eval="'member.app'" name="model"/>
+            <field name="name">Send Selected to interview</field>
+            <field eval="'ir.actions.server,%d'%action_send_all_interview_main" name="value"/>
+        </record> -->
+
+
+        <record id="action_send_all_induction_mail" model="ir.actions.server">
+                <field name="name">Send Induction by Mail</field>
+                <field name="model_id" ref="model_member_app"/>
+                <field name="state">code</field>
+                <field name="condition">True</field>
+                <field name="code">if context.get('active_model') == 'member.app' and context.get('active_ids'):
+                    if object: 
+                        env['member.app'].with_context(context).browse(context.get('active_ids', [])).action_send_induction()</field>
+        </record>
+        <record id="confirm_all_induction" model="ir.values">
+                <field name="name">name3</field>
+                <field name="model">member.app</field>
+                <field name="key">action</field>
+                <field name="key2">client_action_multi</field>
+                <field name="value" eval="'ir.actions.server,%d' %action_send_all_induction_mail"/>
+        </record>
+        <!-- <record id="sendtointerviews" model="ir.values">
+                <field name="name">name</field>
+                <field name="model">member.app</field>
+                <field name="key" >action</field>
+                <field name="key2">client_action_multi</field>
+                <field name="value" eval="'ir.actions.server,%d' %action_send_all_interview"/>
+        </record> -->
+        
+
+        <record id="action_confirm_green_all" model="ir.actions.server">
+                <field name="name">Confirm Selected to Green</field>
+                <field name="model_id" ref="model_member_app"/>
+                <field name="state">code</field>
+                <field name="condition">True</field>
+                <field name="code">if context.get('active_model') == 'member.app' and context.get('active_ids'):
+                    if object: env['member.app'].with_context(context).browse(context.get('active_ids', [])).button_confirmall_green()</field>
+        </record>
+        <record id="confirm_green_all" model="ir.values">
+                <field name="name">name4</field>
+                <field name="model">member.app</field>
+                <field name="key">action</field>
+                <field name="key2">client_action_multi</field>
+                <field name="value" eval="'ir.actions.server,%d' %action_confirm_green_all"/>
+        </record>
+
+        <act_window id="register_spouse_action"
+        name="Dependants "
+        res_model="register.spouse.member"
+        view_mode="tree,form"/>
+
+        <act_window id="badge_white_action"
+        name="White Prospect Members"
+        res_model="member.app"
+        domain="[('state', '=', 'white')]"
+        view_mode="tree,form"/>
+
+        <act_window id="badge_green_action"
+        name="Green Card Members"
+        res_model="member.app"
+        domain="[('state', '=', 'green')]"
+        view_mode="tree,form"/>
+
+        <act_window id="badge_ord_action"
+        name="Ordinary Members"
+        res_model="member.app"
+        domain="[('state', '=', 'ord')]"
+        view_mode="tree,form"/>
+
+        <act_window id="badge_life_action"
+        name="Life Members"
+        res_model="member.app"
+        domain="[('state', '=', 'life')]"
+        view_mode="tree,form"/>
+
+        <act_window id="badge_temp_action"
+        name="Temporary Members"
+        res_model="member.app"
+        domain="[('state', '=', 'temp')]"
+        view_mode="tree,form"/>
+
+        <act_window id="non_active_action_main"
+            name="Non Active"
+            res_model="member.app"
+            domain="[('activity','=', 'inact')]"
+            view_mode="tree,form"/>
+    
+        <act_window id="dormant_action_main"
+            name="Dormant"
+            res_model="member.app"
+            domain="[('activity','=', 'dom')]"
+            view_mode="tree,form"/>
+
+
+        <!-- #################v  MENU  ###############################--> 
+
+      <menuitem id ="menu_memapp_all" name="Membership" sequence="2" action="memapp_action" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi"/>
+          <menuitem id ="menu_memapp_all_rec" name="Create Membership" parent="menu_memapp_all" sequence="1" action="memapp_action" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi"/>
+              <menuitem id ="menu_memapp_sub_rec" name="Members" sequence="1" parent="menu_memapp_all_rec" action="memapp_action" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi"/>
+                <menuitem id ="menu_non_memapp_sub_rec" name="Non Active Members" sequence="2" parent="menu_memapp_all_rec" action="non_active_action_main"/>
+                <menuitem id ="menu_dormant_memapp_sub_rec" name="Dormant Members" sequence="3" parent="menu_memapp_all_rec" action="dormant_action_main"/>
+
+          <menuitem id ="menu_memapp_fil_rec" name="Membership Filter" parent="menu_memapp_all" sequence="2" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi"/>
+              <menuitem id ="menu_memapp_white_rec" name="White Prospect" sequence="1" parent="menu_memapp_fil_rec" action="badge_white_action"/>
+              <menuitem id ="menu_memapp_green_rec" name="Green Prospect" sequence="2" parent="menu_memapp_fil_rec" action="badge_green_action"/>
+              <menuitem id ="menu_memapp_temp_rec" name="Temporary Members" sequence="3" parent="menu_memapp_fil_rec" action="badge_temp_action"/>
+              <menuitem id ="menu_memapp_ord_rec" name="Permanent Members" sequence="4" parent="menu_memapp_fil_rec" action="badge_ord_action"/>
+              <menuitem id ="menu_memapp_life_rec" name="Life Members" sequence="5" parent="menu_memapp_fil_rec" action="badge_life_action"/>
+        <menuitem id ="menu_memapp_fil_dep" name="Dependants" parent="menu_memapp_all" sequence="3" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi"/>
+              <menuitem id ="menu_memapp_dep_rec" name="Dependants/Spouse Inclusion" sequence="1" parent="menu_memapp_fil_dep" action="register_spouse_action"/>
+          
+      <menuitem id ="menu_memapp_rec" name="Configuration" sequence="10" parent="menu_memapp_all" groups="base.group_system,member_app.manager_member_ikoyi"/>
+  
+        <act_window id="subscription_spouse_section_action" name="Spouse Subscriptions" res_model="spouse.subscription.payment" view_mode="tree,form"/>
+ 
+        <menuitem id ="menu_memapp_conf" name="Payment" sequence="15" parent="menu_memapp_rec" action="payment_action"/>
+        <menuitem id ="menu_memapp_sectionconf" name="Sections" sequence="17" parent="menu_memapp_rec" action="subscription_section_action"/>
+        <menuitem id ="menu_memapp_packconf" name="Packages" sequence="16" parent="menu_memapp_rec" action="package_action"/>
+
+ </data>
+ </odoo>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+         
+
+        <record id="seq_memberapp" model="ir.sequence">
+            <field name="name">Member</field>
+            <field name="code">member.app</field>
+            <field name="prefix"></field>
+            <field name="padding">1</field>
+        </record>
+        
+         
+    </data>
+</odoo>

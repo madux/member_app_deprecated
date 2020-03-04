@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+       <!-- <record model="ir.ui.menu" id="allocation_menu.property_sales_menu_root" parent="sales_team.menu_base_partner">
+            <field name="name">Properties</field>
+        </record>
+        <menuitem id="human_resource_custom" sequence="6" name="Human Resource"/>
+        <menuitem id="human_resource_custom_sub" sequence="4" name="Training" parent="human_resource_custom"/>
+        <menuitem id ="training_request.menu_training" name="Training" sequence="1" parent="human_resource_custom_sub"/>
+
+        <menuitem id="human_resource_custom_subone" sequence="2" name="Payroll" parent="human_resource_custom"/>
+        <menuitem id ="hr_payroll.menu_hr_payroll_root" name="Payroll" sequence="1" parent="human_resource_custom_subone"/>
+
+        <menuitem id="human_resource_custom_subtwo" sequence="3" name="Recruitment" parent="human_resource_custom"/>
+        <menuitem id ="hr_recruitment.menu_hr_recruitment_root" name="Recruitment" sequence="1" parent="human_resource_custom_subtwo"/>
+
+        <menuitem id="human_resource_custom_subthree" sequence="1" name="Employee" parent="human_resource_custom"/>
+        <menuitem id ="hr.menu_hr_root" name="Employee" sequence="1" parent="human_resource_custom_subthree"/>
+
+        <menuitem id="human_resource_custom_subfour" sequence="5" name="Leave" parent="human_resource_custom"/>
+        <menuitem id ="hr_holidays.menu_hr_holidays_root" name="Leave" sequence="1" parent="human_resource_custom_subfour"/>
+
+
+
+        '''financial_account_ikoyi
+account_boss_ikoyi
+audit_ikoyi
+audit_boss_ikoyi
+procurement_manager_ikoyi
+gm_ikoyi
+vice_chairman_ikoyi
+chairman_ikoyi
+store_keeper_ikoyi
+procurement_officer_ikoyi
+inventory_manager_ikoyi'''-->
+
+        <menuitem name="Procurement"
+            id="purchase.menu_purchase_root"
+            groups="purchase.group_purchase_manager,purchase.group_purchase_user,ikoyi_module.procurement_officer_ikoyi,ikoyi_module.procurement_manager_ikoyi"
+            web_icon="purchase,static/description/icon.png"
+            sequence="25"/>
+
+        <menuitem id="purchase.menu_procurement_management" name="Purchase"
+            parent="purchase.menu_purchase_root" sequence="1" groups="purchase.group_purchase_user,purchase.group_purchase_manager,ikoyi_module.procurement_officer_ikoyi,ikoyi_module.procurement_manager_ikoyi" />
+
+
+        <menuitem name="Accounting"
+            id="account.menu_finance"
+            groups="account.group_account_user,account.group_account_manager,account.group_account_invoice,ikoyi_module.audit_boss_ikoyi,ikoyi_module.account_payable_ikoyi,ikoyi_module.account_boss_ikoyi,ikoyi_module.accountant_ikoyi"
+            web_icon="account,static/description/icon.png"
+            sequence="40"/>
+        <menuitem name="Inventory" id="stock.menu_stock_root" sequence="30"
+        groups="stock.group_stock_manager,stock.group_stock_user,ikoyi_module.store_keeper_ikoyi,ikoyi_module.inventory_manager_ikoyi"
+        web_icon="stock,static/description/icon.png"/>
+
+    </data>
+</odoo>
+
+
+
+
+
+
+

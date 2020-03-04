@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+	<report id="emp_report_print_id"
+                    model="hr.employee"
+                    string="Employee Details"
+                    report_type="qweb-pdf"
+                    name="member_app.emp_profile_report_template"
+                    file="member_app.emp_profile_report_template"
+                    >
+    </report>
+
+    <report id="member_report_print_id"
+                    model="member.app"
+                    string="Member Card"
+                    report_type="qweb-pdf"
+                    name="member_app.member_profile_report_template"
+                    file="member_app.member_profile_report_template"
+                    >
+    </report>
+</data>
+</odoo>
