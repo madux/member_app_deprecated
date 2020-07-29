@@ -41,5 +41,7 @@ access_levies_model_id,access_levies_model_name,model_levies_model,,1,1,1,1
 access_spouse_sub_id,access_spouse_sub_name,model_spouse_subscription_payment,,1,1,1,1
 access_member_policy_id,access_member_policy_name,model_member_policy,,1,1,1,1
 access_member_policy_line_id,access_member_policy_line_name,model_member_policy_line,,1,1,1,1
+access_subscription_excel_id,access_subscription_excel_name,model_subscription_excel,,1,1,1,1
+access_generate_member_invoice_id,access_generate_member_invoice_name,model_generate_member_invoice,,1,1,1,1
 
 

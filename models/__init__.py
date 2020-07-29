@@ -9,3 +9,4 @@ from . import levies_model
 from . import config
 from . import account_invoice
 from . import member_policy
+from . import subscription_wizard

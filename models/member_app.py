@@ -265,7 +265,7 @@ class App_Member(models.Model):
     #  domain=[('is_member','=', True)]))
     depend_name = fields.Many2many(
         'register.spouse.member',
-        string="Dependents")
+        string="Dependents", domain=lambda self: self.get_parent_dependents())
 
     binary_attach_cv = fields.Binary('Attach CV')
     binary_fname_cv = fields.Char('Binary Name')
@@ -369,8 +369,9 @@ class App_Member(models.Model):
         'package.model',
         string='Compulsory Packages',
         readonly=False,
-        store=True,
-        compute='get_all_packages')
+        store=True)
+        # compute='get_all_packages')
+        
     package_cost = fields.Float(
         'Package Cost',
         required=True,
@@ -424,7 +425,9 @@ class App_Member(models.Model):
                                 'Coffee Book Fee', 
                                 default=10000.00, required=True)
      
-    spouse_amount = fields.Float('Spouse Amount', compute="get_spouse_proprated_price")
+    spouse_amount = fields.Float('Spouse Total Amount(Prorated)')#compute="get_spouse_proprated_price")
+    child_amount = fields.Float('Child Total Amount(Prorated)')
+
     section_duration = fields.Selection([
         ('bi_annual', 'Bi-Annual'),
         ('Yearly', 'Yearly'),
@@ -497,12 +500,16 @@ class App_Member(models.Model):
                     appends.append(ret.id)
             rex.package = [(6, 0, appends)]
        
-    @api.onchange('subscription_period')
-    def domain_subscription(self):
-        res = {}
-        if self.subscription_period:
-            res['domain'] = {'subscription':[('subscription_period','=', self.subscription_period)]}
-        return res
+    # @api.onchange('subscription_period')
+    # def domain_subscription(self):
+    #     res = {}
+    #     if self.subscription_period:
+    #         res['domain'] = {'subscription':[('subscription_period','=', self.subscription_period)]}
+    #     return res
+
+    def get_parent_dependents(self):
+        domain = [('sponsor','=', self.id)]
+        return domain
 
 #  calculate package cost
     @api.one
@@ -536,6 +543,48 @@ class App_Member(models.Model):
                         else:
                             sub_total += (sub2.total_fee * 2) * self.number_period                    
         self.spouse_amount = sub_total
+
+    @api.onchange('duration_period')
+    def change_number_period(self):
+        if self.duration_period == "Full Year":
+            self.number_period = 1
+        else:
+            self.number_period = 6
+
+    @api.multi
+    def mass_mailing(self):
+        # self.ensure_one()
+        ir_model_data = self.env['ir.model.data']
+        MemberObj = self.env['member.app']
+        ids = self.env.context.get('active_ids', [])
+        ctx = dict()
+        fail_to_send = []
+        for memberId in ids:
+            memberId = MemberObj.browse([memberId]) 
+            if memberId.state == 'ord':
+                if memberId.email:
+                    try:
+                        template_id = ir_model_data.get_object_reference('member_app', 'email_template_for_member')
+                    except ValueError:
+                        template_id = False
+
+                    ctx.update({
+                        'default_model': 'member.app',
+                        'default_res_id': memberId.id,
+                        'default_use_template': bool(template_id),
+                        'default_template_id': template_id,
+                        'default_composition_mode': 'comment',
+                        'email_to': memberId.email,
+                        'subscription': '-',
+                    })
+                    self.env['mail.template'].browse(template_id).with_context(ctx).send_mail(memberId.id, True)
+                else:
+                    fail_to_send.append(memberId.identification)
+            else: 
+                pass 
+        if fail_to_send:
+            raise ValidationError(_("Mail failed for these members because they don't have email address" + str(fail_to_send)))
+        return True
 
     @api.one
     @api.depends('number_period', 'subscription')
@@ -698,7 +747,7 @@ class App_Member(models.Model):
     def button_white_payments(self):  #  state draft
         self.state = 'white'
         
-        if self.is_existing == False:
+        if not self.is_existing:
             middle_name = " "
             if self.middle_name:
                 middle_name = self.middle_name
@@ -1014,12 +1063,51 @@ class App_Member(models.Model):
                     invoice_line_obj.create(curr_invoice_subs) 
                 product_id = product_search.id 
         product_name2 = products.search([('id','=',product_id)])
-             
+        
+
         spouse_total = 0.0
+        child_total = 0.0
         if self.depend_name:
             for subscribe in self.depend_name:
                 if subscribe.relationship == 'Child':
-                    spouse_total += 0.0
+                    if self.duration_period == "Months":
+                        for sub2 in subscribe.spouse_subscription:
+                            if sub2.subscription.name == "Library (Child) -  Subscription" or sub2.subscription.name == "Swimming (Child) - Subscription" or sub2.subscription.is_child == True:
+
+                            # if sub2.subscription.name in ["Library (Child) -  Subscription", "Swimming (Child) - Subscription"] or sub2.subscription.is_child == True:
+                                product_child = products.search([('name', '=ilike', sub2.subscription.name)], limit=1)
+                                if sub2.subscription.special_subscription != True:
+                                    total = (sub2.total_fee / 6) * self.number_period
+                                    child_total = total - sub2.subscription.entry_price
+                                else:
+                                    total = sub2.total_fee - sub2.subscription.entry_price
+                                    child_total = total 
+                                    # child_total = (sub.total_fee / 6) * self.number_period
+                                curr_invoice_childe_subs = {
+                                    'product_id': product_child.id,
+                                    'name': "Child Charge for "+ str(product_child.name)+ ": Period-"+(self.subscription_period),
+                                    'price_unit': child_total,
+                                    'quantity': 1.0,
+                                    'account_id': product_child.categ_id.property_account_income_categ_id.id or record.account_id.id,
+                                    'invoice_id': inv_id,
+                                }
+                                invoice_line_obj.create(curr_invoice_childe_subs)
+                    elif self.duration_period == "Full Year":
+                        for sub2 in subscribe.spouse_subscription:
+                            if sub2.subscription.name == "Library (Child) -  Subscription" or sub2.subscription.name == "Swimming (Child) - Subscription" or sub2.subscription.is_child == True:
+
+                                # if sub2.subscription.name in ["Library (Child) -  Subscription", "Swimming (Child) - Subscription"] or sub2.subscription.is_child == True:
+                                product_child = products.search([('name', '=ilike', sub2.subscription.name)], limit=1)
+                                child_total = (sub2.total_fee * 2) * self.number_period 
+                                curr_invoice_spouse_subs2 = {
+                                    'product_id': product_child.id,
+                                    'name': "Child Charge for "+ str(product_child.name),
+                                    'price_unit': child_total,
+                                    'quantity': 1.0,
+                                    'account_id': product_child.categ_id.property_account_income_categ_id.id or self.account_id.id,
+                                    'invoice_id': inv_id,
+                                }
+                                invoice_line_obj.create(curr_invoice_spouse_subs2)
                 else:
                     if self.duration_period == "Months":
                         for sub in subscribe.spouse_subscription:
@@ -1030,15 +1118,15 @@ class App_Member(models.Model):
                             else:
                                 if sub.subscription.special_subscription != True:
                                     total = (sub.total_fee / 6) * self.number_period
-                                    spouse_total = total
+                                    child_total = total
                                 else:
                                     total = sub.total_fee
-                                    spouse_total = total
+                                    child_total = total
                                 # spouse_total = (sub.total_fee / 6) * self.number_period
                                 curr_invoice_spouse_subs = {
                                     'product_id': product_spouse.id,
                                     'name': "Spouse Charge for "+ str(product_spouse.name),
-                                    'price_unit': spouse_total,
+                                    'price_unit': child_total,
                                     'quantity': 1.0,
                                     'account_id': product_spouse.categ_id.property_account_income_categ_id.id or self.account_id.id,
                                     'invoice_id': inv_id,
@@ -1094,13 +1182,15 @@ class App_Member(models.Model):
             price_mainhouse = main_house_search.list_price    
         main_house_inv = {
                                 'product_id': main_house_search.id,
-                                'name': "Charge for"+ str(main_house_search.name)+ " Cost",
+                                'name': "Charge for "+ str(main_house_search.name)+ " Cost",
                                 'price_unit': price_mainhouse,
                                 'quantity': 1.0,
                                 'account_id': main_house_search.categ_id.property_account_income_categ_id.id  or self.account_id.id,
                                 'invoice_id': inv_id,
                             } 
         invoice_line_obj.create(main_house_inv)
+        self.child_amount = spouse_total
+        self.spouse_amount = child_total
         
     @api.multi
     def dummy_back_green(self):
@@ -1142,7 +1232,7 @@ class App_Member(models.Model):
                 'fiscal_position_id': inv.partner_id.property_account_position_id.id,
                 'branch_id': self.create_search_branch_id(),# if not self.env.user.branch_id.id, 
                 'date_invoice': datetime.today(),
-                'type': 'out_invoice', # vendor
+                'type': 'out_invoice',
                 # 'type': 'out_invoice', # customer
             }) 
             if self.state == 'white':
@@ -1195,6 +1285,9 @@ class App_Member(models.Model):
         
         product_name = "White Form" 
         self.write({'payment_status': 'open'}) 
+        self.partner_id.property_account_receivable_id = self.account_id.id if not self.partner_id.property_account_receivable_id else self.partner_id.property_account_receivable_id.id
+        self.partner_id.property_account_payable_id = self.env['account.account'].search([('user_type_id.name','ilike', 'Payable')], limit=1).id if not self.partner_id.property_account_payable_id else self.partner_id.property_account_payable_id.id
+        
         self.sendmail_white_confirm()
         return self.create_white_member_bill(product_name) # self.button_payments(name, amount, level)
   
@@ -1509,6 +1602,33 @@ class App_Member(models.Model):
                 vals.send_mail_allinduction()
 
     @api.multi
+    def action_send_mass_mail(self):    
+        members = self.env['member.app'].search([('state','=', 'ord')])
+        if members:
+            for vals in members:
+                vals.batch_emailing(self.subscription_period)
+
+    @api.multi
+    def batch_mailing(self, subscription):
+        # member_ids = self.env['member.app'].search([('subscription_period', '!=', self.subscription_period)])
+        ctx = dict()
+        subscription = self.subscription_period
+        # for rec in member_ids:
+        template = self.env['ir.model.data'].get_object('member_app', 'email_template_for_member')
+        ctx.update({
+                    'default_model': 'member.app',
+                    'default_res_id': self.id,
+                    'default_use_template': bool(template),
+                    'default_template_id': template,
+                    'default_composition_mode': 'comment',
+                    'email_to': self.email,
+                    'subscription': subscription,
+                })
+        sender =self.env['mail.template'].browse(template.id).with_context(ctx).send_mail(self.id)
+        self.env['mail.mail'].browse(sender).send(sender)
+        return True
+
+    @api.multi
     def send_mail_induction(self, force=False):
         email_from = self.env.user.company_id.email
         mail_to = self.email
@@ -1575,7 +1695,7 @@ class App_Member(models.Model):
         sequence = self.env['ir.sequence'].next_by_code('member.app')
         seq = str(sequence)
         member = self.env['member.app'].search([('partner_id.name','=ilike', partner_name+'%')])# ([('state', 'not in',['draft','white','wait', 'interview', 'issue_green', 'account','green'])])
-        #self.identification = member[-2].identification[2:]
+        # self.identification = member[-2].identification[2:]
         # names = partner_name[::-1].zfill(6)[::-1]
         names = partner_name + "1"
         if member:
@@ -2232,6 +2352,7 @@ class App_subscription_Line(models.Model):
         'Set Date',
         default=fields.Date.today(),
         required=False)
+    is_child = fields.Boolean('Child Subscription?', default=False)
     
     mainhouse_price = fields.Float('Main House Price', required=False, default=0.0)
     entry_price = fields.Float('Entry Fee', required=True, default=0.0)
@@ -2669,6 +2790,7 @@ class RegisterSpouseMember(models.Model):
     @api.multi
     def button_make_wait(self):
         partner = self.env['res.partner']#.search([('id', '=', self.partner_id.id)])
+        middle_name = str(self.middle_name) if self.middle_name else ''
         part = partner.create({'street': self.street,
                         'email': self.email,
                         'state_id': self.state_id.id,
@@ -2677,7 +2799,7 @@ class RegisterSpouseMember(models.Model):
                         'image': self.image,
                         'phone':self.phone,
                         'function': self.occupation,
-                        'name': str(self.surname) +' '+ str(self.first_name) +' '+ str(self.middle_name),
+                        'name': str(self.surname) +' '+ str(self.first_name) +' '+ middle_name,
                         'is_member': True,
                         })
         self.partner_id = part.id

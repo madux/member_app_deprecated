@@ -29,12 +29,10 @@ class RegisterGuest(models.Model):
     ]
     @api.onchange('partner_id')
     def _get_state(self):
-        for r in self.partner_id:
-            #  r=rec.partner_id.id
+        for r in self.partner_id: 
             street = r.street
             country = r.country_id.id
             city = r.city
-            #  city=r.city
             post = r.function
             phone = r.phone
             state = r.state_id
@@ -119,7 +117,8 @@ class RegisterGuest(models.Model):
         required=False,
         compute='get_package_cost')
     users_followers = fields.Many2many('res.users', string='Add followers')
-
+    payment_idss = fields.Many2many('account.payment',
+                                   string="Payment")
     #  3333
     place_of_work = fields.Char('Name of Work Place')
     work_place_manager_name = fields.Char('Name of Work Place')
@@ -174,22 +173,31 @@ class RegisterGuest(models.Model):
 
     def define_invoice_line(self, product_name,invoice, amount):
         products = self.env['product.product']
+        product_id = 0
         invoice_line_obj = self.env["account.invoice.line"]
-        product_search = products.search([('name', '=ilike', product_name)], limit=1)
+        product_ids = products.search([('name', '=ilike', product_name)], limit=1)
+        if not product_ids:
+            product_id = products.create({'name': product_name, 'list_price': self.total}).id
+        product_id = product_ids.id
+        product_search = products.browse([product_id])
         inv_id = invoice.id
         journal = self.env['account.journal'].search([('type', '=', 'sale')], limit=1)
         prd_account_id = journal.default_credit_account_id.id
         curr_invoice_line = {
                                 'product_id': product_search.id,
                                 'name': "Charge for "+ str(product_search.name),
-                                'price_unit': amount,
+                                'price_unit': self.total,
                                 'quantity': 1.0,
+                                'price_subtotal': 1.0 * self.total,
                                 'account_id': product_search.categ_id.property_account_income_categ_id.id,
                                 'invoice_id': inv_id,
+                                'branch_id': self.env.user.branch_id.id,
                             }
 
         invoice_line_obj.create(curr_invoice_line)
-        
+    
+    
+       
     @api.multi
     def create_member_bill(self, product_name):
         product_name = product_name
@@ -205,15 +213,18 @@ class RegisterGuest(models.Model):
         for inv in self:
             invoice = invoice_obj.create({
                 'partner_id': inv.partner_id.id,
-                'account_id': inv.partner_id.property_account_payable_id.id, 
+                'account_id': inv.account_id.id or inv.partner_id.property_account_payable_id.id, 
                 'fiscal_position_id': inv.partner_id.property_account_position_id.id,
                 'branch_id': self.env.user.branch_id.id, 
                 'date_invoice': datetime.today(),
                 'type': 'out_invoice', # vendor
+                'residual': 1.0 * self.total,
+                'branch_id': self.env.user.branch_id.id,
+                
                 # 'type': 'out_invoice', # customer
             }) 
             if self.state == 'invoice':
-                amount = product_search.list_price #+ product_harmony.list_price # 
+                amount = self.total #+ product_harmony.list_price # 
                 self.define_invoice_line(product_name, invoice, amount)
             
             invoice_list.append(invoice.id) 
@@ -228,8 +239,6 @@ class RegisterGuest(models.Model):
                     'type': 'ir.actions.act_window',
                     'views': [(tree_view_ref.id, 'tree'), (form_view_ref.id, 'form')],
                 } 
-
-     
 
     @api.depends('dob')
     def get_duration_age(self):
@@ -262,9 +271,15 @@ class RegisterGuest(models.Model):
 
     @api.multi
     def button_send_hon(self): # draft memoffice
-        self.write({'state': 'honourary'})
+        self.write({'state': 'invoice'})
         self.fetch_followers()
         partner = self.env['res.partner']#.search([('id', '=', self.partner_id.id)])
+        account_receivable = self.env['account.account'].search([('user_type_id.name', '=', 'Receivable')], limit=1)
+        account_payable = self.env['account.account'].search([('user_type_id.name', '=', 'Payable')], limit=1)
+        name, first, middle = self.surname, self.first_name, self.middle_name # vals.get('surname'),vals.get('middle_name'), vals.get('first_name')
+        names = str(name) +' '+str(middle)+' '+str(first)
+        partner = self.env['res.partner']
+        
         part = partner.create({'street': self.street,
                         'email': self.email,
                         'state_id': self.state_id.id,
@@ -273,10 +288,12 @@ class RegisterGuest(models.Model):
                         'image': self.image,
                         'phone':self.phone,
                         'function': self.occupation,
-                        'name': str(self.surname) +' '+ str(self.first_name) +' '+ str(self.middle_name),
+                        'name': names,
                         'is_member': True,
+                        'property_account_receivable_id': account_receivable.id,
+                        'property_account_payable_id': account_payable.id,
                         })
-        self.partner_id = part.id
+        self.write({'state': 'invoice', 'partner_id': part.id})
         return self.send_honour_mail()
 
     def fetch_followers(self):
@@ -339,12 +356,29 @@ class RegisterGuest(models.Model):
         self.mail_sending(email_from, group_user_id, extra, bodyx)
 
     # # # # # # # # # # # # # # # # # # # # # # # # #
+    
     @api.multi
-    def button_send_invocie_wait(self): 
-        product_name = "Guest Subscription"
+    def button_send_invocie_wait(self):
         self.send_mail_workplace()
-        return self.create_member_bill(product_name)
-        # return self.create_invoice()
+        dummy, view_id = self.env['ir.model.data'].get_object_reference('account', 'view_account_payment_form')
+        ret = {
+                'name':'Guest Ticket Payment',
+                'view_mode': 'form',
+                'view_id': view_id,
+                'view_type': 'form',
+                'res_model': 'account.payment',
+                'type': 'ir.actions.act_window',
+                'domain': [],
+                'context': {
+                        'default_amount': self.total,
+                        'default_payment_type': 'inbound',
+                        'default_partner_id':self.partner_id.id, 
+                        'default_communication': self.id, 
+                        'default_narration': 'Guest Subscription Payment',
+                },
+                'target': 'new'
+                }
+        return ret
 
     @api.multi
     def send_mail_workplace(self, force=False):
@@ -385,20 +419,35 @@ class RegisterGuest(models.Model):
         Thanks".format(fields.Date.today(), self.env.user.company_id.name, self.env.user.company_id.phone)
         self.mail_sending_one(email_from, mail_to, bodyx, subject)
 
-    @api.model
-    def create(self, vals):
-        res = super(RegisterGuest, self).create(vals)
-        partner_id = vals.get('partner_id')
-        partner = self.env['res.partner'].search([('id', '=', partner_id)])
-        partner.write({'street': vals.get('street'),
-                       'street2': vals.get('street'),
-                       'email': vals.get('email'),
-                       'state_id': vals.get('state_id'),
-                       'title': vals.get('title'),
-                       'image': vals.get('image'),
-                       'phone': vals.get('phone'),
-                       'function': vals.get('occupation')})
-        return res
+    # @api.model
+    # def create(self, vals):
+    #     res = super(RegisterGuest, self).create(vals)
+    #     # vals = {}
+    #     account_receivable = self.env['account.account'].search([('user_type_id.name', '=', 'Receivable')], limit=1)
+    #     account_payable = self.env['account.account'].search([('user_type_id.name', '=', 'Payable')], limit=1)
+    #     name, first, middle = vals.get('surname'),vals.get('middle_name'), vals.get('first_name')
+    #     names = str(name) +' '+str(first)+' '+str(middle)
+    #     partner = self.env['res.partner']
+    #     partner_search = partner.search([('name', '=ilike', names)], limit= 1)
+        
+    #     if not partner_search:
+    #         partners = partner.create({
+    #                     'street': vals.get('street'),
+    #                     'name': names,
+    #                     'street2': vals.get('street'),
+    #                     'email': vals.get('email'),
+    #                     'state_id': vals.get('state_id'),
+    #                     'title': vals.get('title'),
+    #                     'image': vals.get('image'),
+    #                     'phone': vals.get('phone'),
+    #                     'function': vals.get('occupation'),
+    #                     'property_account_receivable_id': account_receivable.id,
+    #                     'property_account_payable_id': account_payable.id,
+    #                    })
+    #         for rec in self:
+    #             rec.update({'partner_id': partners.id})
+    #     return res
+    
 
     @api.multi
     def create_invoice(self):  # invoice memoficer
@@ -507,20 +556,29 @@ class RegisterGuest(models.Model):
     def see_breakdown_invoice(self):  # vis_account,
 
         search_view_ref = self.env.ref(
-            'account.view_account_invoice_filter', False)
-        form_view_ref = self.env.ref('account.invoice_form', False)
-        tree_view_ref = self.env.ref('account.invoice_tree', False)
+            'account.view_account_payment_search', False)
+        form_view_ref = self.env.ref('account.view_account_payment_form', False)
+        tree_view_ref = self.env.ref('account.view_account_payment_tree', False)
 
         return {
-            'domain': [('id', '=', self.invoice_id.id)],
-            'name': 'Guest Invoices',
-            'res_model': 'account.invoice',
+            'domain': [('communication', '=', str(self.id))],
+            'name': 'Guest Payments',
+            'res_model': 'account.payment',
             'type': 'ir.actions.act_window',
             #  'views': [(form_view_ref.id, 'form')],
             'views': [(tree_view_ref.id, 'tree'), (form_view_ref.id, 'form')],
             'search_view_id': search_view_ref and search_view_ref.id,
         }
 
+    @api.multi
+    def print_membership_payment_receipt(self):
+        report = self.env["ir.actions.report.xml"].search(
+            [('report_name', '=', 'member_app.receipt_guest_payment_template')], limit=1)
+        if report:
+            report.write({'report_type': 'qweb-pdf'})
+        return self.env['report'].get_action(
+            self.id, 'member_app.receipt_guest_payment_template')
+        
     def get_url(self, id, model):
         base_url = http.request.env['ir.config_parameter'].sudo(
         ).get_param('web.base.url')

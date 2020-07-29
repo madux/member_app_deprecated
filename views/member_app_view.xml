@@ -7,7 +7,11 @@
                 <field name="model">account.payment</field>
                 <field name="inherit_id" ref="account.view_account_payment_form" />
                 <field name="arch" type="xml">
-
+                    <xpath expr="//button[@name='post']" position="before">
+                        <button name="sent_to_post" class="oe_highlight" states="first_draft" string="Post to Accounts" 
+                        type="object" confirm="Are you sure you want to Confirm?"/>
+ 
+                    </xpath>
                     <xpath expr="//field[@name='payment_date']" position="after">
                         <field name="member_id" states="draft" invisible="1"/>
                         <field widget="binary" height="64" name="filex" filename="file_namex" required="0" string="Evidence of Payment"
@@ -26,7 +30,11 @@
                 <field name="model">account.payment</field>
                 <field name="inherit_id" ref="account.view_account_payment_invoice_form" />
                 <field name="arch" type="xml">
-
+                    <xpath expr="//button[@name='post']" position="before">
+                        <button name="set_draft_prop" class="oe_highlight" states="first_draft" string="Post to Ikoyi Club Accounts" 
+                        type="object"/>
+ 
+                    </xpath>
                     <xpath expr="//field[@name='payment_date']" position="after">
                         <!-- <field name="member_id" states="draft" invisible="0"/> -->
                         <field widget="binary" height="64" name="filex" filename="file_namex" required="0" string="Evidence of Payment"/>
@@ -38,7 +46,7 @@
                         <field name="balances" invisible="0"/>
                         <field name="amount_to_pay" string="To pay"/> 
                     </xpath>
-
+                    
                 </field>
             </record>
 
@@ -52,6 +60,11 @@
                         class="oe_link" string="Print Invoice/Payments"
                         attrs="{'invisible':[('payment_ids','=',[]), ('invoice_line_ids','=',[])]}"
                         />
+
+                        <button type="object"  name="mass_sendmail_invoice"
+                        class="oe_link" string="Send Mass Mail"
+                        />
+                        
 
                         <button type="object"  name="action_view_payments"
                         class="oe_link" string="View Payments"
@@ -201,7 +214,9 @@
                                     attrs="{'invisible': [('state','in', ['draft','white'])]}"/>
                                     
                                     <button name="button_register_spouse" string="Register Dependants" type="object" icon="fa-registered" class="btn-primary"
-                                            attrs="{'invisible': [('state','in',['draft','white','white penalty','wait','suspension','interview','green'])]}"/>
+                                            attrs="{'invisible': [('state','in',['draft','white','white penalty','wait','suspension','interview'])]}"/>
+                                    <button name="batch_mailing" string="Mail Invoice" type="object" class="oe_stat_button" icon="fa-envelop" attrs="{'invisible': [('state','in',['draft'])]}"></button>
+                                    
                                     <button name="see_breakdown_invoice" string="See Invoices" type="object" class="oe_stat_button" icon="fa-shirtsinbulk" attrs="{'invisible': [('state','in',['draft'])]}"></button>
                                     <button name="print_id_card" string="Print card" type="object" class="oe_stat_button" icon="fa-print" attrs="{'invisible':[('state','in',['draft','white penalty','wait','white','jun','suspension','issue_green'])]}"></button>
                                 </div>
@@ -213,7 +228,7 @@
                                     
                                         <field name="partner_id" string="Name" default_focus="1" attrs="{'invisible':[('is_existing','=', False)],'required':[('is_existing','=',True)]}" required="0" placeholder="Surname First"
                                         options="{&quot;no_open&quot;: True,'no_quick_create':False,'no_create_edit':True,'limit': 1}"/>
-                                    <field name="is_existing"/>
+                                    <field name="is_existing" attrs="{'invisible':[('state','!=', 'draft')]}"/>
                                     <field name="surname" attrs="{'readonly':[('state','not in',['draft'])],'invisible':[('is_existing','=', True)],'required':[('is_existing','=',False)]}"/>
                                     <field name="first_name" attrs="{'readonly':[('state','not in',['draft'])],'invisible':[('is_existing','=', True)],'required':[('is_existing','=',False)]}"/>
                                     <field name="middle_name" attrs="{'readonly':[('state','not in',['draft'])],'invisible':[('is_existing','=', True)],'required':[('is_existing','=',False)]}"/>
@@ -228,7 +243,7 @@
                                         </div>
 
                                         <field name="url" widget="url" placeholder="e.g. www.ikoyiclub.com"/>
-                                        <field name="binary_attach_cv" filename="binary_fname_cv" attrs="{'required': [('state', '!=', 'white')], 'readonly':[('state','not in',['draft','white'])]}" invisible="0" />
+                                        <field name="binary_attach_cv" filename="binary_fname_cv" invisible="0" />
                                         <field name="binary_fname_cv" required="0" invisible="1" />
 
                                         <field name="binary_attach_letter" filename="binary_fname_letter" attrs="{'readonly':[('state','not in',['draft','white'])]}" invisible="0"/>
@@ -259,16 +274,17 @@
                                             <group string="Membership" name="memb" >
                                                 <!-- <field name="sponsor"  attrs="{'readonly': [('state', '!=', 'draft')]}" widget="many2many_tags" required="1" /> -->
 
-                                                <field name="date_pickup" string = "White Form Submission" attrs="{'readonly':[('state','not in',['white','white penalty'])],
-                                                'invisible':[('state','not in',['white penalty','wait', 'ord'])]}"/>
+                                                
                                                 <field name="date_issue_white" string = "White Form Issued on" attrs="{'readonly':[('state','not in',['white'])],
                                                 'invisible':[('state','not in',['white penalty','wait', 'ord'])]}"/> 
+                                                <field name="date_pickup" string = "White Form Submission" attrs="{'readonly':[('state','not in',['white','white penalty'])],
+                                                'invisible':[('state','not in',['white penalty','wait', 'ord'])]}"/>
                                                 <field name="date_green_pickup" string="Green Form Submission Date" invisible="1"/>
                                                 <field name="date_issue_green" attrs="{'invisible':[('state','not in',['issue_green','green', 'ord'])]}"/> <!--inx-->
 
                                                 <field name="duration_pick" string = "Pickup Duration(Days)" invisible="1"/>
                                                 <field name="date_of_temp" string="Date Joined" invisible="0" readonly="0" attrs="{'readonly':[('state','not in',['draft','white','green','temp'])],'invisible':[('state','in',['draft','white','issue_green','wait','interview','green'])]}"/>
-                                                <field name="binary_attach_interview" filename="binary_fname_interview" string="Upload Interview Report" attrs="{'invisible':[('state','in',['draft','white','wait'])]}"/> 
+                                                <field name="binary_attach_interview" filename="binary_fname_interview" string="Upload Interview Report" attrs="{'invisible':[('state','in',['draft','white','wait', 'white penalty'])]}"/> 
                                                 <field name="binary_fname_interview" required="0" invisible="1" />
                     
                                                 <field name="product_id" invisible="1" string="Membership Type"  options="{'no_create': True}"/>
@@ -276,7 +292,8 @@
                                                 <field name="date_of_interview" attrs="{'invisible':[('state','not in',['wait'])]}"/>
                                                 <field name="account_id" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'readonly':[('state','not in',['draft','white','green','issue_green'])],
                                                 'required': [('state','in',['white','issue_green'])],
-                                                'invisible':[('state','not in',['draft','white','green','issue_green'])]}"/>
+                                                'invisible':[('state','not in',['draft','white','green','issue_green'])]}"
+                                                domain ="[('user_type_id','=',1 )]"/>
                                                 <!-- <label for="associate_member"/>
                                                     <div>
                                                     <field name="associate_member" attrs="{'invisible':[('state','not in',['draft'])]}"/>
@@ -295,10 +312,10 @@
                                             <group string="Identity &amp; Subscriptions" name="identity">
 
                                                 <field name="identification" string="Member ID"
-                                                attrs="{'invisible': [('state','in',['draft','white','white penalty','green penalty'])], 'readonly':[('state','not in',['induction'])]}" placeholder=" eg. A34555"/>
+                                                attrs="{'invisible': [('state','in',['draft','white','white penalty','green penalty', 'green'])], 'readonly':[('state','not in',['induction'])]}" placeholder=" eg. A34555"/>
                                                 
                                                 <field name="temp_id"
-                                                attrs="{'readonly':[('state','not in',['temp'])],'invisible':[('state','in',['draft','white','wait','interview','white penalty','green penalty'])]}"/>
+                                                attrs="{'readonly':[('state','not in',['temp'])],'invisible':[('state','in',['draft','white','wait','interview','white penalty','green penalty', 'green'])]}"/>
                                             
                                             <field name="green_id" string="Green Card ID:" attrs="{'readonly':[('state','not in',['issue_green','green'])],'invisible':[('state','in',['draft','white','wait','interview', 'issue_green','white penalty','green penalty'])]}"/>
                                                 
@@ -312,7 +329,7 @@
                                         attrs="{'readonly':[('state','not in',['green'])], 'required': [('duration_period','in',['Months','Full Year'])],'invisible': [('duration_period','not in',['Months','Full Year'])]}"/>
                                                 <field name="package" invisible="0" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" widget="many2many_tags" attrs="{'invisible':[('state','in',['draft','white','issue_green','interview','wait'])],'readonly':[('state','not in',['green'])]}"/>
                                                 <field name="subscription" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" widget="many2many_tags" string="Subscriptions" 
-                                                attrs="{'invisible':[('state','in',['draft','white','issue_green','interview','wait','white penalty','green penalty'])],'readonly':[('state','not in',['green'])]}"/>
+                                                attrs="{'invisible':[('state','in',['draft','white','issue_green','interview','wait','white penalty','green penalty'])]}"/><!--,'readonly':[('state','not in',['green'])]}"-->
                                             
                                             </group>
                                             <group string="Payment Plan" >
@@ -336,9 +353,11 @@
                                                     <field name="harmony" invisible="1"/>  
                                                     <field name="package_cost" string ="Compulsory Package Cost" invisible="0" attrs="{'invisible':[('state','in',['draft','white','interview','wait','white penalty','green penalty'])],
                                                     'readonly':[('state','not in',['draft','white'])]}" />
-                                                <field name="member_price" string="Section Cost" attrs="{'invisible': [('state','in',['draft','white','wait','interview'])],'readonly':[('state','not in',['draft','white'])]}"/>
+                                                <field name="member_price" string="Section Cost" attrs="{'invisible': [('state','in',['draft','white','wait','interview', 'white penalty'])],'readonly':[('state','not in',['draft','white'])]}"/>
 
                                                     <field name="spouse_amount" readonly="1" invisible="0" attrs="{'invisible': [('state','not in',['green','induction'])]}"/>
+                                                    <field name="child_amount" readonly="1" invisible="0" attrs="{'invisible': [('state','not in',['green','induction', 'temp', 'life', 'hon', 'ord'])]}"/>
+                                                   
                                                     <field name="entry_fee" string="Entry Fee" readonly="1" invisible="1"/>
                                                     <field name="special_levy" readonly="1" invisible="1"/>
                                                     <field name="sub_levy" readonly="1" invisible="1"/>
@@ -375,10 +394,11 @@
                                     <page name="depends_mem" string="Sponsor/Dependants">
                                     <!-- attrs="{'readonly': [('state','in',['draft','wait','issue_green'])]}" -->
                                     <separator string="Dependants" colspan="4"/>
-                                        <field name="depend_name" readonly ="0" widget="many2many_kanban">
+                                        <field name="depend_name" attrs="{'readonly':[('state', 'in', ['draft','white', 'white penalty', 'wait', 'issue_green', 'green penalty', 'interview'])]}" widget="many2many_kanban">
                                             <kanban quick_create="false" create="true" delete="true">
                                                 <p><field name="surname"/> <field name="first_name"/> </p>
                                                 <field name="email"/>
+                                                
                                                 <templates>
                                                     <t t-name="kanban-box">
                                                     <div class="oe_kanban_global_click" style="position: relative">
@@ -388,8 +408,11 @@
                                                             <img t-att-src="kanban_image('register.spouse.member', 'image', record.id.value)" class="oe_avatar oe_kanban_avatar_smallbox"/>
 
                                                                 <div class="o_kanban_tags_section oe_kanban_partner_categories"/>
-                                                                    <b>Name:<field name="partner_id"/></b><br/>
-                                                                    <b>Email:<field name="email"/></b>
+                                                                    <b>Name: <field name="partner_id"/></b><br/>
+                                                                    <t t-if="email">
+                                                                        Email: <field name="email"/><br/>
+                                                                    </t>
+                                                                    <b>Relationship:<field name="relationship"/></b>
 
                                                         </div>
                                                     </div>
@@ -1033,6 +1056,8 @@
                              <field name="subscription_period" required="1" invisible="0"/>
                              <field name="pdate"/>
                              <field name="special_subscription"/>
+                             <field name="is_child"/>
+                             
                         </group>
                         <group>
                             <field name="member_price" string = "Subscription"/>
@@ -1144,8 +1169,8 @@
                         </group>
                          <group>
                             <field name="product_id" invisible="1"/>
-                             <field name="account_id" string = "Account Recievable" required="1"/>  
-                             <field name="sponsor" />
+                             <field name="account_id" domain ="[('user_type_id','=',1 )]" string = "Account Recievable" required="1"/>  
+                             <field name="sponsor" domain ="[('activity','=','act')]"/>
                             
                             <field name="date_order" />
                             <field name="active" readonly="1"/>
@@ -1320,6 +1345,23 @@
                 <field name="key2">client_action_multi</field>
                 <field name="value" eval="'ir.actions.server,%d' %action_send_all_induction_mail"/>
         </record>
+
+        <record id="action_send_bill_notice" model="ir.actions.server">
+                <field name="name">Send Bill Notice</field>
+                <field name="model_id" ref="model_member_app"/>
+                <field name="state">code</field>
+                <field name="condition">True</field>
+                <field name="code">if context.get('active_model') == 'member.app' and context.get('active_ids'):
+                    if object: 
+                        env['member.app'].with_context(context).browse(context.get('active_ids', [])).action_send_mass_mail()</field>
+        </record>
+        <record id="confirm_send_bill_notice" model="ir.values">
+                <field name="name">bill notice</field>
+                <field name="model">member.app</field>
+                <field name="key">action</field>
+                <field name="key2">client_action_multi</field>
+                <field name="value" eval="'ir.actions.server,%d' %action_send_bill_notice"/>
+        </record>
         <!-- <record id="sendtointerviews" model="ir.values">
                 <field name="name">name</field>
                 <field name="model">member.app</field>
@@ -1344,6 +1386,24 @@
                 <field name="key2">client_action_multi</field>
                 <field name="value" eval="'ir.actions.server,%d' %action_confirm_green_all"/>
         </record>
+
+        <record id="action_send_mass_invoice_mail" model="ir.actions.server"> 
+             <field name="name">Send Mass Mail</field> 
+            <field name="model_id" ref="model_account_invoice"/>
+            <field name="state">code</field>
+            <field name="code">
+                if context.get('active_model') == 'account.invoice' and context.get('active_ids'):
+                    if object:env['account.invoice'].with_context(context).browse(context.get('active_ids', [])).mass_sendmail_invoice()
+            </field>
+        </record>
+        <record id="confirm_send_mass_mail_invoice" model="ir.values">
+                <field name="name">Mass Mail Invoice</field>
+                <field name="model">account.invoice</field>
+                <field name="key">action</field>
+                <field name="key2">client_action_multi</field>
+                <field name="value" eval="'ir.actions.server,%d' %action_send_mass_invoice_mail"/>
+        </record>
+         
 
         <act_window id="register_spouse_action"
         name="Dependants "

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+         <!--Email template -->
+        <record id="email_template_for_member" model="mail.template">
+            <field name="name">Notice - Send by Email</field>
+           <field name="email_from">${(object.create_uid.email and '%s &lt;%s&gt;' % (object.create_uid.name, object.create_uid.email) or '')|safe}</field>
+            <field name="email_to">${ctx.get('email_to')|safe}</field>
+            <field name="subject">Bill Notice for ${ctx.get('subscription')}</field>
+            <field name="partner_to">${object.partner_id.id}</field>
+            <field name="model_id" ref="member_app.model_member_app"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="report_template" ref="member_app.member_invoice_single_report"/>
+            <field name="report_name">Bill_Attachment_For_${(object.partner_id.name or '').replace('/','_')}</field>
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="body_html"><![CDATA[
+                <div style="padding:0px;width:960px;margin:auto;background: #FFFFFF repeat top /100%;color:#777777">
+                    <table cellspacing="0" cellpadding="0" style="width:600px;background:inherit;color:inherit">
+                        <tbody><tr>
+                            <td valign="center" width="200" style="padding:10px 10px 10px 5px;font-size: 12px">
+                                <img src="/static/img/ikoyi_logo2.png" style="padding: 0px; margin: 0px; height: auto; width: 80px;" alt="${object.create_uid.company_id.name}">
+                            </td>
+                        </tr></tbody>
+                    </table>
+                </div>
+                <p>Dear ${object.partner_id.name},<br/>
+                    <br/>
+                    Please find attached your Bill Notice
+                    <br/><br/>
+                    If you have any questions, please do not hesitate to ask us.
+                    <br/><br/>
+                    Regards,
+                    </br>
+                    Ikoyi Club 1938
+                </p>
+                <br/>
+                <div style="width: 960px; margin: 0px; padding: 0px; background-color: #007bff; background-repeat: repeat no-repeat;">
+                    <h3 style="margin: 0px; padding: 2px 14px; font-size: 12px; color: #DDD;">
+                        &nbsp;
+                    </h3>
+                </div>
+                <div style="width: 960px; margin: 0px; line-height: 16px; background-color: #F2F2F2;">
+                    <div style="color: #222; margin-bottom: 5px; padding: 5px 14px; ">
+                        6 Ikoyi Club 1938 Road, Ikoyi
+                    </div>
+                    % if object.create_uid.company_id.phone:
+                        <div style="padding: 5px 14px;">
+                            Phone:&nbsp; ${object.create_uid.company_id.phone}
+                        </div>
+                    % endif
+                    % if object.create_uid.company_id.website:
+                        <div style="padding: 5px 14px;">
+                            Web :&nbsp;<a href="${object.create_uid.company_id.website}">${object.create_uid.company_id.website}</a>
+                        </div>
+                    %endif
+                    <p></p>
+                </div>
+            ]]></field>
+    </record>
+ 
+    </data>
+</odoo>

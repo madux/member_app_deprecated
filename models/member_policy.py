@@ -11,6 +11,7 @@ from odoo import http
 class MemberShipPolicy(models.Model):
     _name = "member.policy"
     _rec_name = "periods_month"
+    _order = "id desc"
 
     """
     Once the user selects the period, 
@@ -23,15 +24,7 @@ class MemberShipPolicy(models.Model):
     If operation type is Activation: click on the Activation changes button and the system automatically generate
     a bill for the records in the member line.
     """
-    # @api.constrains('periods_month')
-    # def check_periods(self):
-    #     if self.periods_month:
-    #         policy = self.env['member.policy'].search([('periods_month', '=', self.periods_month)])
-    #         if policy:
-    #             raise ValidationError('You have already created\
-    #                 a policy for the Period selected. \n\
-    #                     Kindly Find and Continue with it.')
-
+     
     periods_month = fields.Selection([
         ('Jan-June 2011', 'Jan-June 2011'),
         ('July-Dec 2011', 'July-Dec 2011'),
@@ -85,14 +78,14 @@ class MemberShipPolicy(models.Model):
         if (self.periods_month) and (self.date_start):
             if not (self.date_start > self.date_end):
                 recs = []
-                orders = self.env['member.app'].search([])
+                orders = self.env['member.app'].search([('date_of_last_sub', '>=', self.date_start), ('date_of_last_sub', '<=', self.date_end)])
                 if len(orders) > 0:
                     for rec in orders:
-                        if (self.date_start <= rec.date_of_last_sub) and (self.date_end >= rec.date_of_last_sub):# and (rec.periods_month == self.periods_month):
-                            recs.append(rec.id)
-                            self.write({'get_member_ids': [(4, recs)]})
-                        else:
-                            raise ValidationError('No record found for the filtered date')
+                        # if (self.date_start <= rec.date_of_last_sub) and (self.date_end >= rec.date_of_last_sub):# and (rec.periods_month == self.periods_month):
+                        recs.append(rec.id)
+                        self.write({'get_member_ids': [(4, recs)]})
+                        # else:
+                        #     raise ValidationError('No record found for the filtered date')
             else:
                 raise ValidationError('Start date cannot be greater than end start')
         else:
@@ -193,7 +186,7 @@ class MemberShipPolicyLine(models.Model):
         for tec in self.package:
             package_cost += tec.package_cost
         for yec in self.depend_name:
-            depends_cost += yec.depend_name
+            depends_cost += yec.total
         self.total = subscription_cost + package_cost + depends_cost
          
     @api.one
@@ -220,9 +213,9 @@ class MemberShipPolicyLine(models.Model):
 
     def create_product(self, name):
         product = 0
-        product = self.env['product.product'].search([('name', 'ilike', name)], limit=1)
+        product = self.env['product.product'].search([('name', '=ilike', name)], limit=1)
         product = product.id
-        if product:
+        if not product:
             product = self.env['product.product'].create({
                 'name': name,
             }).id 
@@ -262,22 +255,35 @@ class MemberShipPolicyLine(models.Model):
                 'invoice_id': invoice.id,
                 'account_id': self.member_id.account_id.id or self.member_id.partner_id.property_account_payable_id.id,
                 }))
-        for each_package in self.package:
-            array.append((0, 0, {
-                'product_id': self.create_product(each_package.name),# each_package.product_id.id,
-                'name': "Bills",
-                'price_unit': each_package.package_cost,
-                'invoice_id': invoice.id,
-                'account_id': self.member_id.account_id.id or self.member_id.partner_id.property_account_payable_id.id,
-                }))
-        # for each_depend in self.depend_name:
+        # for each_package in self.package:
         #     array.append((0, 0, {
-        #         'product_id': self.create_product(each_depend.name), #each_depend.product_id.id,
+        #         'product_id': self.create_product(each_package.name),# each_package.product_id.id,
         #         'name': "Bills",
-        #         'price_unit': each_depend.total,
+        #         'price_unit': each_package.package_cost,
         #         'invoice_id': invoice.id,
         #         'account_id': self.member_id.account_id.id or self.member_id.partner_id.property_account_payable_id.id,
         #         }))
+        for each_depend in self.depend_name:
+            
+            for rex in each_depend.spouse_subscription:
+                if each_depend.relationship == "Child":
+                    if rex.subscription.name == "Library (Child) -  Subscription" or rex.subscription.name == "Swimming (Child) - Subscription" or rex.subscription.is_child == True:
+                        array.append((0, 0, {
+                            'product_id': self.create_product(rex.subscription.name),
+                            'name': "Child Bills",
+                            'price_unit': rex.total_fee,
+                            'invoice_id': invoice.id,
+                            'account_id': self.member_id.account_id.id if self.member_id.account_id else self.env['account.account'].search([('user_type_id', '=', 1)], limit=1).id, # or self.member_id.partner_id.property_account_payable_id.id,
+                            }))
+                else:
+                    array.append((0, 0, {
+                            'product_id': self.create_product(rex.subscription.name),
+                            'name': "Dependent Bills for {}".format(each_depend.partner_id.name),
+                            'price_unit': rex.total_fee,
+                            'invoice_id': invoice.id,
+                            'account_id': self.member_id.account_id.id if self.member_id.account_id else self.env['account.account'].search([('user_type_id', '=', 1)], limit=1).id, # or self.member_id.partner_id.property_account_payable_id.id,
+                            }))
+                
         invoice.write({'invoice_line_ids': array})
         self.invoice_id = invoice.id
          

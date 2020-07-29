@@ -1,16 +1,28 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
 
         <!-- Report Action -->
         <report id="receipt_invoice_report"
-            string="Membership Receipt"
+            string="Member Bills"
             model="account.invoice"
             report_type="qweb-pdf"
             name="member_app.receipt_invoice_template"
             file="member_app.receipt_invoice_template"
             menu="True"
             />
+
+		<!-- Report Action -->
+        <report id="receipt_guest_report"
+            string="Guest Receipt"
+            model="register.guest"
+            report_type="qweb-pdf"
+            name="member_app.receipt_guest_payment_template"
+            file="member_app.receipt_guest_payment_template"
+            menu="True"
+            />
+
+			
 			
 		<report id="receipt_invoice_single_report"
             string="Print Membership Receipt"
@@ -20,92 +32,96 @@
             file="member_app.receipt_invoice_single_template"
             menu="True"
             />
+
+		<report id="member_invoice_single_report"
+            string="Membership Bill"
+            model="member.app"
+            report_type="qweb-pdf"
+            name="member_app.member_invoice_single_template"
+            file="member_app.member_invoice_single_template"
+            menu="True"
+            />
   
         <template id="receipt_invoice_template">
             <t t-call="report.html_container">
 				<t t-foreach="docs" t-as="o">
-					<div class="header">
-						<div class="row">
-							<div class="col-xs-3" style="font-size: 9px;">
-								<!-- <img t-if="o.create_uid.company_id.logo" t-att-src="'data:image/png;base64,%s' %o.create_uid.company_id.logo" style="max-width: 100px; max-height: 80px;"/> -->
-								<p style="text-align: left; font-weight: bold; font-size: 12px;">
-									<span t-esc="res_company.name"/><br/>
-									<span t-esc="res_company.street"/>, <span t-esc="res_company.street2"/>, <span t-esc="res_company.city"/>,<br/>
-									<span t-esc="res_company.state_id.name"/>, <span t-esc="res_company.country_id.name"/>
-								</p>
-                        	</div>
-							
-							<!-- <div class="col-xs-offset-2 text-right">
-								<img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:80px;max-width:60px;"/>
-							</div> -->
-							<br/>
+					<t t-call="report.external_layout">
+						<div class="page">
 
-						</div>
-					</div>
-                
-                    <t t-call="report.external_layout">
-                        <div class="page">
+							<div class="row" style="font-size: 20px;">
+								<center><strong>Billing Notice</strong></center>
 
-                            <div class="row" >
-								<div class="col-xs-3" style="font-size: 18px;">
-										<b><span> IKOYI CLUB 1938</span></b><br/>
-										<b><span t-esc="res_company.name"/></b><br/>
-										<b><span t-esc="res_company.state_id.name"/></b><br/>
-										<b><span t-esc="res_company.country_id.name"/></b><br/>
+								<div class="col-xs-6" style="border:solid; border-radius:15px; font-size: 14px;">
+									<p>MEMBER NAME: <span t-field="o.partner_id.name"/></p><br/>
+									<p>ADDRESS: <span t-field="o.partner_id.street"/></p><br/>
 								</div>
+								<div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 11px;">
+									<p>Period: <span t-field="o.member_id.subscription_period"/></p><br/>
+                                    <strong>Membership No: <span t-field="o.partner_id.identification"/></strong><br/>
+									
+                                </div>
+									
+							</div><br/>
 							
-                           <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
-                                <center> <div class="watermark;col-xs-8" styles="position:absolute;opacity:0.8; font-size:50px;width:200%;z-index">
-                                    <img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:140px;max-width:100px;"/>
-                                     
-                                </div></center>
-                            </div>
-							</div> 
-                            <div class="row" style="font-size: 18px;">
-								<span><strong><u>Member Name:</u></strong></span> <span t-field="o.partner_id.name"/><br/>
-                                <span><strong><u>Receipt Allocated As Follows:</u></strong></span>
-                                <br/>
-								 
-                                <table class="table table-bordered"> 
+				
+							<div class="row" style="font-size: 16px;">		
+								<table class="table table-condensed"> 
 									<t t-if="o.invoice_line_ids">
-										<span><strong>Invoice Details </strong></span>
-											<thead>
+										<thead>
+											<tr>
+												<th><strong>Item Description</strong></th>
+												<th><strong>Amount</strong></th>
+												<!-- <th><strong>Account</strong></th>
+												<th><strong>Invoice Number</strong></th>
+												<th><strong> </strong></th>
+												<th><strong>Total</strong></th> -->
+											</tr>
+										</thead>
+										<t t-foreach="o.invoice_line_ids" t-as="inv">
+											<tbody>
 												<tr>
-													<th><strong>Product Name</strong></th>
-													<th><strong>Unit Price</strong></th>
-													<th><strong>Account</strong></th>
-													<th><strong>Invoice Number</strong></th>
-													<th><strong> </strong></th>
-													<th><strong>Total</strong></th>
+													<td> <span t-esc="inv.product_id.name"/></td>
+													<td> <span t-esc="inv.price_unit" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
+													<!-- <td><span t-esc="inv.account_id.name"/></td>
+													<td> <span t-esc="o.name"/></td>
+													<td> </td>
+													<td>&#8358; <span t-esc="inv.price_subtotal"/></td> -->
 												</tr>
-											</thead>
-											<t t-foreach="o.invoice_line_ids" t-as="inv">
-												<tbody>
-													<tr>
-														<td> <span t-esc="inv.product_id.name"/></td>
-														<td> <span t-esc="inv.price_unit"/></td>
-														<td><span t-esc="inv.account_id.name"/></td>
-														<td> <span t-esc="o.name"/></td>
-														<td> </td>
-														<td>&#8358; <span t-esc="inv.price_subtotal"/></td>
-													</tr>
-												</tbody>
-											</t> 
-											<t>
-												<td></td>
-												<td></td>
-												<td></td> 
-												<td></td> 
-												<td><strong>Total:</strong></td> 
-												<td>&#8358; <span t-esc="sum(line.price_subtotal for line in o.invoice_line_ids)"/></td> 
-											 
-											</t>
+											</tbody>
 										</t> 
- 
-                                </table>
+										<!-- <t>
+											<td></td>
+											<td></td>
+											<td></td> 
+											<td></td> 
+											<td><strong>Total:</strong></td> 
+											<td>&#8358; <span t-esc="sum(line.price_subtotal for line in o.invoice_line_ids)"/></td> 
+											
+										</t> -->
+									</t> 
+
+								</table>
+								<div class="row">
+									<div class="col-xs-4 pull-right">
+										<table class="table table-condensed">
+											<tr class="border-black">
+												<td><strong>Outstanding</strong></td>
+												<td class="text-right">
+													<span t-esc="sum(line.balances for line in o.payment_ids)" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+												</td>
+											</tr>
+											<tr class="border-black">
+												<td><strong>Total</strong></td>
+												<td class="text-right">
+													<span t-esc="sum(line.price_subtotal for line in o.invoice_line_ids)" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+												</td>
+											</tr>
+										</table>
+									</div>
+								</div>							
 
 								<table class="table table-condensed">
-                                 
+									
 									<t t-if="o.payment_ids">
 										<span><strong>Payments </strong></span>
 											<thead>
@@ -142,33 +158,218 @@
 											</t>
 										</t>
 										
-									 
-                                </table><br/><br/> 
-                               
+										
+								</table><br/><br/> 
+								
 							</div>
 							<div class="row">
-                                <div class="col-xs-3" style="font-size: 20px;">
-                                    <strong>Total Paid</strong><br/>
-									&#8358; <span t-esc="sum(p_amount.price_subtotal for p_amount in o.invoice_line_ids)"/>
-                                    <!-- <strong>&#8358; <span t-field="o.total"/></strong> -->
-                                </div>
-                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 20px;">
-                                    <strong>Outanding</strong><br/>
-                                    <strong>&#8358; <span t-esc="sum(line.balances for line in o.payment_ids)"/></strong>
-                                </div>
-                            </div><br/><br/>
+								<div class="col-xs-12" style="font-size: 12px;">
+									<h5><strong>ATTENTION:-</strong></h5>
+									<p>
+										At the emergency meeting of the GC which held on the 6th of July, 2020 it was magnanimously
 
-                            <div class="row">
-                                <div class="col-xs-3" style="font-size: 17px;">
-                                    <strong>Signature:.....................</strong><br/>
-                                    <strong>Member</strong>
+										resolved that:
+										<ol> 
+											<li> That the increase of N10,000 in subscription for July/Dec 2020 cycle be reversed;</li>
+											<li> That Main House and Sectional levies be suspended for this July/Dec 2020 subscription cycle.</li>
+											<li> That fresh bills be issued to all members to replace the earlier ones, taking into consideration items (1) and (2) above; and </li>
+											<li> That members who have already paid the bills for July/Dec 2020 cycle be credited with the total amount of the reversed
+												subscription increase and suspended levies in the Jan/June 2021 bill.</li>
+										</ol>
+									</p>
+									<p>
+										<strong><u>MEDICAL INSURANCE SCHEME  (Optional)</u></strong><br/>
+										Medical Insurance Scheme payable at the rate of N2,500 per subscription cycle for N1,000,000(One Million
 
+										Naira) covers injury and death within the club premises for any participating member of the club.
+
+										Please pay immediately and update your bio-data form for proper record keeping.<br/>
+									
+										Bankers' cheque(s) should be addressed to Ikoyi Club 1938 with your name and membership number clearly stated at the back.<br/>
+										Membership Services Tel:01-2919507, 2919508. 07083709076 is for whatsapp only.<br/>
+										Email: membershipservices@ikoyiclub1938.net<br/>
+										Subscription shall be payable in advance and no member shall enjoy any privilege of membership one month
+										after the subscription is due for payment.<br/>
+									
+										Payment can also be made through any of the bank accounts stated below. However Membership Services must be notified of such payment immediately.
+										<ol>
+											<li> Union Bank of Nigeria a/c no - 0007278199(Operations)</li>
+											<li> United Bank of Africa a/c no - 100-041105-8</li>
+											<li> Guaranty Trust Bank a/c no - 0001859873</li>
+											<li> First Bank of Nigeria a/c no - 2001751035</li>
+											<li> Zenith Bank Plc  a/c no - 1010231837</li>
+										</ol>
+									</p>
+									<p>
+										For ease of payment, On-line payment option is now available on<br/>
+										<u>www.quickteller.com/ikoyiclub</u> or other quickteller enabled ATM.<br/>
+
+										N/B late payment after 3 months attracts a penalty of N10,000<br/>
+
+										<strong>PLEASE RETURN BILL WITH YOUR BANK DRAFT/EVIDENCE OF FUNDS TRANSFER</strong>
+									</p>
+
+
+								</div>                                
+							</div><br/>
+							
+							<div class="row">
+								<div class="col-xs-3" style="font-size: 17px;"><br/>
+									<strong>Signature:.....................</strong><br/>
+									<strong>General Manager</strong>
+
+								</div>
+							</div>
+						</div>
+					</t>
+				</t>
+			</t>
+		</template>
+
+		<template id="member_invoice_single_template">
+            <t t-call="report.html_container">
+				<t t-foreach="docs" t-as="o">
+					<t t-call="report.external_layout">
+						<div class="page">
+
+							<div class="row" style="font-size: 20px;">
+								<center><strong>Billing Notice</strong></center>
+
+								<div class="col-xs-6" style="border:solid; border-radius:15px; font-size: 14px;">
+									<p>MEMBER NAME: <span t-field="o.partner_id.name"/></p><br/>
+									<p>ADDRESS: <span t-field="o.partner_id.street"/></p><br/>
+								</div>
+								<div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 11px;">
+									<p>Period: <span t-field="o.subscription_period"/></p><br/>
+                                    <strong>Membership No: <span t-field="o.partner_id.identification"/></strong><br/>
+									
                                 </div>
-                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
-                                    <strong>Signature:.....................</strong><br/>
-                                    <strong>Ikoyi Club 1938</strong>
-                                </div>
-                            </div>
+									
+							</div><br/>
+							
+				
+							<div class="row" style="font-size: 16px;">		
+								<table class="table table-condensed"> 
+									<t t-if="o.invoice_id">
+										<thead>
+											<tr>
+												<!-- <th><strong>INV No.</strong></th> -->
+												<th><strong>Item Description</strong></th>
+												<th><strong>Amount</strong></th>
+												  
+											</tr>
+										</thead>
+										<t t-foreach="o.invoice_id[0].invoice_line_ids" t-as="inv">
+											<tbody>
+												<tr>
+													<!-- <td> <span t-esc="o.invoice_id[0].number"/></td> -->
+													<td> <span t-esc="inv.product_id.name"/></td>
+													<td> <span t-esc="inv.price_unit" t-options='{"widget": "monetary", "display_currency": o.invoice_id[0].currency_id}'/></td>
+													  
+												</tr>
+											</tbody>
+										</t>
+										<t>
+											
+											<!-- <td>Total: </td> -->
+											 <td>
+												Total: <span t-esc="sum(line.price_subtotal for line in o.invoice_id[0].invoice_line_ids)" t-options='{"widget": "monetary", "display_currency": o.invoice_id[0].currency_id}'/>
+											
+											</td>
+											<td>
+												Outstanding: <span t-esc="o.invoice_id[0].residual" t-options='{"widget": "monetary", "display_currency": o.invoice_id[0].currency_id}'/>
+											</td>
+										</t>
+										 
+									</t> 
+
+								</table>
+
+									<!-- <div class="row">
+									<div class="col-xs-4 pull-right">
+										<table class="table table-condensed">
+											<t t-foreach="o.invoice_id" t-as="inv_idx">
+												<t t-foreach="inv_idx.invoice_line_ids" t-as="invx">
+													<tr class="border-black">
+														<td><strong>Outstanding</strong></td>
+														<td class="text-right">
+															<span t-esc="sum(line.balances for line in o.payment_ids)" t-options='{"widget": "monetary", "display_currency": o.payment_ids.currency_id}'/>
+														</td>
+													</tr>
+													<tr class="border-black">
+														<td><strong>Total</strong></td>
+														<td class="text-right">
+															<span t-esc="invx.price_subtotal" t-options='{"widget": "monetary", "display_currency": o.create_uid.company_id.currency_id}'/>
+														</td>
+													</tr>
+												</t>
+											</t>
+										</table>
+									</div>
+								</div> -->
+								
+								
+							</div>
+
+							 
+							<div class="row">
+								<div class="col-xs-12" style="font-size: 12px;">
+									<h5><strong>ATTENTION:-</strong></h5>
+									<p>
+										At the emergency meeting of the GC which held on the 6th of July, 2020 it was magnanimously
+
+										resolved that:
+										<ol> 
+											<li> That the increase of N10,000 in subscription for July/Dec 2020 cycle be reversed;</li>
+											<li> That Main House and Sectional levies be suspended for this July/Dec 2020 subscription cycle.</li>
+											<li> That fresh bills be issued to all members to replace the earlier ones, taking into consideration items (1) and (2) above; and </li>
+											<li> That members who have already paid the bills for July/Dec 2020 cycle be credited with the total amount of the reversed
+												subscription increase and suspended levies in the Jan/June 2021 bill.</li>
+										</ol>
+									</p>
+									<p>
+										<strong><u>MEDICAL INSURANCE SCHEME  (Optional)</u></strong><br/>
+										Medical Insurance Scheme payable at the rate of N2,500 per subscription cycle for N1,000,000(One Million
+
+										Naira) covers injury and death within the club premises for any participating member of the club.
+
+										Please pay immediately and update your bio-data form for proper record keeping.<br/>
+									
+										Bankers' cheque(s) should be addressed to Ikoyi Club 1938 with your name and membership number clearly stated at the back.<br/>
+										Membership Services Tel:01-2919507, 2919508. 07083709076 is for whatsapp only.<br/>
+										Email: membershipservices@ikoyiclub1938.net<br/>
+										Subscription shall be payable in advance and no member shall enjoy any privilege of membership one month
+										after the subscription is due for payment.<br/>
+									
+										Payment can also be made through any of the bank accounts stated below. However Membership Services must be notified of such payment immediately.
+										<ol>
+											<li> Union Bank of Nigeria a/c no - 0007278199(Operations)</li>
+											<li> United Bank of Africa a/c no - 100-041105-8</li>
+											<li> Guaranty Trust Bank a/c no - 0001859873</li>
+											<li> First Bank of Nigeria a/c no - 2001751035</li>
+											<li> Zenith Bank Plc  a/c no - 1010231837</li>
+										</ol>
+									</p>
+									<p>
+										For ease of payment, On-line payment option is now available on<br/>
+										<u>www.quickteller.com/ikoyiclub</u> or other quickteller enabled ATM.<br/>
+
+										N/B late payment after 3 months attracts a penalty of N10,000<br/>
+
+										<strong>PLEASE RETURN BILL WITH YOUR BANK DRAFT/EVIDENCE OF FUNDS TRANSFER</strong>
+									</p>
+
+
+								</div>                                
+							</div><br/>
+							
+							<div class="row">
+								<div class="col-xs-3" style="font-size: 17px;"><br/>
+									<strong>Signature:.....................</strong><br/>
+									<strong>General Manager</strong>
+
+								</div>
+							</div>
 						</div>
 					</t>
 				</t>
@@ -324,8 +525,110 @@
 			</t>
 		</template>
 
+		<template id="receipt_guest_payment_template">
+            <t t-call="report.html_container">
+				<t t-foreach="docs" t-as="o">
+					<div class="header">
+						<div class="row">
+							<div class="col-xs-3" style="font-size: 9px;">
+								<!-- <img t-if="o.create_uid.company_id.logo" t-att-src="'data:image/png;base64,%s' %o.create_uid.company_id.logo" style="max-width: 100px; max-height: 80px;"/> -->
+								<p style="text-align: left; font-weight: bold; font-size: 12px;">
+									<span t-esc="res_company.name"/><br/>
+									<span t-esc="res_company.street"/>, <span t-esc="res_company.street2"/>, <span t-esc="res_company.city"/>,<br/>
+									<span t-esc="res_company.state_id.name"/>, <span t-esc="res_company.country_id.name"/>
+								</p>
+                        	</div>
+							
+							<!-- <div class="col-xs-offset-2 text-right">
+								<img src="/ikoyi_module/static/img/ikoyi_logo2.png" style="max-height:80px;max-width:60px;"/>
+							</div> -->
+							<br/>
+
+						</div>
+					</div>
+                
+                    <t t-call="report.external_layout">
+                        <div class="page">
+
+                            <div class="row" >
+								<div class="col-xs-3" style="font-size: 18px;">
+										<b><span> IKOYI CLUB 1938</span></b><br/>
+										<b><span t-esc="res_company.name"/></b><br/>
+										<b><span t-esc="res_company.state_id.name"/></b><br/>
+										<b><span t-esc="res_company.country_id.name"/></b><br/>
+								</div>
+							
+                           <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                <center> <div class="watermark;col-xs-8" styles="position:absolute;opacity:0.8; font-size:50px;width:200%;z-index">
+                                    <img src="/member_app/static/src/img/ikoyi_logo2.png" style="max-height:140px;max-width:100px;"/>
+                                     
+                                </div></center>
+                            </div>
+							</div> 
+                            <div class="row" style="font-size: 18px;">
+								<span><strong><u>Member Name:</u></strong></span> <span t-field="o.partner_id.name"/><br/>
+                                <span><strong><u>Receipt Allocated As Follows:</u></strong></span>
+                                <br/>
+								 
+                                <table class="table table-bordered"> 
+									<t t-if="o.payment_idss">
+										<span><strong>Payment Details </strong></span>
+											<thead>
+												<tr>
+													<th><strong>Description</strong></th>
+													<th><strong>Journal</strong></th>
+													<th><strong>Date</strong></th>
+													<th><strong>Total</strong></th>
+												</tr>
+											</thead>
+											<t t-foreach="o.payment_idss" t-as="inv">
+												<tbody>
+													<tr>
+														<td> <span t-esc="inv.name"/></td>
+														<td><span t-esc="inv.journal_id.name"/></td>
+														<td> <span t-esc="inv.payment_date"/></td>
+														<td>&#8358; <span t-esc="inv.amount"/></td>
+													</tr>
+												</tbody>
+											</t> 
+											<t>
+												<td></td>
+												<td></td> 
+												<td><strong>Total:</strong></td> 
+												<td>&#8358; <span t-esc="sum(line.amount for line in o.payment_idss)"/></td> 
+											 
+											</t>
+										</t> 
+                                </table> 
+                               
+							</div>
+							<div class="row">
+                                <div class="col-xs-3" style="font-size: 20px;">
+                                    <strong>Total Paid</strong><br/>
+									&#8358; <span t-esc="sum(line.amount for line in o.payment_idss)"/>
+                                </div>
+                                <!-- <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 20px;">
+                                    <strong>Outanding</strong><br/>
+                                    <strong>&#8358; <span t-esc="sum(line.amount for line in o.payment_idss)"/></strong>
+                                </div> -->
+                            </div><br/><br/>
+
+                            <div class="row">
+                                <div class="col-xs-3" style="font-size: 17px;">
+                                    <strong>Signature:.....................</strong><br/>
+                                    <strong>Member</strong>
+
+                                </div>
+                                <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 17px;">
+                                    <strong>Signature:.....................</strong><br/>
+                                    <strong>Ikoyi Club 1938</strong>
+                                </div>
+                            </div>
+						</div>
+					</t>
+				</t>
+			</t>
+		</template>
+
 	</data>
 </odoo>
-
-
-

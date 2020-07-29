@@ -14,10 +14,10 @@
                                 <button name="button_send_hon" string="Apply" type="object" icon="fa-registered" class="btn-primary"
                                 attrs="{'invisible': [('state','not in',['draft'])]}" groups="member_app.membership_officer_ikoyi,member_app.manager_member_ikoyi"/>
 
-                                <button name="button_send_hon_invocie" string="Approve" type="object" icon="fa-registered" class="btn-primary"
+                                <button name="button_send_hon_invocie" string="Invoice" type="object" icon="fa-registered" class="btn-primary"
                                  attrs="{'invisible': [('state','not in',['honourary'])]}" groups="member_app.membership_honour_ikoyi"/>
 
-                                <button name="button_send_invocie_wait" string="Create Invoice and Verify" type="object" icon="fa-registered" class="btn-primary"
+                                <button name="button_send_invocie_wait" string="Make Payment and Verify" type="object" icon="fa-registered" class="btn-primary"
                                 attrs="{'invisible': [('state','not in',['invoice'])]}"/>
 
                                 <button name="button_send_gen_Manager" string="Send to GM" type="object" icon="fa-registered" class="btn-primary"
@@ -31,14 +31,18 @@
 
                                 <button name="button_officer_confirm" string="Approve" type="object" icon="fa-registered" class="btn-primary"
                                 attrs="{'invisible': [('state','not in',['verify'])]}" groups="member_app.membership_officer_ikoyi,member_app.manager_member_ikoyi"/>
-
+                                
+                                <button type="object"  name="print_membership_payment_receipt"
+                                    class="oe_link" string="Print Payments Receipt"
+                                    attrs="{'invisible':[('payment_idss','=',[])]}"
+                                    />
                                 <field name="state" widget="statusbar" statusbar_visible="draft,wait,invoice,general_manager,confirm"/>
 
                              </header>
                     <sheet>
                         <div class="oe_button_box" name="button_box">
                                     
-                                    <button name="see_breakdown_invoice" string="View and Pay Invoices" type="object" class="oe_stat_button" icon="fa-shirtsinbulk" attrs="{'invisible':[('state','=','draft')]}">
+                                    <button name="see_breakdown_invoice" string="View Payments" type="object" class="oe_stat_button" icon="fa-shirtsinbulk" attrs="{'invisible':[('state','=','draft')]}">
                                             <!--<field name="see_invoice" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>-->
                                         </button>
 
@@ -95,7 +99,7 @@
                          </group>
 
                          <group>
-                         <field name="account_id" required="1"/>   
+                         <field name="account_id" required="0"/>   
                             <field name="binary_attach_receipt" filename="binary_fname_receipt" attrs="{'required':[('state','in',['verify'])]}" invisible="0"/>
                             <field name="binary_fname_receipt" required="0" invisible="1" />
                          </group>
@@ -125,10 +129,20 @@
                             <field name="total"/>
                             
                          </group>
-                
-                         
                     </group>
-
+                     <notebook>
+                            <page name ="payment_idss" string="Payment Lines">
+                                <field name="payment_idss" readonly="1">
+                                    <p style="color: red;">* See Payments</p>
+                                        <tree string="Payments" editable="bottom"> 
+                                            <field name="name"/>
+                                            <field name="journal_id"/>
+                                            <field name="amount" string="Paid Amount"/>
+                                            <field name="payment_date"/>  
+                                        </tree>
+                                </field>
+                            </page>
+                         </notebook>
                 </sheet>
                  </form>
             </field>
@@ -144,14 +158,9 @@
                             <field name="date_order"/>
                             <field name="total"/>
                             <field name="state"/> 
-                            
-
                 </tree>
             </field>
         </record>
-
-        
-
 
         <act_window id="guest_action_main"
             name="Guest"

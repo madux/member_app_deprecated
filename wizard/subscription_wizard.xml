@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+
+	<record id="subscription_excel_view_wizard" model="ir.ui.view">
+        <field name="name">Subscription Excel Report</field>
+        <field name="model">subscription.excel</field>
+        <field name="arch" type="xml">
+        	<form>
+        		<group>
+                    <group>
+                        <field name="datefrom" />
+                    </group>
+                    <group>
+                        <field name="dateto" />
+                    </group>
+                     
+                </group>
+                
+        		<footer>
+	                <button name="generate_records" string="Generate" type="object" default_focus="1" class="oe_highlight" />
+	                <button type="action" class="oe_stat_button" name="%(subscription_main_action_main)d" 
+                    context="{'search_default_date': datefrom}" icon="fa-list"/>
+                    or
+	                <button string="Cancel" class="oe_link" special="cancel" />
+	            </footer>
+			</form>
+        </field>
+    </record>
+
+	<record id="action_subscription_excel_view_wizard" model="ir.actions.act_window">
+        <field name="name">Subscription Excel Report</field>
+        <field name="res_model">subscription.excel</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="subscription_excel_view_wizard"/>
+        <field name="target">new</field>
+    </record>
+
+    <record id="member_generate_bill_view_wizard" model="ir.ui.view">
+        <field name="name">Generate Bill</field>
+        <field name="model">generate.member.invoice</field>
+        <field name="arch" type="xml">
+        	<form>
+        		<group>
+                    <group>
+                        <field name="subscription_period" />
+                        <field name="limit"/>
+                    </group>
+                    <group>
+                        <field name="include_spouse"/>
+                    </group>
+                    <field name="member_ids">
+                        <tree string="Member Lines" editable="bottom">
+                            <field name="surname" />
+                            <field name="first_name"/>
+                            <field name="identification"/>
+                            <field name="state" />
+                        </tree>
+                    </field>
+                </group>
+                
+        		<footer>
+	                <button name="generate_membership_invoice" confirm ="Are you sure?" string="Generate" type="object" default_focus="1" class="oe_highlight" />
+	                <button name="batch_emailing" string="Send Mass Email" type="object" class="oe_highlight" />
+	                
+                    <button name="migrate_data" string="Migrate" groups="base.group_system" type="object" class="oe_highlight" />
+                    
+                    or
+	                <button string="Cancel" class="oe_link" special="cancel" />
+	            </footer>
+			</form>
+        </field>
+    </record>
+
+	<record id="action_member_generate_bill_view_wizard" model="ir.actions.act_window">
+        <field name="name">Generate Bill</field>
+        <field name="res_model">generate.member.invoice</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="member_generate_bill_view_wizard"/>
+        <field name="target">new</field>
+    </record>
+
+	<menuitem id="member_generate_bill_menu" name="Automatic Bills" action="action_member_generate_bill_view_wizard" parent="member_app.menu_memapp_subscription" sequence="5"/>
+</data>
+</odoo>

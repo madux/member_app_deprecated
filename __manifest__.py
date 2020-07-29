@@ -22,6 +22,7 @@
         'views/member_policy_view.xml',
         'views/spouse_exclusion_view.xml',
         'views/reinstatement_view.xml',
+        'wizard/subscription_wizard.xml',
         'reports/receipt_membership.xml',
         'reports/id_card_template.xml',
         'reports/id_card.xml',
@@ -31,6 +32,7 @@
         'reports/print_invoice_receipt.xml',
         'data/crons.xml',
         'data/product_data.xml', 
+        'data/mass_mail_template.xml',
     ],
     'qweb': [
         'static/src/xml/base.xml',
