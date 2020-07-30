@@ -143,7 +143,7 @@ class GenerateInvoice(models.TransientModel):
         member_ids = self.env['member.app'].search([('subscription_period', '!=', self.subscription_period), ('state', 'in', ['temp', 'ord'])])
         ctx = dict()
         for rec in member_ids:
-            template = self.env['ir.model.data'].get_object('member_app', 'email_template_for_member')[1]
+            template = self.env['ir.model.data'].get_object('member_app', 'email_template_for_member')
             ctx.update({
                         'default_model': 'member.app',
                         'default_res_id': rec.id,
