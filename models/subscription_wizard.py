@@ -84,7 +84,7 @@ class GenerateInvoice(models.TransientModel):
     def migrate_data(self):
         members = self.env['member.app'].search([('partner_id', '=', False)])
         partner_cr = self.env['res.partner']
-        # try:
+        
         for record in members:
             surname = str(record.surname)
             firstname = str(record.first_name)
