@@ -45,25 +45,28 @@
         	<form>
         		<group>
                     <group>
-                        <field name="subscription_period" />
-                        <field name="limit"/>
+                        <field name="include_spouse"/>
+                        <field name="subscription_period" /> 
+                        <field name="include_mailing" />
+                         
                     </group>
                     <group>
-                        <field name="include_spouse"/>
+                        <field name="limit"/>
                     </group>
+                    <!-- <field name="text_editor" widget="html" attrs="{'invisible':[('is_mail', '!=', 'mail')]}"/> -->
                     <field name="member_ids">
                         <tree string="Member Lines" editable="bottom">
                             <field name="surname" />
                             <field name="first_name"/>
                             <field name="identification"/>
-                            <field name="state" />
+                            <field name="state" /> 
                         </tree>
                     </field>
                 </group>
                 
         		<footer>
 	                <button name="generate_membership_invoice" confirm ="Are you sure?" string="Generate" type="object" default_focus="1" class="oe_highlight" />
-	                <button name="batch_emailing" string="Send Mass Email" type="object" class="oe_highlight" />
+	                <button name="batch_emailing" attrs="{'invisible':[('include_mailing', '=', True)]}" string="Send Mass Email" type="object" class="oe_highlight" />
 	                
                     <button name="migrate_data" string="Migrate" groups="base.group_system" type="object" class="oe_highlight" />
                     
@@ -74,7 +77,7 @@
         </field>
     </record>
 
-	<record id="action_member_generate_bill_view_wizard" model="ir.actions.act_window">
+	<!-- <record id="action_member_mass_mail_bill_view_wizard" model="ir.actions.act_window">
         <field name="name">Generate Bill</field>
         <field name="res_model">generate.member.invoice</field>
         <field name="type">ir.actions.act_window</field>
@@ -82,7 +85,24 @@
         <field name="view_mode">form</field>
         <field name="view_id" ref="member_generate_bill_view_wizard"/>
         <field name="target">new</field>
+        <field name="context">{
+            'is_mail': 'mail',
+            }</field>
+
+    </record> -->
+
+    <record id="action_member_generate_bill_view_wizard" model="ir.actions.act_window">
+        <field name="name">Generate Bill</field>
+        <field name="res_model">generate.member.invoice</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="member_generate_bill_view_wizard"/>
+        <field name="target">new</field>
+      
+
     </record>
+	<!-- <menuitem id="member_mass_mail_menu" name="Send Mass Mail" action="action_member_mass_mail_bill_view_wizard" parent="member_app.menu_memapp_subscription" sequence="6"/> -->
 
 	<menuitem id="member_generate_bill_menu" name="Automatic Bills" action="action_member_generate_bill_view_wizard" parent="member_app.menu_memapp_subscription" sequence="5"/>
 </data>

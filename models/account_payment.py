@@ -23,8 +23,6 @@ class account_payment(models.Model):
         self.write({'state':"draft"})
         return False
 
-     
-
     balances = fields.Float('Balance')#, compute="_compute_difference")
     amount_to_pay = fields.Float('To pay')#, compute="_compute_difference")
     narration = fields.Text('Note')
@@ -57,14 +55,18 @@ class account_payment(models.Model):
         res = super(account_payment, self).post()
         domain_inv = [('invoice_id', 'in', [item.id for item in self.invoice_ids])]
         members_search = self.env['member.app'].search(domain_inv)
+        outstanding = self.balances # self.amount - self.amount_to_pay
         if members_search: 
-            members_search.state_payment_inv(self.amount, self.payment_date)  
+            members_search.state_payment_inv(self.amount, self.payment_date) 
+            members_search.balance_total = members_search.balance_total + outstanding
         else:
             pass
         domain_sub = [('invoice_id', 'in', [item.id for item in self.invoice_ids])]
         sub_search = self.env['subscription.model'].search(domain_sub)
         if sub_search:
-            sub_search.state_payment_inv(self.amount, self.payment_date, sub_search, self.payment_difference)
+            # raise ValidationError(sub_search.member_id.balance_total + outstanding)
+            sub_search.member_id.balance_total = sub_search.member_id.balance_total + outstanding
+            sub_search.state_payment_inv(self.amount, self.payment_date, self.id, self.payment_difference)
         else:
             pass
 
@@ -82,6 +84,7 @@ class account_payment(models.Model):
         domain_suspend = [('invoice_id', 'in', [item.id for item in self.invoice_ids])]
         suspend_search = self.env['suspension.model'].search(domain_suspend)
         if suspend_search:
+            suspend_search.member_id.balance_total = suspend_search.member_id.balance_total + outstanding
             suspend_search.state_payment_inv()
         else:
             pass 
@@ -89,9 +92,16 @@ class account_payment(models.Model):
         domain_spouse = [('invoice_id', 'in', [item.id for item in self.invoice_ids])]
         spouse_search = self.env['register.spouse.member'].search(domain_spouse)
         if spouse_search:
-            spouse_search.button_make_confirm()
+            spouse_search.button_make_confirm(outstanding)
         else:
-            pass 
+            pass
+
+        # domain_policy = [('invoice_id', 'in', [item.id for item in self.invoice_ids])]
+        # policy_search = self.env['member.policy.line'].search(domain_policy)
+        # if policy_search:
+        #     policy_search.button_confirm_member()
+        # else:
+        #     pass
         return res
 
     def send_mail_accounts(self):

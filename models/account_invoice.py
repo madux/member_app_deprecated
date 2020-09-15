@@ -12,6 +12,8 @@ from odoo import http
 
 class AccountInvoice(models.Model):
     _inherit = 'account.invoice'
+    _order = "id desc"
+
 
     is_member_invoice = fields.Boolean(string="Is membership Invoice")
     member_id = fields.Many2one('member.app', string="Membership Ref", help="Source Document")

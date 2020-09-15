@@ -158,6 +158,9 @@ i am changing the model (LINE 148), id on LINE 146  -->
                             <field name="state" widget="statusbar" statusbar_visible="Draft,Generated"/>
                     </header>
                     <sheet> 
+                        <div class="oe_button_box" name="button_box">
+                            <button name="see_breakdown_invoice" string="See Invoices" type="object" class="oe_stat_button" icon="fa-shirtsinbulk"></button>
+                        </div>
                         <label for="member_id" class="oe_edit_only"/>
                         <h1>
                             <field name="member_id" string="Member Name"

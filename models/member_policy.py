@@ -95,12 +95,16 @@ class MemberShipPolicy(models.Model):
     def confirm_deactivation(self):
         if self.operation_type == "Deactivation":
             if self.get_member_ids:
-                for rec in self.get_member_ids:
-                    if rec.balance_total < 0:
-                        rec.write({'activity': 'act'})
-                    else:
-                        rec.write({'activity': 'inact',
-                                   'date_of_last_sub': fields.Datetime.now()})
+                orders = self.env['member.app'].search([('date_of_last_sub', '>=', self.date_start), ('date_of_last_sub', '<=', self.date_end)])
+                if orders:
+                    for rec in orders:
+                        # self.get_member_ids:
+                        if rec.balance_total < 0:
+                            rec.write({'activity': 'act'})
+                        else:
+                            rec.write({'activity': 'inact', 'date_of_last_sub': fields.Datetime.now()})
+                else:
+                    raise ValidationError('Start date cannot be greater than end start')
             else:
                 raise ValidationError("No record generated")
             self.state = 'Deactivation'
@@ -112,7 +116,8 @@ class MemberShipPolicy(models.Model):
         if self.operation_type == "Activation":
             if self.get_member_ids:
                 member_list =[]
-                for partner in self.get_member_ids:
+                orders = self.env['member.app'].search([('date_of_last_sub', '>=', self.date_start), ('date_of_last_sub', '<=', self.date_end)])
+                for partner in orders:
                     member_list.append((0, 0, {
                         'member_id': partner.id,   
                         'activation_date': fields.Datetime.now(),
@@ -136,6 +141,7 @@ class MemberShipPolicy(models.Model):
  
 class MemberShipPolicyLine(models.Model):
     _name = "member.policy.line"
+    _order = "id desc"
     
     policy_line_id = fields.Many2one('member.policy', ondelete="cascade")
     member_id = fields.Many2one(
@@ -174,6 +180,28 @@ class MemberShipPolicyLine(models.Model):
 
     total = fields.Float('Total', default =0, compute="gen_total")
     balance_total = fields.Float('Outstanding', default =0)#, compute="gen_total")
+    
+    def button_confirm_member(self):
+        self.member_id.date_of_last_sub = fields.Datetime.now()
+        self.member_id.subscription_period = self.policy_line_id.periods_month
+        self.member_id.activity = "act"
+
+    @api.multi
+    def see_breakdown_invoice(self): 
+        search_view_ref = self.env.ref(
+            'account.view_account_invoice_filter', False)
+        form_view_ref = self.env.ref('account.invoice_form', False)
+        tree_view_ref = self.env.ref('account.invoice_tree', False)
+
+        return {
+            'domain': [('id', 'in', [self.invoice_id.id])],
+            'name': 'Membership Invoices',
+            'res_model': 'account.invoice',
+            'type': 'ir.actions.act_window',
+            #  'views': [(form_view_ref.id, 'form')],
+            'views': [(tree_view_ref.id, 'tree'), (form_view_ref.id, 'form')],
+            'search_view_id': search_view_ref and search_view_ref.id,
+        }
 
     @api.one
     @api.depends("subscription","package", "depend_name")
@@ -244,9 +272,17 @@ class MemberShipPolicyLine(models.Model):
                 'fiscal_position_id': self.member_id.partner_id.property_account_position_id.id,
                 'branch_id': self.create_branch()
             })
-        self.member_id.date_of_last_sub = fields.Datetime.now()
+        # self.member_id.date_of_last_sub = fields.Datetime.now()
         self.member_id.activity = "act"
         self.member_id.invoice_id = [(4, invoice.id)]
+        if self.member_id.balance_total > 0:
+            array.append((0, 0, {
+                # 'product_id': self.create_product(each_subscription.name),
+                'name': "Outanding Credits",
+                'price_unit': self.member_id.balance_total,
+                'invoice_id': invoice.id,
+                'account_id': self.member_id.account_id.id or self.member_id.partner_id.property_account_payable_id.id,
+                }))
         for each_subscription in self.subscription:
             array.append((0, 0, {
                 'product_id': self.create_product(each_subscription.name),
@@ -263,9 +299,13 @@ class MemberShipPolicyLine(models.Model):
         #         'invoice_id': invoice.id,
         #         'account_id': self.member_id.account_id.id or self.member_id.partner_id.property_account_payable_id.id,
         #         }))
+
         for each_depend in self.depend_name:
+            each_depend.partner_id.property_account_receivable_id=self.env['account.account'].search([('user_type_id', '=', 1)], limit=1).id,
+            each_depend.partner_id.property_account_payable_id=self.env['account.account'].search([('user_type_id', '=', 2)], limit=1).id,
             
             for rex in each_depend.spouse_subscription:
+
                 if each_depend.relationship == "Child":
                     if rex.subscription.name == "Library (Child) -  Subscription" or rex.subscription.name == "Swimming (Child) - Subscription" or rex.subscription.is_child == True:
                         array.append((0, 0, {
@@ -286,6 +326,8 @@ class MemberShipPolicyLine(models.Model):
                 
         invoice.write({'invoice_line_ids': array})
         self.invoice_id = invoice.id
+
+     
          
     def generate_bill(self, amount, product_name):
         array = []

@@ -17,6 +17,7 @@ class Subscription_Member(models.Model):
     _name = "subscription.model"
     _inherit = ['mail.thread', 'ir.needaction_mixin']
     _rec_name = "partner_id"
+    _order = "id desc"
 
     @api.multi
     def name_get(self):
@@ -48,14 +49,15 @@ class Subscription_Member(models.Model):
     users_followers = fields.Many2many('hr.employee', string='Add followers')
     subscription = fields.Many2many(
         'subscription.payment',
-        string='Add Sections', compute='get_all_packages', store=True)
+        string='Add Sections') 
+        # , compute='get_all_packages', store=True)
+    section_line = fields.Many2many('section.line', string='Add Sections')
         
     package = fields.Many2many(
         'package.model',
         string='Packages',
-        readonly=False,
-        store=True,
-        compute='get_all_packages')  #  ,compute='get_all_packages')
+        readonly=False,)
+        # store=True, compute='get_all_packages')  #  ,compute='get_all_packages')
     state = fields.Selection([('draft', 'Draft'),
                               ('suscription', 'Suscribed'),
                               ('manager_approve', 'F&A Manager'),
@@ -72,7 +74,7 @@ class Subscription_Member(models.Model):
     barcode = fields.Char(string='Barcode')
     depend_name = fields.Many2many(
         'register.spouse.member',
-        string="Dependents", compute='get_all_packages', store=True)
+        string="Dependents")#, compute='get_all_packages', store=True)
     invoice_id = fields.Many2many('account.invoice', string='Invoice', store=True)
     total_paid = fields.Float('Total Paid', default =0)
     balance_total = fields.Float('Outstanding', default =0, store=True, compute="get_balance_total")
@@ -133,35 +135,24 @@ class Subscription_Member(models.Model):
             res['domain'] = {'invoice_id': [('partner_id', '=', self.partner_id.id)]}
         return res
 
-    @api.depends('subscription', 'periods_month')
+    @api.depends('section_line', 'periods_month')
     def get_total(self):
         for rec in self:
             tot = 0.0
-            for sub in rec.subscription:
-                tot += sub.member_price
+            for sub in rec.section_line:
+                tot += sub.amount
             rec.total = tot
 
-    @api.one
-    @api.depends('partner_id')
+    @api.onchange('partner_id')
     def get_all_packages(self):
         get_package = self.env['member.app'].search(
             [('partner_id', '=', self.partner_id.id)], limit=1)
-        appends = []
-        appends2 = []
-        appends3 = []
-        for ret in get_package.package:
-            appends.append(ret)
-        for rett in get_package.subscription:
-            appends2.append(rett.id)
-            self.subscription = appends2
-        for spouse in get_package.depend_name:
-            appends3.append(spouse)
-        for r in appends:
-            self.package = [(4, r.id)]  #  [(6,0,r.id)]
-        # for r2 in appends2:
-        #     self.subscription = [(4, r2.id)]
-        for r3 in appends3:
+        
+        for ret in get_package.section_line:
+            self.section_line = [(4, ret.id)]
+        for r3 in get_package.depend_name:
             self.depend_name = [(4, r3.id)]
+
   
     @api.one
     @api.depends('partner_id')
@@ -187,21 +178,43 @@ class Subscription_Member(models.Model):
             number = self.number_period * 365
         required_date = datetime.strptime(self.date_of_last_sub, '%Y-%m-%d %H:%M:%S')
         self.date_end = required_date + timedelta(days=number)
-        
+        self.member_id.due_dates = required_date + timedelta(days=number)
+
     def check_expiry(self):
-        if self.member_id:
+        self.state = "suscription"
+        self._set_dates()
+
+    @api.multi
+    def see_breakdown_invoice(self): 
+        search_view_ref = self.env.ref(
+            'account.view_account_invoice_filter', False)
+        form_view_ref = self.env.ref('account.invoice_form', False)
+        tree_view_ref = self.env.ref('account.invoice_tree', False)
+
+        return {
+            'domain': [('id', 'in', [item.id for item in self.invoice_id])],
+            'name': 'Subscription Invoices',
+            'res_model': 'account.invoice',
+            'type': 'ir.actions.act_window',
+            #  'views': [(form_view_ref.id, 'form')],
+            'views': [(tree_view_ref.id, 'tree'), (form_view_ref.id, 'form')],
+            'search_view_id': search_view_ref and search_view_ref.id,
+        }
+
+    # def check_expiry(self):
+    #     if self.member_id:
             
-            due_date = self.member_id.due_dates
-            current_date = fields.Datetime.now()
-            if due_date and current_date:
-                if current_date < due_date:
-                    raise ValidationError("The member's subscription has not expired")
-                else:
-                    popup_message = "Membership subscription has expired and is \n due for payment on the date: {} You can proceed to generate an Invoice".format(due_date)
-                    self.state = "suscription"
-                    self.send_mail_to_member_sub()
-                    self._set_dates()
-                    return self.popup_notification('Date Expired: {}'.format(current_date))
+    #         due_date = self.member_id.due_dates
+    #         current_date = fields.Datetime.now()
+    #         if due_date and current_date:
+    #             if current_date < due_date:
+    #                 raise ValidationError("The member's subscription has not expired")
+    #             else:
+    #                 popup_message = "Membership subscription has expired and is \n due for payment on the date: {} You can proceed to generate an Invoice".format(due_date)
+    #                 self.state = "suscription"
+    #                 self.send_mail_to_member_sub()
+    #                 self._set_dates()
+    #                 return self.popup_notification('Date Expired: {}'.format(current_date))
 
 
     # def check_expiryss(self):
@@ -411,326 +424,150 @@ class Subscription_Member(models.Model):
                 'default_payment_type': "outbound",
                 'default_date': fields.Datetime.now(),
                 'default_amount': amount,
-
                 'default_partner_id': self.partner_id.id,
                 'default_member_ref': self.member_id.id,
                 'default_name': "Subscription Payments",
                 'default_level': level,
                 'default_to_pay': amount,
-                'default_num':self.id,
+                'default_num': self.id,
                 'default_p_type': self.p_type,
             },
         }
-        
-    # def _get_invoices(self):
-    #     return self.env['account.invoice'].browse(self._context.get('active_ids'))
+     
     def _get_subscribe(self):
         return self.env['subscription.payment'].browse(self._context.get('active_ids'))
-    
-    @api.one
-    def state_payment_inv(self,amount,pay_date,sub_search, payment_difference):
-        products = self.env['product.product']
-        members_search = self.env['member.app'].search([('partner_id','=', self.partner_id.id)])
-        inv = []
-        for x in self.invoice_id:
-            inv.append(x.id)
 
-        if self.state not in ["draft", "fined"] and self.p_type == "normal": 
-            lists = []
-            price = 0.0
-            total = 0.0
-            product_id = 1
-            for subs in self.subscription:
-                product_search = products.search([('name', '=ilike', subs.name)], limit=1)
-                if self.duration_period == "Months":
-                    total = (subs.total_cost / 6) * self.number_period
-                    price = total
+    def state_payment_inv(self, amount, pay_date, pay_id, payment_difference):
+        members_search = self.env['member.app'].search([('id', '=', self.member_id.id)])
 
-                elif self.duration_period == "Full Year":
-                    total = (subs.total_cost * 2) * self.number_period
-                    price = total  
-                product_id = product_search.id 
-            product_name2 = products.search([('id', '=', product_id)]) 
-            
-            spouse_total = 0.0
-            child_total = 0.0
-            if self.depend_name:
-                for subscribe in self.depend_name:
-                    if subscribe.relationship == 'Child':
-                        # if subscribe.relationship == "Child":
-                    
-                        if self.duration_period == "Months":
-                            for sub in subscribe.spouse_subscription:
-                                if sub.subscription.name == "Library (Child) -  Subscription" or sub.subscription.name == "Swimming (Child) - Subscription" or sub.subscription.is_child == True:
-
-                                    product_child = products.search([('name', '=ilike', sub.subscription.name)], limit=1)
-                                
-                                    if sub.subscription.special_subscription != True:
-                                        total = (sub.total_fee / 6) * record.number_period
-                                        child_total = total - sub.subscription.entry_price
-                                    else:
-                                        total = sub.total_fee - sub.subscription.entry_price
-                                        child_total = total 
-                                    # spouse_total = (sub.total_fee / 6) * self.number_period
-                                    curr_invoice_spouse_subs = {
-                                        'product_id': product_child.id,
-                                        'name': "Child Charge for "+ str(product_child.name)+ ": Period-"+(self.subscription_period),
-                                        'price_unit': child_total,
-                                        'quantity': 1.0,
-                                        'account_id': product_child.categ_id.property_account_income_categ_id.id or record.account_id.id,
-                                        'invoice_id': inv_id,
-                                    }
-                                    invoice_line_obj.create(curr_invoice_spouse_subs)
-
-                        elif record.duration_period == "Full Year":
-                            for sub2 in subscribe.spouse_subscription:
-                                if sub2.subscription.name == "Library (Child) -  Subscription" or sub2.subscription.name == "Swimming (Child) - Subscription" or sub2.subscription.is_child == True:
-
-                                # if sub2.subscription.name in ["Library (Child) -  Subscription", "Swimming (Child) - Subscription"] or sub2.subscription.is_child == True:
-                                    product_child = products.search([('name', '=ilike', sub2.subscription.name)], limit=1)
-                                    
-                                    child_total = (sub2.total_fee * 2) * record.number_period 
-                                    curr_invoice_spouse_subs2 = {
-                                        'product_id': product_child.id,
-                                        'name': "Child Charge for "+ str(product_child.name)+ ": Period-"+(self.periods_month),
-                                        'price_unit': child_total - sub2.subscription.entry_price,
-                                        'quantity': 1.0,
-                                        'account_id': product_child.categ_id.property_account_income_categ_id.id or record.account_id.id,
-                                        'invoice_id': inv_id,
-                                    }
-                                    invoice_line_obj.create(curr_invoice_spouse_subs2)
-                        else:
-                            child_total = 0.0
-                    else:
-                        if self.duration_period == "Months":
-                            for sub in subscribe.spouse_subscription:
-                                product_spouse = products.search([('name', '=ilike', sub.subscription.name)], limit=1)
-                                if sub.total_fee == 0:
-                                    raise ValidationError('There is no subscription amount in one of the selected dependents')
-                                else:
-                                    spouse_total = (sub.total_fee / 6) * self.number_period
-                                    values = (0, 0,{'sub_order': self.id,
-                                                    #'product_id': product_name2.id,
-                                                    'period_month': self.periods_month,
-                                                    'total_price': spouse_total,
-                                                    'paid_amount': spouse_total,
-                                                    # 'balance': payment_difference,
-                                                    'pdate': fields.Datetime.now(),
-                                                    'name': product_spouse.name})                  
-                                    lists.append(values)
-                        elif self.duration_period == "Full Year":
-                            for sub2 in subscribe.spouse_subscription:
-                                product_spouse = products.search([('name', '=ilike', sub2.subscription.name)], limit=1)
-                                if sub2.total_fee == 0:
-                                    raise ValidationError('There is no subscription \
-                                        amount in one of the selected dependents')
-                                else:
-                                    spouse_total = (sub2.total_fee * 2) * self.number_period
-                                    values = (0, 0,{'sub_order': self.id,
-                                                    #'product_id': product_name2.id,
-                                                    'period_month': self.periods_month,
-                                                    'total_price': spouse_total,
-                                                    'paid_amount': spouse_total,
-                                                    'balance': payment_difference,
-                                                    'pdate': fields.Datetime.now(),
-                                                    'name': product_spouse.name})
-                                            
-                                    lists.append(values)
-            else:
-                spouse_total = 0.0
-            self.spouse_amount = spouse_total
-            values = (0, 0,{'sub_order': self.id,
-                                'period_month': self.periods_month,
-                                'total_price': price,
-                                'paid_amount': price,
-                                # 'balance': payment_difference,
-                                'pdate': fields.Datetime.now(),
-                                'name': product_name2.name})
-                        
-            lists.append(values) 
-            members_search.sub_line = lists
-            members_search.subscription = [(4, sub.id or None ) for sub in self.subscription]
-            members_search.write({'invoice_id':[(4, inv)]})
-            # members_search.write({'invoice_id': [(4, inv)]})
+        inv = [x.id for x in self.invoice_id]
+        members_search.write({
+            'section_line': [(6, 0, [sub.id for sub in self.section_line])],
+            'invoice_id': [(4, inv)], 'date_of_last_sub': fields.Datetime.now(),
+            'subscription_period': self.periods_month,
+            'duration_period': self.duration_period,
+            'number_period': self.number_period,
+            'payment_ids': [(4, [pay_id])],
+                                })
+        self.state = 'done'
+        self.total_paid += amount
+        if self.state == "fined" and self.p_type == "ano":
             members_search.date_of_last_sub = fields.Datetime.now()
-            members_search.subscription_period = self.periods_month
-            members_search.duration_period = self.duration_period
-            members_search.number_period = self.number_period
-            
-            self.state = 'done'
-            self.total_paid += amount
-            
-        elif self.state == "fined" and self.p_type == "ano":
-            members_search.date_of_last_sub = fields.Datetime.now()
-            members_search.write({'invoice_id':[(4, inv)]})
-               
-    def define_subscriptions_invoice_line(self,invoice):
-        products = self.env['product.product']
-        invoice_line_obj = self.env["account.invoice.line"]
-        price = 0.0
-        total = 0.0
-        product_id = 1
-        
-        inv_id = invoice.id
-        for subs in self.subscription:
-            product_search = products.search([('name', '=ilike', subs.name)], limit=1)
-            if product_search:      
-                if self.duration_period == "Months":
-                    # total = (product_search.list_price / 6) * self.number_period
-                    # price += total
-                    
-                    if subs.special_subscription != True:
-                        total = (product_search.list_price / 6) * self.number_period
-                        price = total
-                    if subs.special_subscription == True:
-                        total = product_search.list_price 
-                        price = total
-                    
-                    curr_invoice_subs = {
-                                'product_id': product_search.id,
-                                'name': "Charge for "+ str(product_search.name),
-                                'price_unit': total, 
-                                'quantity': 1,
-                                'account_id': product_search.categ_id.property_account_income_categ_id.id or self.account_id.id,
-                                'invoice_id': inv_id,
-                                }
-
-                    invoice_line_obj.create(curr_invoice_subs) 
-
-                elif self.duration_period == "Full Year":
-                    total = (product_search.list_price * 2) * self.number_period
-                     
-                    curr_invoice_subs = {
-                                'product_id': product_search.id,
-                                'name': "Charge for "+ str(product_search.name),
-                                'price_unit': total, 
-                                'quantity': 1.0,
-                                'account_id': product_search.categ_id.property_account_income_categ_id.id or self.account_id.id,
-                                'invoice_id': inv_id,
-                                }
-
-                    invoice_line_obj.create(curr_invoice_subs) 
-                product_id = product_search.id
-                #self.balance_total += balance
-                product_name2 = products.search([('id','=',product_id)]) 
-            
-        spouse_total = 0.0
-        child_total = 0.0
-        if self.depend_name:
-            for subscribe in self.depend_name:
-                
-                if subscribe.relationship == "Child":
-                    
-                    if self.duration_period == "Months":
-                        for sub in subscribe.spouse_subscription:
-                            if sub.subscription.name == "Library (Child) -  Subscription" or sub.subscription.name == "Swimming (Child) - Subscription" or sub.subscription.is_child == True:
-
-                                product_child = products.search([('name', '=ilike', sub.subscription.name)], limit=1)
-                            
-                                if sub.subscription.special_subscription != True:
-                                    total = (sub.total_fee / 6) * record.number_period
-                                    child_total = total - sub.subscription.entry_price
-                                else:
-                                    total = sub.total_fee - sub.subscription.entry_price
-                                    child_total = total 
-                                # spouse_total = (sub.total_fee / 6) * self.number_period
-                                curr_invoice_spouse_subs = {
-                                    'product_id': product_child.id,
-                                    'name': "Child Charge for "+ str(product_child.name)+ ": Period-"+(self.subscription_period),
-                                    'price_unit': child_total,
-                                    'quantity': 1.0,
-                                    'account_id': product_child.categ_id.property_account_income_categ_id.id or record.account_id.id,
-                                    'invoice_id': inv_id,
-                                }
-                                invoice_line_obj.create(curr_invoice_spouse_subs)
-
-                    elif record.duration_period == "Full Year":
-                        for sub2 in subscribe.spouse_subscription:
-                            if sub2.subscription.name == "Library (Child) -  Subscription" or sub2.subscription.name == "Swimming (Child) - Subscription" or sub2.subscription.is_child == True:
-
-                            # if sub2.subscription.name in ["Library (Child) -  Subscription", "Swimming (Child) - Subscription"] or sub2.subscription.is_child == True:
-                                product_child = products.search([('name', '=ilike', sub2.subscription.name)], limit=1)
-                                
-                                child_total = (sub2.total_fee * 2) * record.number_period 
-                                curr_invoice_spouse_subs2 = {
-                                    'product_id': product_child.id,
-                                    'name': "Child Charge for "+ str(product_child.name)+ ": Period-"+(self.periods_month),
-                                    'price_unit': child_total - sub2.subscription.entry_price,
-                                    'quantity': 1.0,
-                                    'account_id': product_child.categ_id.property_account_income_categ_id.id or record.account_id.id,
-                                    'invoice_id': inv_id,
-                                }
-                                invoice_line_obj.create(curr_invoice_spouse_subs2)
-                    else:
-                        child_total = 0.0
-                else:
-                    if self.duration_period == "Months":
-                        for sub in subscribe.spouse_subscription:
-                            
-                            product_spouse = products.search([('name', '=ilike', sub.subscription.name)], limit=1)
-                            if sub.total_fee == 0:
-                                raise ValidationError('There is no subscription amount in one of the selected dependents')
-                            else:
-                                if sub.subscription.special_subscription != True:
-                                    spouse_total = (sub.total_fee / 6) * self.number_period
-                                else:
-                                    total = sub.total_fee
-                                    spouse_total = total
-                                    
-                                curr_invoice_spouse_subs = {
-                                    'product_id': product_spouse.id,
-                                    'name': "Spouse Charge for "+ str(product_spouse.name),
-                                    'price_unit': spouse_total,
-                                    'quantity': 1.0,
-                                    'account_id': product_spouse.categ_id.property_account_income_categ_id.id or self.account_id.id,
-                                    'invoice_id': inv_id,
-                                }
-                                invoice_line_obj.create(curr_invoice_spouse_subs)
-
-                    elif self.duration_period == "Full Year":
-                        for sub2 in subscribe.spouse_subscription:
-                            product_spouse = products.search([('name', '=ilike', sub2.subscription.name)], limit=1)
-                            if sub2.total_fee == 0:
-                                raise ValidationError('There is no subscription \
-                                        amount in one of the selected dependents')
-                            else:
-                                spouse_total = (sub2.total_fee * 2) * self.number_period 
-                                curr_invoice_spouse_subs2 = {
-                                    'product_id': product_spouse.id,
-                                    'name': "Spouse Charge for "+ str(product_spouse.name),
-                                    'price_unit': spouse_total,
-                                    'quantity': 1.0,
-                                    'account_id': product_spouse.categ_id.property_account_income_categ_id.id or self.account_id.id,
-                                    'invoice_id': inv_id,
-                                }
-                                invoice_line_obj.create(curr_invoice_spouse_subs2)
+            return self.payment_button_normal()
         else:
-            spouse_total = 0.0
+            pass
+    
+           
+    def create_outstanding_line(self, inv_id):
+        invoice_line_obj = self.env["account.invoice.line"] 
+        members_search = self.env['member.app'].search([('id', '=', self.member_id.id)])
+        account_obj = self.env['account.invoice']
+        accounts = account_obj.browse([inv_id]).journal_id.default_credit_account_id.id
+        income_account = self.env['account.account'].search([('user_type_id.name', '=ilike', 'Income')], limit=1)
         
-        member_ref = self.env['member.app'].search([('id', '=', self.depend_name[0].sponsor.id)], limit=1)
-        member_ref.child_amount = spouse_total
-        member_ref.spouse_amount = child_total
+        balance = members_search.balance_total
+        if balance != 0: 
+            curr_invoice_subs = {
+                                'name': "Added Outstanding", 
+                                'price_unit': balance, 
+                                'quantity': 1,
+                                'account_id': accounts if accounts else income_account.id,
+                                'invoice_id': inv_id,
+                                }
+
+            invoice_line_obj.create(curr_invoice_subs)
+            members_search.balance_total -= balance
+
             
-    def define_invoice_line(self, product_name,invoice, amount):
-        products = self.env['product.product']
-        invoice_line_obj = self.env["account.invoice.line"]
-        product_search = products.search([('name', '=ilike', product_name)], limit=1)
+    def define_invoice_line(self,invoice):
         inv_id = invoice.id
+        invoice_line_obj = self.env["account.invoice.line"]
         journal = self.env['account.journal'].search([('type', '=', 'sale')], limit=1)
         prd_account_id = journal.default_credit_account_id.id
-        # percent = 12.5 / 100
-        # amount = percent * self.total_paid
-        
-        curr_invoice_line = {
-                                'product_id': product_search.id,
-                                'name': "Charge for "+ str(product_search.name),
-                                'price_unit': amount,
-                                'quantity': 1.0,
-                                'account_id': product_search.categ_id.property_account_income_categ_id.id,
-                                'invoice_id': inv_id,
-                            }
+        self.create_outstanding_line(inv_id)
 
-        invoice_line_obj.create(curr_invoice_line)
+        section_lines = self.mapped('section_line') #.filtered(lambda self: self.sub_payment_id.paytype in ['others'])
+        if section_lines:
+            for record in section_lines:
+                curr_invoice_line = {
+                        # 'product_id': product_search.id if product_search else False,
+                        'name': "Member Charge for "+ str(record.sub_payment_id.name) + ' -- ' +str(record.section_ids.name),
+                        'price_unit': record.amount,
+                        'quantity': 1.0,
+                        'account_id': invoice.journal_id.default_credit_account_id.id if invoice.journal_id.default_credit_account_id else prd_account_id, #product_search.categ_id.property_account_income_categ_id.id,
+                        'invoice_id': inv_id,
+                            }
+                invoice_line_obj.create(curr_invoice_line)
+        else:
+            raise ValidationError('Please ensure at the stage, \n \
+                that section line with paytype as others is set\n \
+                e.g Subscription Fee')
+
+    def dependent_invoice_line(self, invoice):
+        child_total = 0.0
+        spouse_total = 0.0
+        inv_id = invoice.id
+        percentage_cut = 50/100
+        invoice_line_obj = self.env["account.invoice.line"]
+         
+        if self.depend_name:
+            child_lines = self.mapped('depend_name').filtered(lambda self: self.relationship == 'Child')
+            spouse_lines = self.mapped('depend_name').filtered(lambda self: self.relationship != 'Child')
+            if child_lines:
+                for child in child_lines:
+                    
+                    section_lines = child.mapped('section_line')#.filtered(lambda self: self.sub_payment_id.paytype in ['special'])
+                    for sub2 in section_lines:
+                        total = 0.0
+                        if sub2.is_child != True:
+                            if sub2.sub_payment_id.paytype == "main_house" and child.mode in ["jun", "new"]:
+                                discount = percentage_cut * sub2.amount 
+                                total = (discount / 6) * self.number_period if self.duration_period == "Months" else (sub2.price_mainhouse * 2) * self.number_period 
+                                child_total += total
+
+                            else: # sub2.sub_payment_id.paytype == "main_house" and not child.mode in ["jun", "new"]:
+                                total = (sub2.amount / 6) * self.number_period if self.duration_period == "Months" else (sub2.amount * 2) * self.number_period 
+                                child_total += total
+                        else:
+                            total = 0
+                            child_total += 0
+                             
+                        curr_invoice_child_subs = {
+                            # 'product_id': product_child.id if product_child else False,
+                            'name': "Child Charge for "+ str(sub2.sub_payment_id.name) + ' -- ' + str(sub2.section_ids.name), # if product_child else sub2.subscription.name)+ ": Period-"+(self.subscription_period),
+                            'price_unit': total,
+                            'quantity': 1.0,
+                            'account_id': invoice.journal_id.default_credit_account_id.id,# product_child.categ_id.property_account_income_categ_id.id or record.account_id.id,
+                            'invoice_id': inv_id,
+                        }
+                        invoice_line_obj.create(curr_invoice_child_subs)
+                         
+            if spouse_lines:
+                for spouse in spouse_lines:
+                    section_lines = spouse.mapped('section_line')#.filtered(lambda self: self.sub_payment_id.paytype in ['special'])
+                    for sub2 in section_lines:
+                        if sub2.special_subscription != True:
+                            if sub2.sub_payment_id.paytype == "main_house" and spouse.mode in ["jun", "new"]:
+                                discount = percentage_cut * sub2.amount 
+                                spousetotal = (discount / 6) * self.number_period if self.duration_period == "Months" else (sub2.price_mainhouse * 2) * self.number_period 
+                                spouse_total += spousetotal
+
+                            else: # sub2.sub_payment_id.paytype == "main_house" and not child.mode in ["jun", "new"]:
+                                spousetotal = (sub2.amount / 6) * self.number_period if self.duration_period == "Months" else (sub2.amount * 2) * self.number_period 
+                                spouse_total += spousetotal
+                        else:
+                            spousetotal = sub2.amount
+                            spouse_total += spousetotal 
+                        curr_invoice_spouse_subs = {
+                            # 'product_id': product_child.id if product_child else False,
+                            'name': "Spouse Charge for "+ str(sub2.sub_payment_id.name) + ' -- ' + str(sub2.section_ids.name), # if product_child else sub2.subscription.name)+ ": Period-"+(self.subscription_period),
+                            'price_unit': spousetotal,
+                            'quantity': 1.0,
+                            'account_id': invoice.journal_id.default_credit_account_id.id,# product_child.categ_id.property_account_income_categ_id.id or record.account_id.id,
+                            'invoice_id': inv_id,
+                        }
+                        invoice_line_obj.create(curr_invoice_spouse_subs)
+           
          
     def payment_button_normal(self): 
         """ Create Customer Invoice for members.
@@ -738,37 +575,29 @@ class Subscription_Member(models.Model):
         invoice_list = []
         products = self.env['product.product']
         invoice_obj = self.env["account.invoice"]
-         
+        members_search = self.env['member.app'].search([('id', '=', self.member_id.id)])
+        
         for inv in self:
             invoice = invoice_obj.create({
                 'partner_id': inv.partner_id.id,
-                'account_id': inv.partner_id.property_account_payable_id.id,#partner.account_id.id,
+                'account_id': inv.partner_id.property_account_receivable_id.id,
                 'fiscal_position_id': inv.partner_id.property_account_position_id.id,
                 'branch_id': self.env.user.branch_id.id, 
                 'date_invoice': datetime.today(),
                 'type': 'out_invoice', # vendor
                 # 'type': 'out_invoice', # customer
             })
-            if self.state == 'suscription': 
-                self.define_subscriptions_invoice_line(invoice)
+            if self.state == 'suscription':
+                self.define_invoice_line(invoice)
+                self.dependent_invoice_line(invoice)
                 invoice_list.append(invoice.id)
             
             elif self.p_type == "ano":
                 percent = 12.5 / 100
                 amount = percent * self.total_paid
-                product = "Anomaly Fee"
-                product_name = "-"
-                products = self.env['product.product']
-                product_search = products.search([('name', '=ilike', product)], limit=1)
-                if product_search:
-                    product_name = product_search.name
-                    product_write = products.write({'list_price': amount})
-                else:
-                    product_create = products.create({'name':product, 'list_price': amount})
-                    product_name = product_create.name
+                desc = 'Anomaly'
+                self.create_invoice_line(invoice, amount, desc)  
                 invoice_list.append(invoice.id)
-                self.define_invoice_line(product_name,invoice, amount)  
-                
             
             form_view_ref = self.env.ref('account.invoice_form', False)
             tree_view_ref = self.env.ref('account.invoice_tree', False)
@@ -783,6 +612,19 @@ class Subscription_Member(models.Model):
                     'views': [(tree_view_ref.id, 'tree'), (form_view_ref.id, 'form')],
                 } 
      
+    def create_invoice_line(self, invoice, amount, desc):
+        invoice_line_obj = self.env["account.invoice.line"]
+        inv_id = invoice.id
+        curr_invoice_line = {
+                # 'product_id': product_search.id if product_search else False,
+                'name': "Charge for "+desc,
+                'price_unit': amount,
+                'quantity': 1.0,
+                'account_id': invoice.journal_id.default_credit_account_id.id if invoice.journal_id.default_credit_account_id else prd_account_id, #product_search.categ_id.property_account_income_categ_id.id,
+                'invoice_id': inv_id,
+                    }
+        invoice_line_obj.create(curr_invoice_line)
+
     @api.multi
     def generate_receipt(self):  # verify,
         search_view_ref = self.env.ref(
@@ -797,11 +639,6 @@ class Subscription_Member(models.Model):
             'views': [(tree_view_ref.id, 'tree'), (form_view_ref.id, 'form')],
             'search_view_id': search_view_ref and search_view_ref.id,
         }
-
-
-class RegisterPaymentMemberx(models.Model):
-    _inherit = "register.payment.member"
-    _order = "id desc" 
 
 class subscription_LineMain(models.Model):
     _name = "subscription.line"
