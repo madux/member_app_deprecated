@@ -244,8 +244,9 @@ class App_Member(models.Model):
         'Total Subsequent Subscription',
         compute='get_pay_balance_total')
     balance_total = fields.Integer(
-        'Outstandings',  compute="get_pay_balance_total"
-        )
+        'Outstandings')
+        #  compute="get_pay_balance_total"
+        
 
     #  CALCULATE PAYMENT DEADLINE account_id
     due_date = fields.Datetime('Due payment date ')
@@ -269,6 +270,7 @@ class App_Member(models.Model):
 
     binary_attach_cv = fields.Binary('Attach CV')
     binary_fname_cv = fields.Char('Binary Name')
+    # tester_muliple_file = fields.Many2many("ir.attachment", string="Upload multiple Files")
 
     binary_attach_letter = fields.Binary('Attach Letter')
     binary_fname_letter = fields.Char('Binary Name')
@@ -292,6 +294,8 @@ class App_Member(models.Model):
     subscription = fields.Many2many(
         'subscription.payment',
         string='Add Sections')
+
+    section_line = fields.Many2many('section.line', string='Add Sections')
 
     payment_ids = fields.Many2many(
         'account.payment',
@@ -489,16 +493,16 @@ class App_Member(models.Model):
             elif rec.section_duration == "Full Year":
                 rec.write({'section_int': 1})
 
-    @api.onchange('subscription_period')
-    def get_all_packages(self):
-        for rex in self:
-            get_package = self.env['package.model'].search(
-                [('subscription_period', '=', self.subscription_period)])
-            appends = []
-            if get_package:
-                for ret in get_package:
-                    appends.append(ret.id)
-            rex.package = [(6, 0, appends)]
+    # @api.onchange('subscription_period')
+    # def get_all_packages(self):
+    #     for rex in self:
+    #         get_package = self.env['package.model'].search(
+    #             [('subscription_period', '=', self.subscription_period)])
+    #         appends = []
+    #         if get_package:
+    #             for ret in get_package:
+    #                 appends.append(ret.id)
+    #         rex.package = [(6, 0, appends)]
        
     # @api.onchange('subscription_period')
     # def domain_subscription(self):
@@ -515,10 +519,11 @@ class App_Member(models.Model):
     @api.one
     @api.depends('package')
     def get_package_cost(self):
-        total = 0.0
-        for rec in self.package:
-            total += rec.package_cost
-        self.package_cost = total
+        pass
+        # total = 0.0
+        # for rec in self.package:
+        #     total += rec.package_cost
+        # self.package_cost = total
         
     #  calculate package cost register.spouse.member
     @api.one
@@ -531,17 +536,17 @@ class App_Member(models.Model):
             else:
                 if self.duration_period == "Months":
                     for sub in subscribe.spouse_subscription:
-                        if sub.total_fee == 0:
+                        if sub.amount == 0:
                             raise ValidationError('There is no subscription amount in one of the selected dependents')
                         else:
-                            sub_total += (sub.total_fee / 6) * self.number_period
+                            sub_total += (sub.amount / 6) * self.number_period
                 elif self.duration_period == "Full Year":
                     for sub2 in subscribe.spouse_subscription:
-                        if sub2.total_fee == 0:
+                        if sub2.amount == 0:
                             raise ValidationError('There is no subscription \
                                 amount in one of the selected dependents')
                         else:
-                            sub_total += (sub2.total_fee * 2) * self.number_period                    
+                            sub_total += (sub2.amount * 2) * self.number_period                    
         self.spouse_amount = sub_total
 
     @api.onchange('duration_period')
@@ -589,57 +594,48 @@ class App_Member(models.Model):
     @api.one
     @api.depends('number_period', 'subscription')
     def get_section_member_price(self):
-        total = 0.0
-        for rex in self.subscription:
+        pass 
+        # total = 0.0
+        # for rex in self.subscription:
             
-            if self.duration_period == "Months":
-                if rex.special_subscription != True:
-                    total += (rex.total_cost / 6) * self.number_period
-                else:
-                    total += (rex.total_cost)
-                self.member_price = total
+        #     if self.duration_period == "Months":
+        #         if rex.special_subscription != True:
+        #             total += (rex.total_cost / 6) * self.number_period
+        #         else:
+        #             total += (rex.total_cost)
+        #         self.member_price = total
 
-            elif self.duration_period == "Full Year":
-                if rex.special_subscription != True:
-                    total += (rex.total_cost * 2) * self.number_period
-                else:
-                    total += (rex.total_cost) 
-                self.member_price = total
-
-#  Total of main house + subscription + packaget cost
+        #     elif self.duration_period == "Full Year":
+        #         if rex.special_subscription != True:
+        #             total += (rex.total_cost * 2) * self.number_period
+        #         else:
+        #             total += (rex.total_cost) 
+        #         self.member_price = total
+ 
     @api.one
-    @api.depends('subscription', 'package')
+    @api.depends('subscription')
     def get_totals(self):
         section = 0.0
         total = 0.0
-        package = 0.0 
-        products = self.env['product.product']
-        for sub in self.subscription:
-            section += sub.total_cost
-        for pack in self.package:
-            package += pack.package_cost 
-        for tot in self.invoice_id:
-            total += tot.amount_total
-        self.total = total # package + section + price_mainhouse
+        for sub in self.section_line:
+            total += sub.amount
+        self.total = total
         
     @api.one
     @api.depends('invoice_id')
     def get_pay_balance_total(self):
         balance = 0.0
         paid =0.0
-        # for rec in self.invoice_id:
-        #     balance += rec.residual
+         
         for fec in self.invoice_id:
             for tec in fec.payment_ids:
                 paid += tec.amount
-                balance += tec.balances
-        self.balance_total = balance
+                balance += tec.balances 
         self.total_subsequent = paid
  
     @api.onchange('partner_id')
     def get_partner_account(self):
         for rex in self:
-            # rex.account_id = rex.partner_id.property_account_payable_id.id
             rex.account_id = rex.partner_id.property_account_receivable_id.id
  
     # # # # Date check # # # # # 
@@ -725,9 +721,6 @@ class App_Member(models.Model):
      
     @api.multi
     def button_register_spouse(self):  #  Send memo back
-        lists = []
-        for rec in self.subscription:
-            lists.append(rec.id)
         return {
             'name': "Register Dependant",
             'view_type': 'form',
@@ -736,9 +729,7 @@ class App_Member(models.Model):
             'type': 'ir.actions.act_window',
             'target': 'current',
             'context': {
-                'default_product_id': self.product_id.id,
                 'default_sponsor': self.id,
-                #'default_subscription': [(6, 0, lists)]
             },
         }
 
@@ -764,10 +755,7 @@ class App_Member(models.Model):
                                         'phone':self.phone,
                                         'function': self.occupation,
                                         'name': str(self.surname) +' '+ str(self.first_name) +' '+ middle_name,
-                                        
-                                        # rex.account_id = rex.partner_id.property_account_payable_id.id
-                                        #rex.account_id = rex.partner_id.property_account_receivable_id.id
- 
+                                         
                                         'property_account_receivable_id': self.account_id.id,
                                         'property_account_payable_id':self.account_id.id,
                         })
@@ -779,418 +767,125 @@ class App_Member(models.Model):
             pass 
         self.date_issue_white = fields.Datetime.now()
         return self.sendmail_white_confirm()
-        # self.partner_id = partner_search.id
-            
-        
+          
      
     @api.one
     def state_payment_inv(self,amount,pay_date):
-        products = self.env['product.product']
+        # products = self.env['product.product']
         
         if self.state == "white":
-            product_name = "White Form"
-            harmony_name = "Harmony Fee" 
-            product_search = products.search([('name', '=ilike', product_name)], limit=1)
-            product_harmony = products.search([('name', '=', harmony_name)], limit=1) 
-            lists = [] 
-            list1 = []
-            price = product_search.list_price + product_harmony.list_price 
-            values = (0, 0,{'member_idx': self.id,
-                               'product_id': product_search.id,
-                               'paid_amount': price,
-                               # 'balance': balance,
-                               'pdate': fields.Datetime.now(),
-                               'member_price': price,
-                               'name': product_search.name})
-                    
-            lists.append(values)
-            list1.append(values)
-            self.payment_line2 = lists
             self.write({'state': 'white penalty'})
-            
+        
         elif self.state == "white penalty": 
-            product_name = "White Card Delay" 
-            product_search = products.search([('name', '=ilike', product_name)], limit=1)
             self.write({'state': 'wait'})
-            lists = []
-            list1 = []
-            price = product_search.list_price
-            values = (0, 0,{'member_idx': self.id,
-                               'product_id': product_search.id,
-                               'paid_amount': amount,
-                               'pdate': fields.Datetime.now(),
-                               'member_price': price,
-                               'name': product_search.name})
-                    
-            lists.append(values)
-            list1.append(values)
-            self.payment_line2 = lists
+        
         elif self.state == "interview": 
-            product_name = "Green Card"
-            coffee_name = "Coffee Fee" 
-            product_search = products.search([('name', '=ilike', product_name)], limit=1)
-            product_coffee = products.search([('name', '=ilike', coffee_name)], limit=1)
-            
-            lists = []
-            list1 = []
-             
-            price = product_search.list_price + product_coffee.list_price
-            balance = price - amount, 
-            values = (0, 0, {'member_idx': self.id,
-                               'product_id': product_search.id,
-                               'paid_amount': amount,
-                               # 'balance': balance,
-                               'pdate': fields.Datetime.now(),
-                               'member_price': price,
-                               'name': product_search.name})
-                    
-            lists.append(values)
-            list1.append(values)
-            self.payment_line2 = lists
             self.write({'date_issue_green': fields.Datetime.now(), 'state': 'issue_green'})
-            
+        
         elif self.state == "green penalty": 
-            product_name = "Green Card Penalty" 
-            product_search = products.search([('name', '=ilike', product_name)], limit=1) 
             self.write({'state': 'green'})
-            lists = []
-            list1 = []
-             
-            price = product_search.list_price 
-            balance = price - amount, 
-            values = (0, 0,{'member_idx': self.id,
-                               'product_id': product_search.id,
-                               'paid_amount': amount,
-                               # 'balance': balance,
-                               'pdate': fields.Datetime.now(),
-                               'member_price': price,
-                               'name': product_search.name})
-                    
-            lists.append(values)
-            list1.append(values)
-            self.payment_line2 = lists
             
         elif self.state == "green":
-            # self.write({'state': 'temp', 'temp_id':self.green_id,
-            #                    'date_of_temp': fields.Datetime.now()}) 
             self.write({'temp_id':self.green_id, 
                         'date_of_last_sub': fields.Datetime.now(),
-                        'date_of_temp': fields.Datetime.now()}) 
-            lists = []
-            list1 = []
-            lists_pack = []
-            lists_main_house = []
-            price = 0.0
-            total = 0.0
-            product_id = 1
-            for subs in self.subscription:
-                product_search = products.search([('name', '=ilike', subs.name)], limit=1)
-                if self.duration_period == "Months":
-                    total = (subs.total_cost / 6) * self.number_period
-                    price = total
-                    values = (0, 0,{'member_idx': self.id,
-                                'product_id': product_search.id,
-                                'paid_amount': price,
-                                # 'balance': balance,
-                                'pdate': fields.Datetime.now(),
-                                'member_price': price,
-                                'name': product_search.name})
-                        
-                    lists.append(values) 
-                elif self.duration_period == "Full Year":
-                    total = (subs.total_cost * 2) * self.number_period
-                    price = total 
-                    values = (0, 0,{'member_idx': self.id,
-                                'product_id': product_search.id,
-                                'paid_amount': price,
-                                # 'balance': balance,
-                                'pdate': fields.Datetime.now(),
-                                'member_price': price,
-                                'name': product_search.name})
-                        
-                    lists.append(values)
-         
-                product_id = product_search.id
-                balance = price - amount, 
-               
-            product_name2 = products.search([('id','=',product_id)]) 
-            spouse_total = 0.0
-            if self.depend_name:
-                for subscribe in self.depend_name:
-                    if subscribe.relationship == 'Child':
-                        spouse_total += 0.0
-                    else:
-                        if self.duration_period == "Months":
-                            for sub in subscribe.spouse_subscription:
-                                product_spouse = products.search([('name', '=ilike', sub.subscription.name)], limit=1)
-                                if sub.total_fee == 0:
-                                    raise ValidationError('The dependant subscription selected has total amount lesser than 0')
-                                else:
-                                    spouse_total = (sub.total_fee / 6) * self.number_period
-                                    values = (0, 0,{'member_idx': self.id,
-                                                    'product_id': product_spouse.id,
-                                                    'paid_amount': spouse_total,
-                                                    # 'balance': balance,
-                                                    'pdate': fields.Datetime.now(),
-                                                    'member_price': spouse_total,
-                                                    'name': product_spouse.name})
-                                            
-                                    lists.append(values)
-                        elif self.duration_period == "Full Year":
-                            for sub2 in subscribe.spouse_subscription:
-                                product_spouse = products.search([('name', '=ilike', sub2.subscription.name)], limit=1)
-                                if sub2.total_fee == 0:
-                                    raise ValidationError('There is no subscription \
-                                        amount in one of the selected dependents')
-                                else:
-                                    spouse_total = (sub2.total_fee * 2) * self.number_period 
-                                    values = (0, 0,{'member_idx': self.id,
-                                                    'product_id': product_spouse.id,
-                                                    'paid_amount': spouse_total,
-                                                    # 'balance': balance,
-                                                    'pdate': fields.Datetime.now(),
-                                                    'member_price': spouse_total,
-                                                    'name': product_spouse.name})
-                                            
-                                    lists.append(values)
-            else:
-                spouse_total = 0.0
-            self.spouse_amount = spouse_total
-            
-            for pack in self.package:
-                product_search = products.search([('name', '=ilike', pack.name)], limit=1)
-                price = product_search.list_price 
-                values = (0, 0,{'member_idx': self.id,
-                                'product_id': product_search.id,
-                                'paid_amount': price,
-                                # 'balance': balance,
-                                'pdate': fields.Datetime.now(),
-                                'member_price': price,
-                                'name': product_search.name})
-                        
-                lists.append(values) 
-            product_search = products.search([('name', '=ilike', 'Main-House')], limit=1)
-            price_mainhouse = product_search.list_price
-            search_spouse = self.env['register.spouse.member'].search([('partner_id', '=', self.partner_id.id)])    
-            if search_spouse: 
-                if search_spouse.mode in ["jun", "new"]:#relationship in ["Child","Brother","Sister", "Friend", "Spouse"]:
-                    percent = 50 / 100
-                    discount = percent * product_search.list_price 
-                    price_mainhouse = discount 
-                else:
-                    price_mainhouse = product_search.list_price
-            else:
-                pass 
-            values = (0, 0,{'member_idx': self.id,
-                                    'product_id': product_search.id,
-                                    'paid_amount': price_mainhouse, 
-                                    'pdate': fields.Datetime.now(),
-                                    'member_price': price_mainhouse,
-                                    'name': product_search.name}) 
-            lists.append(values)
-            self.payment_line2 = lists
-            self.state = 'temp'
-             
-    def define_invoice_line(self, product_name,invoice, amount):
-        products = self.env['product.product']
-        invoice_line_obj = self.env["account.invoice.line"]
-        product_search = products.search([('name', '=ilike', product_name)], limit=1)
+                        'date_of_temp': fields.Datetime.now(),
+                        'state': 'temp'}) 
+
+    def define_invoice_line(self,invoice):
         inv_id = invoice.id
+        invoice_line_obj = self.env["account.invoice.line"]
         journal = self.env['account.journal'].search([('type', '=', 'sale')], limit=1)
         prd_account_id = journal.default_credit_account_id.id
-        
-        curr_invoice_line = {
-                                'product_id': product_search.id,
-                                'name': "Charge for "+ str(product_search.name),
-                                'price_unit': amount,
-                                'quantity': 1.0,
-                                'account_id': product_search.categ_id.property_account_income_categ_id.id,
-                                'invoice_id': inv_id,
+        section_lines = self.mapped('section_line') #.filtered(lambda self: self.sub_payment_id.paytype in ['others'])
+        if section_lines:
+            for record in section_lines:
+                curr_invoice_line = {
+                        # 'product_id': product_search.id if product_search else False,
+                        'name': "Charge for "+ str(record.sub_payment_id.name) + ' -- ' +str(record.section_ids.name),
+                        'price_unit': record.amount,
+                        'quantity': 1.0,
+                        'account_id': invoice.journal_id.default_credit_account_id.id if invoice.journal_id.default_credit_account_id else prd_account_id, #product_search.categ_id.property_account_income_categ_id.id,
+                        'invoice_id': inv_id,
                             }
+                invoice_line_obj.create(curr_invoice_line)
+        else:
+            raise ValidationError('Please ensure at the stage, \n \
+                that section line with paytype as others is set\n \
+                e.g Coffee Fee\n \
+                    magazine fee \n\
+                    Harmony fee.')
 
-        invoice_line_obj.create(curr_invoice_line)
-        
-    def define_subscriptions_invoice_line(self,invoice):
-        products = self.env['product.product']
-        invoice_line_obj = self.env["account.invoice.line"]
-        price = 0.0
-        price1 = 0.0
-        price2 = 0.0
-        price_man = 0.0
-        total = 0.0
-        product_id = 1 
-        inv_id = invoice.id
-        for subs in self.subscription:
-            
-            product_search = products.search([('name', '=ilike', subs.name)], limit=1)
-            if product_search:      
-                if self.duration_period == "Months":
-                    if subs.special_subscription != True:
-                        total = (subs.total_cost / 6) * self.number_period
-                        price = total
-                    if subs.special_subscription == True:
-                        total = subs.total_cost
-                        price = total
-                        # price_man = price1 + price2
-                        # raise ValidationError('There  is {} {} {}'.format(price1,price2,price_man))
-                         
-                    curr_invoice_subs = {
-                            'product_id': product_search.id,
-                            'name': "Charge for "+ str(product_search.name),
-                            'price_unit': price,
-                            'quantity': 1.0,
-                            'account_id': product_search.categ_id.property_account_income_categ_id.id or self.account_id.id,
-                            'invoice_id': inv_id,
-                            }
-
-                    invoice_line_obj.create(curr_invoice_subs) 
-                elif self.duration_period == "Full Year":
-                    if subs.special_subscription != True:
-                        total = (subs.total_cost * 2) * self.number_period
-                        price += total
-                    else:
-                        total = (subs.total_cost * 2) * self.number_period
-                        price += total 
-                     
-                    curr_invoice_subs = {
-                            'product_id': product_search.id,
-                            'name': "Charge for "+ str(product_search.name),
-                            'price_unit': price,
-                            'quantity': 1.0,
-                            'account_id': product_search.categ_id.property_account_income_categ_id.id or self.account_id.id,
-                            'invoice_id': inv_id,
-                            } 
-                    invoice_line_obj.create(curr_invoice_subs) 
-                product_id = product_search.id 
-        product_name2 = products.search([('id','=',product_id)])
-        
-
-        spouse_total = 0.0
+    def dependent_invoice_line(self, invoice):
         child_total = 0.0
+        spouse_total = 0.0
+        inv_id = invoice.id
+        percentage_cut = 50/100
+        invoice_line_obj = self.env["account.invoice.line"]
+
         if self.depend_name:
-            for subscribe in self.depend_name:
-                if subscribe.relationship == 'Child':
-                    if self.duration_period == "Months":
-                        for sub2 in subscribe.spouse_subscription:
-                            if sub2.subscription.name == "Library (Child) -  Subscription" or sub2.subscription.name == "Swimming (Child) - Subscription" or sub2.subscription.is_child == True:
+            child_lines = self.mapped('depend_name').filtered(lambda self: self.relationship == 'Child')
+            spouse_lines = self.mapped('depend_name').filtered(lambda self: self.relationship != 'Child')
+            if child_lines:
+                for child in child_lines:
+                    section_lines = child.mapped('section_line')#.filtered(lambda self: self.sub_payment_id.paytype in ['special'])
+                    for sub2 in section_lines:
+                        total = 0
+                        if sub2.is_child != True:
+                            if sub2.sub_payment_id.paytype == "main_house" and child.mode in ["jun", "new"]:
+                                discount = percentage_cut * sub2.amount 
+                                total = (discount / 6) * self.number_period if self.duration_period == "Months" else (sub2.price_mainhouse * 2) * self.number_period 
+                                child_total += total
 
-                            # if sub2.subscription.name in ["Library (Child) -  Subscription", "Swimming (Child) - Subscription"] or sub2.subscription.is_child == True:
-                                product_child = products.search([('name', '=ilike', sub2.subscription.name)], limit=1)
-                                if sub2.subscription.special_subscription != True:
-                                    total = (sub2.total_fee / 6) * self.number_period
-                                    child_total = total - sub2.subscription.entry_price
-                                else:
-                                    total = sub2.total_fee - sub2.subscription.entry_price
-                                    child_total = total 
-                                    # child_total = (sub.total_fee / 6) * self.number_period
-                                curr_invoice_childe_subs = {
-                                    'product_id': product_child.id,
-                                    'name': "Child Charge for "+ str(product_child.name)+ ": Period-"+(self.subscription_period),
-                                    'price_unit': child_total,
-                                    'quantity': 1.0,
-                                    'account_id': product_child.categ_id.property_account_income_categ_id.id or record.account_id.id,
-                                    'invoice_id': inv_id,
-                                }
-                                invoice_line_obj.create(curr_invoice_childe_subs)
-                    elif self.duration_period == "Full Year":
-                        for sub2 in subscribe.spouse_subscription:
-                            if sub2.subscription.name == "Library (Child) -  Subscription" or sub2.subscription.name == "Swimming (Child) - Subscription" or sub2.subscription.is_child == True:
+                            else: # sub2.sub_payment_id.paytype == "main_house" and not child.mode in ["jun", "new"]:
+                                total = (sub2.amount / 6) * self.number_period if self.duration_period == "Months" else (sub2.amount * 2) * self.number_period 
+                                child_total += total
+                        else:
+                            total = 0
+                            child_total += 0
+                             
+                        curr_invoice_child_subs = {
+                            # 'product_id': product_child.id if product_child else False,
+                            'name': "Child Charge for "+ str(sub2.sub_payment_id.name) + ' -- ' + str(sub2.section_ids.name), # if product_child else sub2.subscription.name)+ ": Period-"+(self.subscription_period),
+                            'price_unit': total,
+                            'quantity': 1.0,
+                            'account_id': invoice.journal_id.default_credit_account_id.id,# product_child.categ_id.property_account_income_categ_id.id or record.account_id.id,
+                            'invoice_id': inv_id,
+                        }
+                        invoice_line_obj.create(curr_invoice_child_subs)
+                        '''writes on dependents record to confirm the dependent if not done.'''
+                        # child.Appendto_Sponsor()
+                        child.state = 'confirm'
+                        # child_exclusive
+            if spouse_lines:
+                for spouse in spouse_lines:
+                    section_lines = spouse.mapped('section_line')#.filtered(lambda self: self.sub_payment_id.paytype in ['special'])
+                    for sub2 in section_lines:
+                        spousetotal = 0
+                        if sub2.special_subscription != True:
+                            if sub2.sub_payment_id.paytype == "main_house" and spouse.mode in ["jun", "new"]:
+                                discount = percentage_cut * sub2.amount 
+                                spousetotal = (discount / 6) * self.number_period if self.duration_period == "Months" else (sub2.price_mainhouse * 2) * self.number_period 
+                                spouse_total += spousetotal
 
-                                # if sub2.subscription.name in ["Library (Child) -  Subscription", "Swimming (Child) - Subscription"] or sub2.subscription.is_child == True:
-                                product_child = products.search([('name', '=ilike', sub2.subscription.name)], limit=1)
-                                child_total = (sub2.total_fee * 2) * self.number_period 
-                                curr_invoice_spouse_subs2 = {
-                                    'product_id': product_child.id,
-                                    'name': "Child Charge for "+ str(product_child.name),
-                                    'price_unit': child_total,
-                                    'quantity': 1.0,
-                                    'account_id': product_child.categ_id.property_account_income_categ_id.id or self.account_id.id,
-                                    'invoice_id': inv_id,
-                                }
-                                invoice_line_obj.create(curr_invoice_spouse_subs2)
-                else:
-                    if self.duration_period == "Months":
-                        for sub in subscribe.spouse_subscription:
-                            
-                            product_spouse = products.search([('name', '=ilike', sub.subscription.name)], limit=1)
-                            if sub.total_fee == 0:
-                                raise ValidationError('There is no subscription amount in one of the selected dependents')
-                            else:
-                                if sub.subscription.special_subscription != True:
-                                    total = (sub.total_fee / 6) * self.number_period
-                                    child_total = total
-                                else:
-                                    total = sub.total_fee
-                                    child_total = total
-                                # spouse_total = (sub.total_fee / 6) * self.number_period
-                                curr_invoice_spouse_subs = {
-                                    'product_id': product_spouse.id,
-                                    'name': "Spouse Charge for "+ str(product_spouse.name),
-                                    'price_unit': child_total,
-                                    'quantity': 1.0,
-                                    'account_id': product_spouse.categ_id.property_account_income_categ_id.id or self.account_id.id,
-                                    'invoice_id': inv_id,
-                                }
-                                invoice_line_obj.create(curr_invoice_spouse_subs)
-
-                    elif self.duration_period == "Full Year":
-                        for sub2 in subscribe.spouse_subscription:
-                            product_spouse = products.search([('name', '=ilike', sub2.subscription.name)], limit=1)
-                            if sub2.total_fee == 0:
-                                raise ValidationError('There is no subscription \
-                                        amount in one of the selected dependents')
-                            else:
-                                spouse_total = (sub2.total_fee * 2) * self.number_period 
-                                curr_invoice_spouse_subs2 = {
-                                    'product_id': product_spouse.id,
-                                    'name': "Spouse Charge for "+ str(product_spouse.name),
-                                    'price_unit': spouse_total,
-                                    'quantity': 1.0,
-                                    'account_id': product_spouse.categ_id.property_account_income_categ_id.id or self.account_id.id,
-                                    'invoice_id': inv_id,
-                                }
-                                invoice_line_obj.create(curr_invoice_spouse_subs2)
-        else:
-            spouse_total = 0.0  
-        for pack in self.package:
-            product_pack_search = products.search([('name', '=ilike', pack.name)], limit=1)        
-            if product_pack_search:
-                curr_invoice_pack = {
-                                'product_id': product_pack_search.id,
-                                'name': "Charge for "+ str(product_pack_search.name),
-                                'price_unit': product_pack_search.list_price,
-                                'quantity': 1.0,
-                                'account_id': product_pack_search.categ_id.property_account_income_categ_id.id or self.account_id.id,
-                                'invoice_id': inv_id,
-                            } 
-                invoice_line_obj.create(curr_invoice_pack) 
-            else:
-                raise ValidationError('One of the package Products not found. Kindly check and create it as a product')  
-              
-        price_mainhouse = 0.0 
-        main_house_search = products.search([('name', '=ilike', 'Main-House')], limit=1)
-        price_mainhouse = main_house_search.list_price
-        search_spouse = self.env['register.spouse.member'].search([('partner_id', '=', self.partner_id.id)], limit=1)    
-        if search_spouse: 
-            if search_spouse.mode in ["jun", "new"]: # relationship in ["Child","Brother","Sister", "Friend", "Spouse"]:
-                percent = 50 / 100
-                discount = percent * main_house_search.list_price 
-                price_mainhouse = discount 
-            else:
-                price_mainhouse = main_house_search.list_price
-        else:
-            price_mainhouse = main_house_search.list_price    
-        main_house_inv = {
-                                'product_id': main_house_search.id,
-                                'name': "Charge for "+ str(main_house_search.name)+ " Cost",
-                                'price_unit': price_mainhouse,
-                                'quantity': 1.0,
-                                'account_id': main_house_search.categ_id.property_account_income_categ_id.id  or self.account_id.id,
-                                'invoice_id': inv_id,
-                            } 
-        invoice_line_obj.create(main_house_inv)
-        self.child_amount = spouse_total
-        self.spouse_amount = child_total
+                            else: # sub2.sub_payment_id.paytype == "main_house" and not child.mode in ["jun", "new"]:
+                                spousetotal = (sub2.amount / 6) * self.number_period if self.duration_period == "Months" else (sub2.amount * 2) * self.number_period 
+                                spouse_total += spousetotal
+                        else:
+                            spousetotal = sub2.amount
+                            spouse_total += spousetotal 
+                        curr_invoice_spouse_subs = {
+                            # 'product_id': product_child.id if product_child else False,
+                            'name': "Spouse Charge for "+ str(sub2.sub_payment_id.name) + ' -- ' + str(sub2.section_ids.name), # if product_child else sub2.subscription.name)+ ": Period-"+(self.subscription_period),
+                            'price_unit': spousetotal,
+                            'quantity': 1.0,
+                            'account_id': invoice.journal_id.default_credit_account_id.id,# product_child.categ_id.property_account_income_categ_id.id or record.account_id.id,
+                            'invoice_id': inv_id,
+                        }
+                        invoice_line_obj.create(curr_invoice_spouse_subs)
+                        '''writes on dependents record to
+                            confirm the dependent if not done.
+                        '''
+                        spouse.state = 'confirm'
         
     @api.multi
     def dummy_back_green(self):
@@ -1204,31 +899,31 @@ class App_Member(models.Model):
         self.state = 'interview'
     
     @api.multi
-    def create_white_member_bill(self, product_name):
+    def create_white_member_bill(self):
           
-        product_name = product_name
+        # product_name = product_name
         """ Create Customer Invoice for members.
         """
         invoice_list = []
         qty = 1
-        products = self.env['product.product']
+        # products = self.env['product.product']
         invoice_line_obj = self.env["account.invoice.line"]
         invoice_obj = self.env["account.invoice"]
-        harmony_name = "Harmony Fee"
-        coffee_name = "Coffee Fee"
-        product_search = products.search([('name', '=ilike', product_name)], limit=1)
-        product_search.write({'list_price': 10000})
-        product_harmony = products.search([('name', '=', harmony_name)], limit=1)
+        # harmony_name = "Harmony Fee"
+        # coffee_name = "Coffee Fee"
+        # product_search = products.search([('name', '=ilike', product_name)], limit=1)
+        # product_search.write({'list_price': 10000})
+        # product_harmony = products.search([('name', '=', harmony_name)], limit=1)
         
-        product_green_search = products.search([('name', '=ilike', product_name)], limit=1)
-        product_coffee = products.search([('name', '=ilike', coffee_name)], limit=1)
-        product_whitedelay = products.search([('name', '=ilike', product_name)], limit=1)
-        product_greendelay= products.search([('name', '=ilike', product_name)], limit=1)
+        # product_green_search = products.search([('name', '=ilike', product_name)], limit=1)
+        # product_coffee = products.search([('name', '=ilike', coffee_name)], limit=1)
+        # product_whitedelay = products.search([('name', '=ilike', product_name)], limit=1)
+        # product_greendelay= products.search([('name', '=ilike', product_name)], limit=1)
         
         for inv in self:
             invoice = invoice_obj.create({
                 'partner_id': inv.partner_id.id,
-                'account_id': inv.account_id.id, # inv.partner_id.property_account_payable_id.id, 
+                'account_id': inv.partner_id.property_account_receivable_id.id, # inv.partner_id.property_account_payable_id.id, 
                 'fiscal_position_id': inv.partner_id.property_account_position_id.id,
                 'branch_id': self.create_search_branch_id(),# if not self.env.user.branch_id.id, 
                 'date_invoice': datetime.today(),
@@ -1236,22 +931,29 @@ class App_Member(models.Model):
                 # 'type': 'out_invoice', # customer
             }) 
             if self.state == 'white':
-                amount = product_search.list_price #+ product_harmony.list_price # 
-                self.define_invoice_line(product_name, invoice, amount) 
+                # amount = product_search.list_price #+ product_harmony.list_price # 
+                self.define_invoice_line(invoice)
                 
             elif self.state == 'white penalty':
-                amount = product_whitedelay.list_price
-                self.define_invoice_line(product_name,invoice, amount) 
+                # amount = product_whitedelay.list_price
+                # self.define_invoice_line(product_name,invoice, amount) 
+                self.define_invoice_line(invoice)
+
             elif self.state == 'interview':
-                coffee_name = "Coffee Fee" 
-                price = product_green_search.list_price #+ product_coffee.list_price
-                amount = price 
-                self.define_invoice_line(product_name,invoice, amount) 
+                # coffee_name = "Coffee Fee" 
+                # price = product_green_search.list_price #+ product_coffee.list_price
+                # amount = price 
+                # self.define_invoice_line(product_name,invoice, amount) 
+                self.define_invoice_line(invoice) 
+
             elif self.state == 'green penalty': 
-                amount = product_greendelay.list_price
-                self.define_invoice_line(product_name,invoice, amount) 
+                self.define_invoice_line(invoice) 
+
             elif self.state == 'green':
-                self.define_subscriptions_invoice_line(invoice) 
+                # self.define_subscriptions_invoice_line(invoice) 
+                self.define_invoice_line(invoice) 
+                self.dependent_invoice_line(invoice)
+
             invoice_list.append(invoice.id)
             
             form_view_ref = self.env.ref('account.invoice_form', False)
@@ -1282,14 +984,13 @@ class App_Member(models.Model):
         } 
     @api.multi
     def button_confirm_white_payments_first(self): 
-        
         product_name = "White Form" 
         self.write({'payment_status': 'open'}) 
-        self.partner_id.property_account_receivable_id = self.account_id.id if not self.partner_id.property_account_receivable_id else self.partner_id.property_account_receivable_id.id
-        self.partner_id.property_account_payable_id = self.env['account.account'].search([('user_type_id.name','ilike', 'Payable')], limit=1).id if not self.partner_id.property_account_payable_id else self.partner_id.property_account_payable_id.id
+        self.partner_id.property_account_receivable_id = self.env['account.account'].search([('user_type_id.name','ilike', 'Receivable')], limit=1).id if not self.partner_id.property_account_receivable_id else self.partner_id.property_account_receivable_id.id
+        self.partner_id.property_account_payable_id = self.env['account.account'].search([('user_type_id.name','=ilike', 'Payable')], limit=1).id if not self.partner_id.property_account_payable_id else self.partner_id.property_account_payable_id.id
         
         self.sendmail_white_confirm()
-        return self.create_white_member_bill(product_name) # self.button_payments(name, amount, level)
+        return self.create_white_member_bill() # self.button_payments(name, amount, level)
   
     @api.multi
     def button_confirm_white_delay_payments(self):
@@ -1313,7 +1014,7 @@ class App_Member(models.Model):
                 name = "White form Revalidation Fee"
                 self.send_mail_green(name)
                 if self.state == 'white penalty':
-                    return self.create_white_member_bill(product_name)
+                    return self.create_white_member_bill()
                  
             elif total_duration < 30:
                 self.write({'state': 'wait'})
@@ -1394,7 +1095,7 @@ class App_Member(models.Model):
         product_name = "Green Card" 
         name = "Green card Fee"
         self.send_mail_green(name)
-        return self.create_white_member_bill(product_name)
+        return self.create_white_member_bill()
 
     @api.multi
     def set_interview(self):
@@ -1430,7 +1131,7 @@ class App_Member(models.Model):
                 name = "Green Card Revalidation Fee"
                 self.send_mail_green(name)
                 if self.state == "green penalty":
-                    return self.create_white_member_bill(product_name) 
+                    return self.create_white_member_bill() 
             elif total_duration < 30:
                 self.write({'state': 'green'})
                 return self.popup_notification(popup_message)
@@ -1470,13 +1171,11 @@ class App_Member(models.Model):
         errors = ['Please provide details for the following : ']
         if not self.green_id:
                 errors.append('-Green Card ID')
-        if not self.subscription_period:
-            errors.append('-Subscription Period')
+        if not self.section_line:
+            errors.append('-Section Line')
 
-        if not self.package:
-            errors.append('-Compulsory Packages')
-            
-        
+        # if not self.package:
+        #     errors.append('-Compulsory Packages')
         if not self.duration_period:
             errors.append('-Duration to Pay')
                 
@@ -1488,31 +1187,31 @@ class App_Member(models.Model):
         self._check_fields()
         # name = "Green Form Payment Fee" or "{} Payment".format(str(self.state).upper())
         name = "Subscription Payment Fee"
-        product_name = "Subscriptions" 
-        return self.create_white_member_bill(product_name) 
+        # product_name = "Subscriptions" 
+        return self.create_white_member_bill() #product_name) 
 
-    def button_payments(self, name, amount, level):  
-        return {
-            'name': name,
-            'view_type': 'form',
-            "view_mode": 'form',
-            'res_model': 'register.payment.member',
-            'type': 'ir.actions.act_window',
-            'target': 'new',
-            'context': {
-                'default_payment_type': "outbound",
-                'default_date': fields.Datetime.now(),
-                'default_amount': amount, #  self.int_form_price,
-                'default_member_id': self.id,
-                'default_partner_id': self.partner_id.id,
-                'default_member_ref': self.id,
-                'default_name': name,
-                'default_spouse_amount':self.spouse_amount,
-                'default_level': level,
-                'default_to_pay': amount,
-                'default_num':self.id,
-            },
-        }      
+    # def button_payments(self, name, amount, level):  
+    #     return {
+    #         'name': name,
+    #         'view_type': 'form',
+    #         "view_mode": 'form',
+    #         'res_model': 'register.payment.member',
+    #         'type': 'ir.actions.act_window',
+    #         'target': 'new',
+    #         'context': {
+    #             'default_payment_type': "outbound",
+    #             'default_date': fields.Datetime.now(),
+    #             'default_amount': amount, #  self.int_form_price,
+    #             'default_member_id': self.id,
+    #             'default_partner_id': self.partner_id.id,
+    #             'default_member_ref': self.id,
+    #             'default_name': name,
+    #             'default_spouse_amount':self.spouse_amount,
+    #             'default_level': level,
+    #             'default_to_pay': amount,
+    #             'default_num':self.id,
+    #         },
+    #     }      
         
     @api.multi
     def send_mail_temp(self, force=False):
@@ -1625,7 +1324,7 @@ class App_Member(models.Model):
                     'subscription': subscription,
                 })
         sender =self.env['mail.template'].browse(template.id).with_context(ctx).send_mail(self.id)
-        self.env['mail.mail'].browse(sender).send(sender)
+        # self.env['mail.mail'].browse(sender).send(sender)
         return True
 
     @api.multi
@@ -1942,115 +1641,10 @@ class App_Member(models.Model):
 
     @api.multi
     def inactivate(self):
-        self.run_crons()
+        pass
+        # self.run_crons()
         # self.write({'activity': "inact"})
 
-    # @api.model
-    # def create(self, vals): 
-    #     first_name = vals.get('first_name')
-    #     surname = vals.get('surname')
-    #     middle_name = vals.get('middle_name')
-    #     names = str(first_name) +' '+str(middle_name) +' '+str(surname) 
-    #     partner = self.env['res.partner']
-        
-    #     if first_name and surname:
-    #         partner_duplicate = self.search([('first_name', '=', first_name), ('surname', '=', surname)])
-             
-    #         if not partner_duplicate:
-    #             partner_create = partner.create({'name': names})
-    #             vals['partner_id'] = partner_create.id
-    #         else:
-    #             vals['partner_id'] = partner_duplicate.id
-               
-    #     else:
-    #         raise ValidationError('Please Insert First name and Surname')
-
-    #     record = super(App_Member, self).create(vals)
-    #     return record
-
-    # @api.multi
-    # def write(self, vals):
-    #     plot = self
-    #     offer_dt = vals.get('date_order') or plot.date_order
-    #     payment_plan = vals.get('payment_plan')
-    #     payment_type = vals.get('payment_type')
-    #     payment_plan_ids = self.env['plot.payment.breakdowns'].search(
-    #         [('project_and_plot_id', '=', self.id)])
-    #     if payment_plan:
-    #         if payment_plan_ids:
-    #             payment_plan_ids.unlink()
-    #             self.calc_payment_plan(offer_dt, payment_plan)
-    #         else:
-    #             self.calc_payment_plan(offer_dt, payment_plan)
-    #     #  clear payment_breakdown when payment is changed to outright
-    #     if payment_type and payment_plan_ids and payment_type == 'outright':
-    #         payment_plan_ids.unlink()
-    #         vals['payment_type'] = 'outright'
-    #     elif payment_type == 'installment':
-    #         self.calc_payment_plan_two()
-    #     val = super(App_Member, self).write(vals)
-    #     return val
-
-    def calc_payment_plan(self, offer_dt, payment_plan):
-        """Calculate the payment plan based on percentage."""
-        intervals = self.env['account.payment.term'].search(
-            [('id', '=', payment_plan)])
-        #  parse and convert the date to a python datetime date
-        offer_dt = datetime.strptime(offer_dt, '%Y-%m-%d')
-        #  for count, interval in enumerate(intervals):
-        for interval in intervals.line_ids:
-            due_date = offer_dt + timedelta(interval.days)
-            value_amount = interval.value_amount
-            interval_payment = interval.value
-            amount_to_pay = 0.00
-            #  compute the amount_to_pay based on the type of payment
-            if interval_payment == 'percent':  #  procent ==> percent
-                amount_to_pay = value_amount * self.member_price / 100
-
-            elif interval_payment == 'fixed':
-                amount_to_pay = value_amount
-            values = {
-                'project_and_plot_id': self.id,
-                'name': 'Payment Breakdowns',
-                'interval': str(interval.days) + ' days',
-                'amount_to_pay': amount_to_pay,
-                'due_date': due_date.strftime('%Y-%m-%d')
-            }
-            self.env['plot.payment.breakdowns'].create(values)
-
-    def calc_payment_plan_two(self):
-        """Calculate the payment plan based on percentage."""
-        intervals = self.env['account.payment.term'].search(
-            [('id', '=', self.payment_plan.id)])
-
-        #  parse and convert the date to a python datetime date
-        offer_dt = datetime.strptime(self.date_order, '%Y-%m-%d')
-        #  for count, interval in enumerate(intervals):
-        for interval in intervals.line_ids:
-            due_date = offer_dt + timedelta(interval.days)
-            value_amount = interval.value_amount
-            interval_payment = interval.value
-            amount_to_pay = 0.00
-            #  compute the amount_to_pay based on the type of payment
-            if interval_payment == 'percent':  #  procent ==> percent
-                amount_to_pay = value_amount * self.member_price / 100
-
-            elif interval_payment == 'fixed':
-                amount_to_pay = value_amount
-
-            values = {
-                'project_and_plot_id': self.id,
-                'name': 'Payment Breakdowns',
-                'interval': str(interval.days) + ' days',
-                'amount_to_pay': amount_to_pay,
-                'due_date': due_date.strftime('%Y-%m-%d')
-            }
-            self.env['plot.payment.breakdowns'].create(values)
-
-    #  @api.onchange('associate_member')
-    @api.multi
-    def asso_button(self): 
-        pass
 
     def direct_mail_sending(self, email_from, email_to, bodyx):
         subject = "Ikoyi Membership Notification"
@@ -2140,7 +1734,7 @@ class App_Member(models.Model):
                 'partner_id': partner.partner_id.id,
                 #  partner.partner_id.property_account_receivable_id.id,
                 # property_account_payable_id
-                'account_id': partner.account_id.id,
+                'account_id': partner.partner_id.property_account_receivable_id.id,
                 'fiscal_position_id': partner.partner_id.property_account_position_id.id,
                 'branch_id': self.branch_id()
             })
@@ -2148,7 +1742,7 @@ class App_Member(models.Model):
                 'product_id': product_id,  #  partner.product_id.id,
                 'price_unit': amount,
                 'invoice_id': invoice.id,
-                'account_id': partner.account_id.id or partner.partner_id.property_account_payable_id.id,
+                'account_id': invoice.journal_id.default_credit_account_id.id#partner.account_id.id or partner.partner_id.property_account_payable_id.id,
 
             }
             #  create a record in cache, apply onchange then revert back to a
@@ -2248,106 +1842,118 @@ class App_Partner_Line(models.Model):
     _inherit = "res.partner"
     is_member = fields.Boolean(string='Is Member')
     identification = fields.Char('ID No.', size=8)
+
+
+
+class SectionLine(models.Model):
+    _name = "section.line"
+    _rec_name = "section_ids"
+
+    dependent_type = fields.Selection([
+        ('member', 'Member'),('spouse', 'Spouse'),
+        ('child', 'Child'),
+        ('guest', 'Guest'),
+        ('relative', 'Relation')], default="member", string="Dependent type", required=True)
+    section_ids = fields.Many2one('section.product', string="Sections")
+    sub_payment_id = fields.Many2one('subscription.payment', string="Fee")
+    amount = fields.Float('Amount', required=True)
+    special_subscription = fields.Boolean('Special Subscription', default=False)
+    is_child = fields.Boolean('Child Subscription?', default=False)
+
+    # member_id = fields.Many2one('member.app')
+
+    # @api.onchange('dependent_type', 'sub_payment_id')
+    # def domain_sections(self):
+    #     if self.dependent_type and self.sub_payment_id:
+    #         sections = []
+    #         subobj = self.env['subscription.payment'].search([('id', '=', self.sub_payment_id.id)])
+    #         sub_mapped = subobj.mapped('section_line').filtered(lambda x : x.dependent_type == self.dependent_type)
+    #         for rec in sub_mapped:
+    #             sections.append(rec.section_id.id)
+    #         domain = {'section_id': [('id', 'in', sections)]}
+    #         return {'domain': domain}
+
+    # @api.onchange('section_id')
+    # def get_sub_id(self):
+    #     """Finds all subscription payments where the section exists"""
+    #     if self.section_id:
+    #         subobj = self.env['subscription.payment'].search([('id', '=', self.sub_payment_id.id)])
+    #         sub_mapped = subobj.mapped('section_line').filtered(lambda x : x.dependent_type == self.dependent_type and x.section_id == self.section_id)
+    #         if sub_mapped:
+    #             amount = sub_mapped[0].amount
+    #             self.amount = amount
+
+class SectionProduct(models.Model):
+    _name = "section.product"
     
-
-
+    name = fields.Char("Name", required=True)
+    product_id = fields.Many2one('product.product', string="Sections")
 
 class App_subscription_Line(models.Model):
     _name = "subscription.payment"
     
-    @api.model
-    def create(self, vals):
-         
-        res = super(App_subscription_Line, self).create(vals)
-        product_price = vals['member_price'] + vals['entry_price'] + vals['special_levy'] + vals['sub_levy']
-        product_search = self.env['product.product'].search([('name', '=', vals['name'])],limit=1)
-        if product_search:
-            product_search.write({'list_price': product_price})
-        else:
-            product_id = self.env['product.product'].create({'name': vals['name'],
-                                                'type': 'service',
-                                                'membershipx': True,
-                                                'list_price': product_price, # vals['total_cost'],
-                                                'available_in_pos':False,
-                                                'taxes_id': []})
-            vals['product_id'] = product_id
-        return res
+    section_line = fields.One2many('section.line', "sub_payment_id", string="Section Lines")
+    active = fields.Boolean('Active', default=True)
+    paytype = fields.Selection([
+        ('entry_fee', 'Entry Fee'),('others', 'Others'),
+        ('special', 'Special'),('addition', 'Additional Fees'),
+        ('main_house', 'Main House'),
+        ], default="others", string="Type", required=False)
     
-    @api.multi
-    def write(self, vals):
-        res = super(App_subscription_Line, self).write(vals)
-        product_price = self.total_cost
-
-        product_search = self.env['product.product'].search([('id', '=', self.product_id.id)])
-        if product_search:
-            product_search.write({'name': self.name,'list_price': product_price})
-           
-        else:
-            product_id = self.env['product.product'].create({'name': self.name,
-                                                'type': 'service',
-                                                'membershipx': True,
-                                                'list_price': product_price,
-                                                'available_in_pos':False,
-                                                'taxes_id': []})
-            self.product_id = product_id.id
-        return res
+    
+    # # @api.model
+    # # def create(self, vals):
+         
+    # #     res = super(App_subscription_Line, self).create(vals)
+    # #     product_price = vals['member_price'] + vals['entry_price'] + vals['special_levy'] + vals['sub_levy']
+    # #     product_search = self.env['product.product'].search([('name', '=', vals['name'])],limit=1)
+    # #     if product_search:
+    # #         product_search.write({'list_price': product_price})
+    # #     else:
+    # #         product_id = self.env['product.product'].create({'name': vals['name'],
+    # #                                             'type': 'service',
+    # #                                             'membershipx': True,
+    # #                                             'list_price': product_price, # vals['total_cost'],
+    # #                                             'available_in_pos':False,
+    # #                                             'taxes_id': []})
+    # #         vals['product_id'] = product_id
+    # #     return res
     
     # @api.multi
-    # def unlink(self):
-    #     product_id = self.env['product.product'].search([('name','=ilike',self.name)], limit=1)
-    #     if product_id:
-    #         product_id.unlink()
-    #         return super(App_subscription_Line, self).unlink()
-        
+    # def write(self, vals):
+    #     res = super(App_subscription_Line, self).write(vals)
+    #     product_price = self.total_cost
+
+    #     product_search = self.env['product.product'].search([('id', '=', self.product_id.id)])
+    #     if product_search:
+    #         product_search.write({'name': self.name,'list_price': product_price})
+           
+    #     else:
+    #         product_id = self.env['product.product'].create({'name': self.name,
+    #                                             'type': 'service',
+    #                                             'membershipx': True,
+    #                                             'list_price': product_price,
+    #                                             'available_in_pos':False,
+    #                                             'taxes_id': []})
+    #         self.product_id = product_id.id
+    #     return res
+    
+    
     # @api.multi
     # def unlink(self):
     #     for xec in self:
     #         product_ids = self.env['product.product'].search([('name','=ilike',xec.name)])
     #         for rec in product_ids:
-    #             member_ids = self.env['member.app'].search([])
-    #             for mem in member_ids:
-    #                 memb_inv = mem.mapped('invoice_id').filtered(lambda inv_state: inv_state.state == "draft")
-    #                 if memb_inv:
-    #                     inv_lines = memb_inv.mapped('invoice_line_ids').filtered(lambda inv_prod: inv_prod.product_id == rec.id)
-    #                     if inv_lines:
-    #                         memb_inv.unlink()
-    #                     else:
-    #                         raise ValidationError('You cannot delete products in Opened invoice lines. Kindly cancel the invoice and proceed')
-                  
-    #                 else:
-    #                     raise ValidationError('Some Invoices are related to the product you wish to delete. Kindly cancel the invoice and proceed')
     #             rec.unlink()
-    #             # rec.toggle_active()##rec.active = False
-    #             # xec.active = False
+               
     #     return super(App_subscription_Line, self).unlink()
     
-    @api.multi
-    def unlink(self):
-        for xec in self:
-            product_ids = self.env['product.product'].search([('name','=ilike',xec.name)])
-            for rec in product_ids:
-                # member_ids = self.env['member.app'].search([])
-                # for mem in member_ids:
-                #     memb_inv = mem.mapped('invoice_id').filtered(lambda inv_state: inv_state.state == "draft")
-                #     if memb_inv:
-                #         inv_lines = memb_inv.mapped('invoice_line_ids').filtered(lambda inv_prod: inv_prod.product_id == rec.id)
-                #         if inv_lines:
-                #             memb_inv.unlink()
-                #         else:
-                #             raise ValidationError('You cannot delete products in Opened invoice lines. Kindly cancel the invoice and proceed')
-                  
-                rec.unlink()
-                # rec.toggle_active()##rec.active = False
-                # xec.active = False
-        return super(App_subscription_Line, self).unlink()
-
-    
-    name = fields.Char('Activity', required=True)
+    name = fields.Char('Activity', required=False)
     product_id = fields.Many2one('product.product', string='Subscription Product')
     member_price = fields.Float(
         string= "Subscription Fee",
         digits=dp.get_precision('Product Price'),
-        required=True)
+        required=False)
     pdate = fields.Date(
         'Set Date',
         default=fields.Date.today(),
@@ -2355,18 +1961,18 @@ class App_subscription_Line(models.Model):
     is_child = fields.Boolean('Child Subscription?', default=False)
     
     mainhouse_price = fields.Float('Main House Price', required=False, default=0.0)
-    entry_price = fields.Float('Entry Fee', required=True, default=0.0)
-    special_levy = fields.Float('Special Levy', required=True, default=0.0)
-    sub_levy = fields.Float('Subscription Levy', required=True, default=0.0)
+    entry_price = fields.Float('Entry Fee', required=False, default=0.0)
+    special_levy = fields.Float('Special Levy', required=False, default=0.0)
+    sub_levy = fields.Float('Subscription Levy', required=False, default=0.0)
     total_cost = fields.Float('Total', compute="Calculate_Total")
-    active = fields.Boolean('Active', default=True)
     special_subscription = fields.Boolean('Special Subscription', default=False)
     
     @api.one
     @api.depends('entry_price','special_levy', 'sub_levy','member_price')
     def Calculate_Total(self):
-        total = self.entry_price + self.special_levy + self.sub_levy + self.member_price
-        self.total_cost = total
+        pass
+        # total = self.entry_price + self.special_levy + self.sub_levy + self.member_price
+        # self.total_cost = total
     
     subscription_period = fields.Selection([
         ('Jan-June 2011', 'Jan-June 2011'),
@@ -2578,6 +2184,7 @@ class RegisterSpouseMember(models.Model):
     _name = 'register.spouse.member'
     _description = 'Register Member Dependant'
     _rec_name = "surname"
+    _order = "id desc"
     @api.multi
     def name_get(self):
         if not self.ids:
@@ -2588,27 +2195,6 @@ class RegisterSpouseMember(models.Model):
             res.append((field6.id, partner))
         return res
 
-     
-    @api.onchange('partner_id')
-    def _get_state(self):
-        for r in self.partner_id:
-            street = r.street
-            country = r.country_id.id
-            city = r.city
-            post = r.function
-            phone = r.phone
-            state = r.state_id
-            title = r.title.id
-            email = r.email
-            image = r.image
-            self.country_id = country
-            self.state_id = state
-            self.city = city
-            self.phone = phone
-            self.title = title
-            self.image = image
-            self.occupation = post
-            self.email = email
     image = fields.Binary(
         "Image",
         attachment=True,
@@ -2651,10 +2237,8 @@ class RegisterSpouseMember(models.Model):
                                     "Marital Status")
 
     title = fields.Many2one('res.partner.title', 'Title', store=True)
-    sponsor = fields.Many2one(
-        'member.app',
-        string='Parent Member',
-        required=True)
+    sponsor = fields.Many2one('member.app', string='Parent Member',
+    domain=[('is_member', '=', True)], required=True)
     account_id = fields.Many2one('account.account', 'Account')
     invoice_id = fields.Many2one('account.invoice', 'Invoice', store=True)
 
@@ -2680,6 +2264,9 @@ class RegisterSpouseMember(models.Model):
         'spouse.subscription.payment',
         'spouse_id',
         string="Spouse Subscription")
+
+    section_line = fields.Many2many('section.line', string='Add Sections')
+
     package = fields.Many2many('package.model', string='Compulsory Packages')
     package_cost = fields.Float(
         'Package Cost',
@@ -2731,34 +2318,27 @@ class RegisterSpouseMember(models.Model):
                              readonly=False,
                              copy=False,
                              track_visibility='always')
-    relationship = fields.Selection([('Child',
-                                      'Child'),
-                                     ('Brother',
-                                      'Brother'),
-                                     ('Sister',
-                                      'Sister'),
-                                     ('Friend',
-                                      'Friend'),
-                                     ('Spouse',
-                                      'Spouse'),
-                                     ],
-                                    'Relationship',
-                                    default='Spouse',
-                                    index=True,
-                                    required=True,
-                                    readonly=False,
-                                    copy=False,
+    relationship = fields.Selection([('Child','Child'),('Brother', 'Brother'),
+                                     ('Sister', 'Sister'), ('Friend', 'Friend'),
+                                     ('Spouse', 'Spouse'),
+                                     ], 'Relationship', default='Spouse', index=True,
+                                    required=True, readonly=False, copy=False,
                                     track_visibility='always')
     
-    active = fields.Boolean(string='Active', default=True) 
+    active = fields.Boolean(string='Active', default=True, readonly=True) 
+    identification = fields.Char('ID No.', related="sponsor.identification")
+
+
         
     @api.one
-    @api.depends('spouse_subscription')
+    @api.depends('section_line')
     def get_section_member_price(self):
         member_cost = 0.0
-        for rec in self.spouse_subscription:
-            member_cost += rec.total_fee
-            self.member_price = member_cost
+        for rec in self.section_line:
+            member_cost += rec.amount
+        self.member_price = member_cost
+        self.total = member_cost # + self.package_cost  #  + rex.product_id.list_price
+
             
     @api.depends('dob')
     def get_duration_age(self):
@@ -2772,20 +2352,28 @@ class RegisterSpouseMember(models.Model):
                 durations = ends - strt
                 rec.member_age = durations.days / 365
     @api.one
-    @api.depends('spouse_subscription', 'package_cost')
+    @api.depends('section_line', 'package_cost')
     def get_totals(self):
-        total = 0.00
-        for rec in self.spouse_subscription:
-            total += rec.total_fee
-        self.total = total + self.package_cost  #  + rex.product_id.list_price
+        pass
+        # total = 0.00
+        # for rec in self.section_line:
+        #     total += rec.amount
+        # self.total = total # + self.package_cost  #  + rex.product_id.list_price
 
     @api.depends('package')
     def get_package_cost(self):
-        total = 0.0
-        for rec in self:
-            for ret in rec.package:
-                total += ret.package_cost
-            rec.package_cost = total
+        pass
+        # total = 0.0
+        # for rec in self:
+        #     for ret in rec.package:
+        #         total += ret.package_cost
+        #     rec.package_cost = total
+
+    @api.onchange('sponsor')
+    def get_sponsor_account(self):
+        if self.sponsor:
+            self.account_id = self.sponsor.partner_id.property_account_receivable_id.id
+            self.identification = self.sponsor.identification
 
     @api.multi
     def button_make_wait(self):
@@ -2810,8 +2398,9 @@ class RegisterSpouseMember(models.Model):
         self.write({'state': 'draft'})
 
     @api.multi
-    def button_make_confirm(self):
+    def button_make_confirm(self, outstanding):
         self.write({'state': 'confirm'})
+        self.sponsor.balance = self.sponsor.balance_total + outstanding
         self.Appendto_Sponsor()
         return True
     
@@ -2841,38 +2430,38 @@ class RegisterSpouseMember(models.Model):
         else:
             raise ValidationError('You must Add a sponseor')
 
-    @api.model
-    def create(self, vals):
-        res = super(RegisterSpouseMember, self).create(vals)
-        partner_id = vals.get('partner_id')
-        partner = self.env['res.partner'].search([('id', '=', partner_id)])
-        partner.write({'street': vals.get('street'),
-                       'street2': vals.get('street'),
-                       'email': vals.get('email'),
-                       'state_id': vals.get('state_id'),
-                       'title': vals.get('title'),
-                       'image': vals.get('image'),
-                       'phone': vals.get('phone'),
-                       'function': vals.get('occupation')})
-        return res
+    # @api.model
+    # def create(self, vals):
+    #     res = super(RegisterSpouseMember, self).create(vals)
+    #     partner_id = vals.get('partner_id')
+    #     partner = self.env['res.partner'].search([('id', '=', partner_id)])
+    #     partner.write({'street': vals.get('street'),
+    #                    'street2': vals.get('street'),
+    #                    'email': vals.get('email'),
+    #                    'state_id': vals.get('state_id'),
+    #                    'title': vals.get('title'),
+    #                    'image': vals.get('image'),
+    #                    'phone': vals.get('phone'),
+    #                    'function': vals.get('occupation')})
+    #     return res
     
-    def create_partner(self):
-        middle_name = " "
-        if self.middle_name:
-            middle_name = self.middle_name
-        partner = self.env['res.partner']
-        part = partner.create({'street': self.street,
-                        'email': self.email,
-                        'state_id': self.state_id.id,
-                        'title':self.title.id,
-                        'city':self.city,
-                        'image': self.image,
-                        'phone':self.phone,
-                        'function': self.occupation,
-                        'name': str(self.surname) +' '+ str(self.first_name),# +' '+ middle_name,
-                        'is_member': True,
-                        })
-        self.partner_id = part.id
+    # def create_partner(self):
+    #     middle_name = " "
+    #     if self.middle_name:
+    #         middle_name = self.middle_name
+    #     partner = self.env['res.partner']
+    #     part = partner.create({'street': self.street,
+    #                     'email': self.email,
+    #                     'state_id': self.state_id.id,
+    #                     'title':self.title.id,
+    #                     'city':self.city,
+    #                     'image': self.image,
+    #                     'phone':self.phone,
+    #                     'function': self.occupation,
+    #                     'name': str(self.surname) +' '+ str(self.first_name),# +' '+ middle_name,
+    #                     'is_member': True,
+    #                     })
+    #     self.partner_id = part.id
 
     @api.multi
     def button_make_payment(self):
@@ -2893,6 +2482,27 @@ class RegisterSpouseMember(models.Model):
                 'search_view_id': search_view_ref and search_view_ref.id,
             }
 
+    def create_outstanding_line(self, inv_id):
+        invoice_line_obj = self.env["account.invoice.line"] 
+        members_search = self.env['member.app'].search([('id', '=', self.sponsor.id)])
+        account_obj = self.env['account.invoice']
+        accounts = account_obj.browse([inv_id]).journal_id.default_credit_account_id.id
+        # income_account = self.env['account.account'].search([('user_type_id.name', '=ilike', 'Income')], limit=1)
+        income_account = self.env['account.account'].search([('user_type_id','=',1 )], limit=1)
+         
+        balance = members_search.balance_total
+        if balance != 0:
+            curr_invoice_subs = {
+                                'name': "Added Outstanding", 
+                                'price_unit': balance, 
+                                'quantity': 1,
+                                'account_id': accounts if accounts else income_account.id,
+                                'invoice_id': inv_id,
+                                }
+
+            invoice_line_obj.create(curr_invoice_subs)
+            members_search.balance_total -= balance
+
     @api.multi
     def create_membership_invoice(self):
         """ Create Customer Invoice of Membership for partners.
@@ -2910,30 +2520,29 @@ class RegisterSpouseMember(models.Model):
  
         line_values = {}
         
+        
         invoice = self.env['account.invoice'].create({
                 'partner_id': self.partner_id.id, 
-                'account_id': self.account_id.id,
+                'account_id': self.partner_id.property_account_receivable_id.id, 
                 'fiscal_position_id': self.partner_id.property_account_position_id.id,
                 'branch_id': branch_id
             })
         product = 0
-        for each in self.spouse_subscription:
-            produce = each.subscription.name
+        self.create_outstanding_line(invoice.id)
+        for each in self.section_line:
+            produce = each.section_ids.name
             products = self.env['product.product']
             product_search = products.search(
             [('name', 'ilike', produce)], limit=1)
-            if product_search:
-                product = product_search
-            else:
-                pro = products.create(
-                    {'name': produce, 'membershipx': True, 'list_price':each.total_fee,'taxes_id': []})
-                product = pro.id
-            product_id = product 
-            line_values['product_id'] = product_id
-            line_values['price_unit'] = each.total_fee
+             
+            # income_account = self.env['account.account'].search([('user_type_id.name', '=ilike', 'Income')], limit=1)
+             
+            line_values['product_id'] = product_search.id if product_search else False
+            line_values['price_unit'] = each.amount
             line_values['invoice_id'] = invoice.id,
-            line_values['name'] = "Spouse Payment",
-            line_values['account_id'] = self.partner_id.property_account_payable_id.id,
+            line_values['name'] = "Spouse Payment For "+ produce
+            line_values['account_id'] = invoice.journal_id.default_credit_account_id.id
+            # self.partner_id.property_account_payable_id.id,
                
             #  create a record in cache, apply onchange then revert back to a
             #  dictionnary
@@ -2941,7 +2550,7 @@ class RegisterSpouseMember(models.Model):
             invoice_line._onchange_product_id()
             line_values = invoice_line._convert_to_write(
                     {name: invoice_line[name] for name in invoice_line._cache})
-            line_values['price_unit'] = each.total_fee
+            line_values['price_unit'] = each.amount
             invoice.write({'invoice_line_ids': [(0, 0, line_values)]})
         invoice_list.append(invoice.id)
             # invoice.compute_taxes()
@@ -2949,14 +2558,15 @@ class RegisterSpouseMember(models.Model):
         find_id = self.env['account.invoice'].search(
                 [('id', '=', invoice.id)])
         # find_id.action_invoice_open()
-        self.add_payment_sponsor(invoice)
+
+        self.add_payment_sponsor(invoice.id)
         return invoice_list
 
     def add_payment_sponsor(self, invoice):
         member_id = self.env['member.app'].search([('id','=', self.sponsor.id)])
         if member_id:
             if self.sponsor_pay == "Sponsor":
-                member_id.write({'invoice_id': [(4, [invoice.id])]})
+                member_id.write({'invoice_id': [(4, [invoice])]})
             
     @api.multi
     def see_breakdown_invoice(self): 
@@ -2978,6 +2588,7 @@ class RegisterSpouseMember(models.Model):
 class RegisterPaymentMember(models.Model):
     _name = 'register.payment.member'
     _description = 'Register Member Payment'
+    _order = "id desc" 
 
     @api.model
     def _default_journal(self):
@@ -3040,224 +2651,221 @@ class RegisterPaymentMember(models.Model):
                                ], default='Transfer', string='Payment Mode')
     num = fields.Float('Number')
     
-    @api.one
-    def button_pay(self):
-        #  self.mail_sending()
-        for rey in self:
-            acm = self.env['account.payment.method'].create(
-                {'payment_type': 'inbound', 'name': rey.name, 'code': str(rey.id)})
-            payment_data = {
-                'amount': rey.amount,  # values.get('amount'),
-                'payment_date': rey.date,
-                'partner_type': 'customer',
-                'payment_type': 'inbound',
-                'partner_id': rey.partner_id.id,
-                'journal_id': rey.payment_method.id,
-                'member_id': rey.member_ref.id,
-                'bank': rey.bank.id,
-                'narration':rey.reference,
-                'communication': "Membership Payment ",# + str(rey.name),
+    # @api.one
+    # def button_pay(self):
+    #     #  self.mail_sending()
+    #     for rey in self:
+    #         acm = self.env['account.payment.method'].create(
+    #             {'payment_type': 'inbound', 'name': rey.name, 'code': str(rey.id)})
+    #         payment_data = {
+    #             'amount': rey.amount,  # values.get('amount'),
+    #             'payment_date': rey.date,
+    #             'partner_type': 'customer',
+    #             'payment_type': 'inbound',
+    #             'partner_id': rey.partner_id.id,
+    #             'journal_id': rey.payment_method.id,
+    #             'member_id': rey.member_ref.id,
+    #             'bank': rey.bank.id,
+    #             'narration':rey.reference,
+    #             'communication': "Membership Payment ",# + str(rey.name),
                 
-                'payment_method_id': acm.id,
-                'filex': rey.filex,  # values.get('advance_account')
-                            }
-            payment_model = self.env['account.payment'].create(payment_data)
-            model_name = 'account.payment'
-            amounts = rey.amount
-            self.send_mail_to_accounts(payment_model.id, model_name, amounts)
-            search_id = self.env['member.app'].search(
-                [('id', '=', self.member_ref.id)])
-            sub_id = self.env['subscription.model'].search([('id', '=', self.num)])
-            for fec in search_id:  #  level
-                product = 0
-                state_now = str(fec.state).replace('_', ' ').capitalize()
-                products = self.env['product.product']
-                product_search = products.search(
-                    [('name', 'ilike', state_now)])
-                if product_search:
-                    #  product.append(product_search.id)
-                    product = product_search[0].id
-                else:
-                    pro = products.create(
-                        {'name': state_now, 'membershipx': True})
-                    product = pro.id
+    #             'payment_method_id': acm.id,
+    #             'filex': rey.filex,  # values.get('advance_account')
+    #                         }
+    #         payment_model = self.env['account.payment'].create(payment_data)
+    #         model_name = 'account.payment'
+    #         amounts = rey.amount
+    #         self.send_mail_to_accounts(payment_model.id, model_name, amounts)
+    #         search_id = self.env['member.app'].search(
+    #             [('id', '=', self.member_ref.id)])
+    #         sub_id = self.env['subscription.model'].search([('id', '=', self.num)])
+    #         for fec in search_id:  #  level
+    #             product = 0
+    #             state_now = str(fec.state).replace('_', ' ').capitalize()
+    #             products = self.env['product.product']
+    #             product_search = products.search(
+    #                 [('name', 'ilike', state_now)])
+    #             if product_search:
+    #                 #  product.append(product_search.id)
+    #                 product = product_search[0].id
+    #             else:
+    #                 pro = products.create(
+    #                     {'name': state_now, 'membershipx': True})
+    #                 product = pro.id
 
-                if fec.state in ['white']:
-                    fec.write({'state': 'wait'})
-                    lists = []
-                    list1 = []
-                    balance = rey.to_pay - rey.amount
-                    fec.balance_total += balance
-                    values = (0, 0,
-                              {'member_idx': fec.id,
-                               'product_id': product,
-                               'paid_amount': rey.amount,
-                               'balance': balance,
-                               'pdate': rey.date,
-                               'member_price': fec.int_form_price + fec.harmony,
-                               'name': self.name})
+    #             if fec.state in ['white']:
+    #                 fec.write({'state': 'wait'})
+    #                 lists = []
+    #                 list1 = []
+    #                 balance = rey.to_pay - rey.amount
+    #                 fec.balance_total += balance
+    #                 values = (0, 0,
+    #                           {'member_idx': fec.id,
+    #                            'product_id': product,
+    #                            'paid_amount': rey.amount,
+    #                            'balance': balance,
+    #                            'pdate': rey.date,
+    #                            'member_price': fec.int_form_price + fec.harmony,
+    #                            'name': self.name})
                     
-                    lists.append(values)
-                    list1.append(values)
-                    fec.payment_line2 = lists
-                    rey.state = "pay"
+    #                 lists.append(values)
+    #                 list1.append(values)
+    #                 fec.payment_line2 = lists
+    #                 rey.state = "pay"
                     
-                # Paying for white delay fees    
-                elif fec.state in ['wait']:
-                    lists = []
+    #             # Paying for white delay fees    
+    #             elif fec.state in ['wait']:
+    #                 lists = []
                     
-                    balance = fec.delay_charges - rey.to_pay
-                    fec.balance_total += balance
-                    values = (0, 0,
-                              {'member_idx': fec.id,
-                               'product_id': product,
-                               'paid_amount': rey.amount,
-                               'balance': balance,
-                               'pdate': rey.date,
-                               'penalty_fee':fec.delay_charges,
-                               'member_price': fec.delay_charges,
-                               'name': "White Form delay Fee"})
+    #                 balance = fec.delay_charges - rey.to_pay
+    #                 fec.balance_total += balance
+    #                 values = (0, 0,
+    #                           {'member_idx': fec.id,
+    #                            'product_id': product,
+    #                            'paid_amount': rey.amount,
+    #                            'balance': balance,
+    #                            'pdate': rey.date,
+    #                            'penalty_fee':fec.delay_charges,
+    #                            'member_price': fec.delay_charges,
+    #                            'name': "White Form delay Fee"})
                     
-                    lists.append(values)
-                    fec.payment_line2 = lists
-                    fec.payment_status = "white_fee_delay"
+    #                 lists.append(values)
+    #                 fec.payment_line2 = lists
+    #                 fec.payment_status = "white_fee_delay"
                     
 
-                elif fec.state in ['issue_green']:
-                    fec.write({'state': 'green'})
-                    lists = []
-                    list1 = []
-                    balance = rey.to_pay - rey.amount
-                    # fec.balance_total += balance
-                    values = (0,
-                              0,
-                              {'member_idx': fec.id,
-                               'product_id': product,
-                               'paid_amount': rey.amount,
-                               # 'balance': balance,
-                               'pdate': rey.date,
-                               'member_price': rey.amount,# fec.green_form_price + fec.coffee_book,
-                               'name': self.name})
+    #             elif fec.state in ['issue_green']:
+    #                 fec.write({'state': 'green'})
+    #                 lists = []
+    #                 list1 = []
+    #                 balance = rey.to_pay - rey.amount
+    #                 # fec.balance_total += balance
+    #                 values = (0,
+    #                           0,
+    #                           {'member_idx': fec.id,
+    #                            'product_id': product,
+    #                            'paid_amount': rey.amount,
+    #                            # 'balance': balance,
+    #                            'pdate': rey.date,
+    #                            'member_price': rey.amount,# fec.green_form_price + fec.coffee_book,
+    #                            'name': self.name})
                     
-                    lists.append(values)
-                    list1.append(values)
-                    fec.payment_line2 = lists
-                    # fec.payment_line1 = list1
-                    rey.state = "pay"
+    #                 lists.append(values)
+    #                 list1.append(values)
+    #                 fec.payment_line2 = lists
+    #                 # fec.payment_line1 = list1
+    #                 rey.state = "pay"
                     
-                elif fec.state in ['interview']:
-                    fec.write({'state': 'issue_green'})
-                    lists = []
-                    list1 = []
-                    balance = rey.to_pay - rey.amount
-                    fec.balance_total += balance
-                    total_green = fec.green_form_price + fec.coffee_book
+    #             elif fec.state in ['interview']:
+    #                 fec.write({'state': 'issue_green'})
+    #                 lists = []
+    #                 list1 = []
+    #                 balance = rey.to_pay - rey.amount
+    #                 fec.balance_total += balance
+    #                 total_green = fec.green_form_price + fec.coffee_book
                     
-                    values = (0, 0,
-                              {'member_idx': fec.id,
-                               'product_id': product,
-                               'paid_amount': rey.amount,
-                               'balance': balance,
-                               'pdate': rey.date,
-                               'name':"Green Card Payment",
-                               'member_price': total_green})
-                    lists.append(values)
-                    list1.append(values)
-                    fec.payment_line2 = lists
-                    # fec.payment_line1 = list1
-                    rey.state = "pay"
+    #                 values = (0, 0,
+    #                           {'member_idx': fec.id,
+    #                            'product_id': product,
+    #                            'paid_amount': rey.amount,
+    #                            'balance': balance,
+    #                            'pdate': rey.date,
+    #                            'name':"Green Card Payment",
+    #                            'member_price': total_green})
+    #                 lists.append(values)
+    #                 list1.append(values)
+    #                 fec.payment_line2 = lists
+    #                 # fec.payment_line1 = list1
+    #                 rey.state = "pay"
 
-                elif fec.state in ['green']:
-                    fec.write({'state': 'temp', 'temp_id':fec.green_id,
-                               'date_of_temp': fields.Datetime.now()})
-                    lists = []
-                    list1 = []
-                    balance =rey.to_pay - rey.amount
-                    # balance = fec.total - rey.amount
-                    # fec.balance_total += balance
-                    values = (0, 0,
-                              {'member_idx': fec.id,
-                               'product_id': product,
-                               'paid_amount': rey.amount,
-                               'spouse_amount': fec.spouse_amount,
-                               'name':"New Membership Subscription Fee",
-                               'balance': balance,
-                               'pdate': self.date,
-                               'member_price': fec.total})
+    #             elif fec.state in ['green']:
+    #                 fec.write({'state': 'temp', 'temp_id':fec.green_id,
+    #                            'date_of_temp': fields.Datetime.now()})
+    #                 lists = []
+    #                 list1 = []
+    #                 balance =rey.to_pay - rey.amount
+    #                 # balance = fec.total - rey.amount
+    #                 # fec.balance_total += balance
+    #                 values = (0, 0,
+    #                           {'member_idx': fec.id,
+    #                            'product_id': product,
+    #                            'paid_amount': rey.amount,
+    #                            'spouse_amount': fec.spouse_amount,
+    #                            'name':"New Membership Subscription Fee",
+    #                            'balance': balance,
+    #                            'pdate': self.date,
+    #                            'member_price': fec.total})
                     
-                    lists.append(values)
-                    list1.append(values)
-                    fec.payment_line2 = lists
-                    fec.payment_line1 = list1
-                    rey.state = "pay"
+    #                 lists.append(values)
+    #                 list1.append(values)
+    #                 fec.payment_line2 = lists
+    #                 fec.payment_line1 = list1
+    #                 rey.state = "pay"
                 
-                else:
-                    if rey.p_type != "ano":
-                        lists = []
-                        list1 = []
-                        list3 = []
-                        balance = rey.to_pay - rey.amount
-                        fec.balance_total += balance
-                        if sub_id:
-                            for tey in sub_id:
-                                tey.state = "done"
-                                name_s = str(
-                                    tey.periods_month).capitalize().replace(
-                                    '_', ' ') + "Subscription"
-                                sub_values = (0,
-                                              0,
-                                              {'sub_order': tey.id,
-                                               'member_id': fec.id,
-                                               'name': name_s,
-                                               'periods_month': tey.periods_month,
-                                               'pdate': rey.date,
-                                               'total_price': tey.total,
-                                               'paid_amount': rey.amount,
-                                               'balance': balance})
-                                list3.append(sub_values)
-                            fec.sub_line = list3
+    #             else:
+    #                 if rey.p_type != "ano":
+    #                     lists = []
+    #                     list1 = []
+    #                     list3 = []
+    #                     balance = rey.to_pay - rey.amount
+    #                     fec.balance_total += balance
+    #                     if sub_id:
+    #                         for tey in sub_id:
+    #                             tey.state = "done"
+    #                             name_s = str(
+    #                                 tey.periods_month).capitalize().replace(
+    #                                 '_', ' ') + "Subscription"
+    #                             sub_values = (0,
+    #                                           0,
+    #                                           {'sub_order': tey.id,
+    #                                            'member_id': fec.id,
+    #                                            'name': name_s,
+    #                                            'periods_month': tey.periods_month,
+    #                                            'pdate': rey.date,
+    #                                            'total_price': tey.total,
+    #                                            'paid_amount': rey.amount,
+    #                                            'balance': balance})
+    #                             list3.append(sub_values)
+    #                         fec.sub_line = list3
 
-                    else:
-                        lists = []
-                        list1 = []
-                        list3 = []
-                        # percent = 12.5/100
-                        # fine = percent
-                        rey.amount - rey.to_pay
-                        # fec.balance_total += balance
-                        if sub_id:
-                            for gec in fec.sub_line:
-                                if gec.sub_order.id == sub_id.id:
-                                    gec.unlink()
+    #                 else:
+    #                     lists = []
+    #                     list1 = []
+    #                     list3 = []
+    #                     # percent = 12.5/100
+    #                     # fine = percent
+    #                     rey.amount - rey.to_pay
+    #                     # fec.balance_total += balance
+    #                     if sub_id:
+    #                         for gec in fec.sub_line:
+    #                             if gec.sub_order.id == sub_id.id:
+    #                                 gec.unlink()
 
-                            sub_id.state = "fined"
-                                #  str(tey.periods_month).capitalize().replace('_',' ') + "Subscription"
-                            name_s = "Fine for Anomaly"
-                            sub_values = (0, 0,
-                                              {'sub_order': sub_id.id,
-                                               'member_id': sub_id.id,
-                                               'name': name_s,
-                                               'periods_month': sub_id.periods_month,
-                                               'pdate': sub_id.date,
-                                               'total_price': sub_id.total,
-                                               'paid_amount': rey.amount,
-                                               'balance': balance})
-                            list3.append(sub_values)
-                            fec.sub_line = list3
-                                # payment_model.unlink()
-                            payment_model.write(
-                                    {'communication': 'Fine Payment', 'amount': rey.amount})
+    #                         sub_id.state = "fined"
+    #                             #  str(tey.periods_month).capitalize().replace('_',' ') + "Subscription"
+    #                         name_s = "Fine for Anomaly"
+    #                         sub_values = (0, 0,
+    #                                           {'sub_order': sub_id.id,
+    #                                            'member_id': sub_id.id,
+    #                                            'name': name_s,
+    #                                            'periods_month': sub_id.periods_month,
+    #                                            'pdate': sub_id.date,
+    #                                            'total_price': sub_id.total,
+    #                                            'paid_amount': rey.amount,
+    #                                            'balance': balance})
+    #                         list3.append(sub_values)
+    #                         fec.sub_line = list3
+    #                             # payment_model.unlink()
+    #                         payment_model.write(
+    #                                 {'communication': 'Fine Payment', 'amount': rey.amount})
 
-        return {'type': 'ir.actions.act_window_close'}
+    #     return {'type': 'ir.actions.act_window_close'}
 
         #  return
 
     @api.one
     def button_cancel(self):
         return {'type': 'ir.actions.act_window_close'}
-
-    def print_memo_addition(self):
-        pass
 
     def send_mail_to_accounts(self, pay_id, model, amount):
         base_url = http.request.env['ir.config_parameter'].sudo(

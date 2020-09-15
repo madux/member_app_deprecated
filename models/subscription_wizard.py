@@ -4,7 +4,10 @@ from odoo.exceptions import except_orm, ValidationError
 from odoo.tools import misc, DEFAULT_SERVER_DATETIME_FORMAT
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
+import base64
+from fpdf import FPDF
 
+ 
 class SubscriptionWizardExcel(models.TransientModel):
     _name = "subscription.excel"
 
@@ -70,14 +73,71 @@ class GenerateInvoice(models.TransientModel):
     ], 'Period', index=True, required=False, readonly=False, copy=False, 
                                            track_visibility='always')
 
-    include_spouse = fields.Boolean(string="Include Spouse Bill", default=False)
+    is_mail = fields.Selection([
+        ('mail', 'mail'),
+        ('invoice', 'invoice'),
+        ('all', 'All'),
+    ], 'type', required=False, readonly=False, copy=False, track_visibility='always')
+
+    include_spouse = fields.Boolean(string="Include Dependent's Bill", default=False)
+    include_mailing = fields.Boolean(string="Send Mail", default=False)
     limit = fields.Integer('Set Limit', default=1000, required=True)
-    member_ids = fields.Many2many('member.app', string='Member Lines')
+    member_ids = fields.Many2many('member.app', string='Member Lines', store=True)
+    text_editor = fields.Html('Enter Information here', default=lambda self: self._html_body())
+
+    def _html_body(self):
+        body = """
+                <h5><strong>ATTENTION:-</strong></h5>
+									<p>
+										At the emergency meeting of the GC which held on the 6th of July, 2020 it was magnanimously
+
+										resolved that:
+										<ol> 
+											<li> That the increase of N10,000 in subscription for July/Dec 2020 cycle be reversed;</li>
+											<li> That Main House and Sectional levies be suspended for this July/Dec 2020 subscription cycle.</li>
+											<li> That fresh bills be issued to all members to replace the earlier ones, taking into consideration items (1) and (2) above; and </li>
+											<li> That members who have already paid the bills for July/Dec 2020 cycle be credited with the total amount of the reversed
+												subscription increase and suspended levies in the Jan/June 2021 bill.</li>
+										</ol>
+									</p>
+									<p>
+										<strong><u>MEDICAL INSURANCE SCHEME  (Optional)</u></strong><br/>
+										Medical Insurance Scheme payable at the rate of N2,500 per subscription cycle for N1,000,000(One Million
+
+										Naira) covers injury and death within the club premises for any participating member of the club.
+
+										Please pay immediately and update your bio-data form for proper record keeping.<br/>
+									
+										Bankers' cheque(s) should be addressed to Ikoyi Club 1938 with your name and membership number clearly stated at the back.<br/>
+										Membership Services Tel:01-2919507, 2919508. 07083709076 is for whatsapp only.<br/>
+										Email: membershipservices@ikoyiclub1938.net<br/>
+										Subscription shall be payable in advance and no member shall enjoy any privilege of membership one month
+										after the subscription is due for payment.<br/>
+									
+										Payment can also be made through any of the bank accounts stated below. However Membership Services must be notified of such payment immediately.
+										<ol>
+											<li> Union Bank of Nigeria a/c no - 0007278199(Operations)</li>
+											<li> United Bank of Africa a/c no - 100-041105-8</li>
+											<li> Guaranty Trust Bank a/c no - 0001859873</li>
+											<li> First Bank of Nigeria a/c no - 2001751035</li>
+											<li> Zenith Bank Plc  a/c no - 1010231837</li>
+										</ol>
+									</p>
+									<p>
+										For ease of payment, On-line payment option is now available on<br/>
+										<u>www.quickteller.com/ikoyiclub</u> or other quickteller enabled ATM.<br/>
+
+										N/B late payment after 3 months attracts a penalty of N10,000<br/>
+
+										<strong>PLEASE RETURN BILL WITH YOUR BANK DRAFT/EVIDENCE OF FUNDS TRANSFER</strong>
+									</p>
+        """
+        return body
     
     @api.onchange('subscription_period')
     def action_display_records(self):
         if self.subscription_period:
-            member_ids = self.env['member.app'].search([('subscription_period', '!=', self.subscription_period)], limit=self.limit)
+            member_ids =  self.env['member.app'].search([('subscription_period', '!=', self.subscription_period), ('state', 'in', ['ord', 'temp'])], limit=self.limit)
             self.update({'member_ids': [(6, 0, [rec.id for rec in member_ids])]})
 
     # @api.model
@@ -109,67 +169,74 @@ class GenerateInvoice(models.TransientModel):
         account_obj = self.env['account.invoice']
         invoice_line = self.env['account.invoice.line']
         journal_id = self.env['account.journal'].search([('type', '=', 'sale')], limit=1)
+        members = self.env['member.app'].search([('subscription_period', '!=', self.subscription_period), ('state', 'in', ['ord', 'temp'])], limit=self.limit)
+        for rec in members:
+            # self.env['member.app'].search([('subscription_period', '!=', self.subscription_period)], limit=self.limit):
+            
+            property_account_receivable_id = self.env['account.account'].search([('user_type_id.name','ilike', 'Receivable')], limit=1).id if not rec.partner_id.property_account_receivable_id else rec.partner_id.property_account_receivable_id.id
+            property_account_payable_id = self.env['account.account'].search([('user_type_id.name','=ilike', 'Payable')], limit=1).id if not rec.partner_id.property_account_payable_id else rec.partner_id.property_account_payable_id.id
         
-        for rec in self.env['member.app'].search([('subscription_period', '!=', self.subscription_period)], limit=self.limit):
             invoice = account_obj.create({
                 'partner_id': rec.partner_id.id,
                 'journal_id': journal_id.id,
-                'account_id': rec.partner_id.property_account_payable_id.id if rec.partner_id else 13,# inv.partner_id.property_account_payable_id.id, 
+                'account_id': property_account_receivable_id, # rec.partner_id.property_account_receivable_id.id if rec.partner_id else 13,# inv.partner_id.property_account_payable_id.id, 
                 'branch_id': self.branch_id.id or self.env.user.branch_id.id, # if not self.env.user.branch_id.id, 
                 'date_invoice': datetime.today(),
                 'type': 'out_invoice', 
                 'invoice_line_ids': [(0, 0, {
-                                    'product_id': rex.product_id.id,
+                                    'product_id': rex.product_id.id if rex.product_id else False,
                                     'price_unit': rex.total_cost - rex.entry_price,
                                     'name': "Section Charge for "+ str(rex.product_id.name) + ": Period-"+(self.subscription_period),
-                                    'account_id': invoice_line.with_context({'journal_id': journal_id.id, 'type': 'in_invoice'})._default_account(),
+                                    'account_id': invoice_line.with_context({'journal_id': journal_id.id, 'type': 'out_invoice'})._default_account(),
                                     # 'account_id': rex.product_id.categ_id.property_account_income_categ_id.id or record.account_id.id,
                                     'quantity': 1.0,
                                     
                                     }) for rex in rec.mapped('subscription')] #.filtered(lambda  self: self.name not in list_of_names)]
             })
-            # self.subscription_line(rec, invoice) 
             self.spouse_bill_line(rec, invoice) 
-            self.packages_bill(rec, invoice) 
-            # self.child_bill_line(rec, invoice) 
+            self.create_outstanding_line(invoice.id, rec.id)
             rec.subscription_period = self.subscription_period
-            # tablebody = self.table_invoice_lines(invoice.invoice_line_ids)
-            # self.send_mail(rec, tablebody)
             rec.write({'invoice_id': [(4, [invoice.id])]})
-            rec.batch_mailing(self.subscription_period)
-            
-    @api.multi
-    def batch_emailing(self):
-        member_ids = self.env['member.app'].search([('subscription_period', '!=', self.subscription_period), ('state', 'in', ['temp', 'ord'])])
-        ctx = dict()
-        for rec in member_ids:
-            template = self.env['ir.model.data'].get_object('member_app', 'email_template_for_member')
-            ctx.update({
-                        'default_model': 'member.app',
-                        'default_res_id': rec.id,
-                        'default_use_template': bool(template),
-                        'default_template_id': template,
-                        'default_composition_mode': 'comment',
-                        'email_to': rec.email,
-                        'subscription': self.subscription_period,
-                    })
-            sender =self.env['mail.template'].browse(template.id).with_context(ctx).send_mail(rec.id)
-            self.env['mail.mail'].browse(sender).send(sender)
-        return True
-    
-    
+            if self.include_mailing:
+                rec.batch_mailing(self.subscription_period)
+
+
+    def create_outstanding_line(self, inv_id, rec):
+        account_obj = self.env['account.invoice']
+        invoice_line_obj = self.env["account.invoice.line"] 
+        members_search = self.env['member.app'].search([('id', '=', rec)])
+        accounts = account_obj.browse([inv_id]).journal_id.default_credit_account_id.id
+        income_account = self.env['account.account'].search([('user_type_id.name', '=ilike', 'Income')], limit=1)
+        balance = members_search.balance_total
+        if balance != 0:
+            curr_invoice_subs = {
+                                'name': "Added Outstanding",
+                                'price_unit': balance, #-members_search.balance_total if members_search.balance_total > 0 else members_search.balance_total, 
+                                'quantity': 1,
+                                'account_id': accounts if accounts else income_account.id,
+                                'invoice_id': inv_id,
+                                }
+
+            invoice_line_obj.create(curr_invoice_subs)
+            members_search.balance_total -= balance
+ 
 
     @api.multi
-    def send_mail(self, record, tablebody, force=False,):
+    def batch_emailing(self):
+        members = self.env['member.app'].search([('subscription_period', '!=', self.subscription_period)], limit=self.limit)
+        for rec in members:
+            rec.batch_mailing(self.subscription_period)
+    
+    @api.multi
+    def send_mail(self, record, invoice, attachment_id,force=False,):
         email_from = self.env.user.company_id.email
         mail_to = record.email
         subject = "Ikoyi Club Bill"
-        bodyx = "This is a bill notification message for the period of {} <br/>\
-            For further enquires, kindly contact {} <br/> {} <br/>{}\
-        Thanks".format(self.subscription_period, self.env.user.company_id.name, self.env.user.company_id.phone, tablebody)
-        self.mail_sending_one(email_from, mail_to, bodyx, subject)
+        bodyx = "This is a bill notification <br/><br/>" + self.generate_pdf(record, invoice)
+        self.mail_sending_one(email_from, mail_to, bodyx, subject, attachment_id)
+
     
-    def mail_sending_one(self, email_from, mail_to, bodyx, subject):
+    def mail_sending_one(self, email_from, mail_to, bodyx, subject, attachment_id):
         for order in self:
             mail_tos = str(mail_to)
             email_froms = "Ikoyi Club " + " <" + str(email_from) + ">"
@@ -179,7 +246,8 @@ class GenerateInvoice(models.TransientModel):
                 'subject': subject,
                 'email_to': mail_tos,
                 'reply_to': email_from,
-                'body_html': bodyx
+                'body_html': bodyx,
+                'attachment_ids': [(6, 0, [attachment_id])] or None,
             }
             mail_id = order.env['mail.mail'].create(mail_data)
             order.env['mail.mail'].send(mail_id)       
@@ -214,7 +282,7 @@ class GenerateInvoice(models.TransientModel):
                                         'name': "Child Charge for "+ str(product_child.name)+ ": Period-"+(self.subscription_period),
                                         'price_unit': child_total,
                                         'quantity': 1.0,
-                                        'account_id': product_child.categ_id.property_account_income_categ_id.id or record.account_id.id,
+                                        'account_id': invoice.journal_id.default_credit_account_id.id if invoice.journal_id.default_credit_account_id else product_child.categ_id.property_account_income_categ_id.id,
                                         'invoice_id': inv_id,
                                     }
                                     invoice_line_obj.create(curr_invoice_spouse_subs)
@@ -232,7 +300,7 @@ class GenerateInvoice(models.TransientModel):
                                         'name': "Child Charge for "+ str(product_child.name)+ ": Period-"+(self.subscription_period),
                                         'price_unit': child_total - sub2.subscription.entry_price,
                                         'quantity': 1.0,
-                                        'account_id': product_child.categ_id.property_account_income_categ_id.id or record.account_id.id,
+                                        'account_id': invoice.journal_id.default_credit_account_id.id if invoice.journal_id.default_credit_account_id else product_child.categ_id.property_account_income_categ_id.id,
                                         'invoice_id': inv_id,
                                     }
                                     invoice_line_obj.create(curr_invoice_spouse_subs2)
@@ -261,7 +329,7 @@ class GenerateInvoice(models.TransientModel):
                                         'name': "Spouse Charge for "+ str(product_spouse.name)+ ": Period-"+(self.subscription_period),
                                         'price_unit': spouse_total,
                                         'quantity': 1.0,
-                                        'account_id': product_spouse.categ_id.property_account_income_categ_id.id or record.account_id.id,
+                                        'account_id': invoice.journal_id.default_credit_account_id.id if invoice.journal_id.default_credit_account_id else product_spouse.categ_id.property_account_income_categ_id.id,
                                         'invoice_id': inv_id,
                                     }
                                     invoice_line_obj.create(curr_invoice_spouse_subs)
@@ -278,7 +346,7 @@ class GenerateInvoice(models.TransientModel):
                                         'name': "Spouse Charge for "+ str(product_spouse.name)+ ": Period-"+(self.subscription_period),
                                         'price_unit': spouse_total - sub2.subscription.entry_price,
                                         'quantity': 1.0,
-                                        'account_id': product_spouse.categ_id.property_account_income_categ_id.id or record.account_id.id,
+                                        'account_id': invoice.journal_id.default_credit_account_id.id if invoice.journal_id.default_credit_account_id else product_spouse.categ_id.property_account_income_categ_id.id,
                                         'invoice_id': inv_id,
                                     }
                                     invoice_line_obj.create(curr_invoice_spouse_subs2)
@@ -303,7 +371,7 @@ class GenerateInvoice(models.TransientModel):
                                 'name': "Charge for "+ str(product_pack_search.name)+ ": Period-"+(self.subscription_period),
                                 'price_unit': product_pack_search.list_price,
                                 'quantity': 1.0,
-                                'account_id': product_pack_search.categ_id.property_account_income_categ_id.id or record.account_id.id,
+                                'account_id': invoice.journal_id.default_credit_account_id.id if invoice.journal_id.default_credit_account_id else product_pack_search.categ_id.property_account_income_categ_id.id,
                                 'invoice_id': inv_id,
                             } 
                 invoice_line_obj.create(curr_invoice_pack) 
@@ -333,50 +401,73 @@ class GenerateInvoice(models.TransientModel):
                     <tbody>
                         {}
                     </tbody> </table> </div>""".format(table_content) 
-        return table 
-                
 
-    # def subscription_line(self, record, invoice):
-    #     products = self.env['product.product']
-    #     invoice_line_obj = self.env["account.invoice.line"]
-    #     price = 0.0
-    #     price1 = 0.0
-    #     price2 = 0.0
-    #     total = 0.0
-    #     product_id = 1 
-    #     inv_id = invoice.id
-    #     for subs in record.subscription:
-    #         product_search = products.search([('name', '=ilike', subs.name)], limit=1)
-    #         if product_search:   
-    #             if record.duration_period == "Months":
-    #                 if subs.special_subscription != True:
-    #                     total = (subs.total_cost / 6) * record.number_period
-    #                     price = total
-    #                 if subs.special_subscription == True:
-    #                     total = subs.total_cost
-    #                     price = total
-    #                 curr_invoice_subs = {
-    #                         'product_id': product_search.id,
-    #                         'name': "Charge for "+ str(product_search.name) + ": Period-"+(self.subscription_period),
-    #                         'price_unit': price,
-    #                         'quantity': 1.0,
-    #                         'account_id': product_search.categ_id.property_account_income_categ_id.id or record.account_id.id,
-    #                         'invoice_id': inv_id,
-    #                         }
-    #             elif record.duration_period == "Full Year":
-    #                 if subs.special_subscription != True:
-    #                     total = (subs.total_cost * 2) * record.number_period
-    #                     price += total
-    #                 else:
-    #                     total = (subs.total_cost * 2) * record.number_period
-    #                     price += total 
-                     
-    #                 curr_invoice_subs = {
-    #                         'product_id': product_search.id,
-    #                         'name': "Charge for "+ str(product_search.name) + ": Period-"+(self.subscription_period),
-    #                         'price_unit': price,
-    #                         'quantity': 1.0,
-    #                         'account_id': product_search.categ_id.property_account_income_categ_id.id or record.account_id.id,
-    #                         'invoice_id': inv_id,
-    #                         } 
-    #                 invoice_line_obj.create(curr_invoice_subs)
+        
+        return table 
+
+
+    def generate_pdf(self, record, invoice):
+        table_content = ""
+        for rec in invoice.invoice_line_ids:
+            product,name,qty,price= rec.product_id.name if rec.product_id.name else "-", rec.product_id.name if rec.product_id.name else "-", \
+                rec.quantity if rec.quantity else "-",rec.price_unit if rec.price_unit else "-"
+            table_content += """<tr>
+                                    <td>{0}</td>
+                                    <td>  -----------------------------  </td>
+                                    <td> {1}</td>
+                                        
+                                </tr>""".format(product, price)
+
+        table = """<div class="row" style="font-size: 20px;">
+                        <center><strong>Billing Notice</strong></center>
+
+                        <div class="col-2" style="border:solid; border-radius:15px; font-size: 14px;">
+                            <p>MEMBER NAME: {}</p> 
+                            <p>ADDRESS: {}</p>
+                        </div>
+                        <div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 11px;">
+                            <p>Period:{}</p>
+                            <strong>Membership No: {}</strong><br/>
+                            <strong>Printed on: {}</strong><br/>
+                            
+                        </div>
+                        
+                    </div><br/>
+                    <div class="row" style="font-size: 16px;">		
+                        <table class="table table-condensed"> 
+                            <thead>
+                                <tr>
+                                    <th><strong>Item Description</strong></th>
+                                    <td>                                 </td>
+                                    <th><strong>Amount</strong></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {}
+                            </tbody>
+                            <t> 
+                                <td><b>Total:<b/></td>
+                                <td>  -----------------------------  </td>
+                                <td>
+                                    {}
+                                </td>
+                                
+                            </t>
+                        </table> 
+                    </div>
+
+                    <div class="row">
+                        <div class="col-xs-12" style="font-size: 12px;">
+                            {}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-3" style="font-size: 17px;"><br/>
+                            <strong>Signature: .................</strong><br/>
+                            <strong>General Manager</strong>
+
+                        </div>
+                    </div>""".format(invoice.partner_id.name, invoice.partner_id.street, self.subscription_period,
+                    record.identification, fields.Date.today(),table_content,invoice.amount_total, self.text_editor)
+        return table
+ 

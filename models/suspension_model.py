@@ -71,41 +71,22 @@ class Suspend_Member(models.Model):
         string='All Payments', compute="_get_record_ids")
     invoice_id = fields.Many2many('account.invoice', string='Invoice', store=True)
     balance_total = fields.Integer(
-        'Outstandings',  compute="get_pay_balance_total"
+        'Outstandings',  compute="_get_record_ids"
         )
-    
-     
+
     @api.depends('member_id')
     def _get_record_ids(self):
         payment_list = []
-        invoice_lists = []
         for rec in self.member_id.payment_ids:
-            payment_list.append(rec.id)
-        # for ref in self.member_id.invoice_id:
-        #     invoice_lists.append(rec.id)
+            payment_list.append(rec.id) 
         self.payment_ids = payment_list
-        # self.invoice_id = invoice_lists
+        self.balance_total = self.member_id.balance_total
+
         
-    @api.one
-    @api.depends('payment_ids')
-    def get_pay_balance_total(self):
-        balance = 0.0 
-        for tec in self.payment_ids:
-            balance += tec.balances
-        self.balance_total = balance
-         
     @api.depends('member_id')
     def get_all_packages(self):
         pass
-        # get_member = self.env['member.app'].search([('partner_id','=',self.partner_id.id)])
-        # appends = []
-        # appends2 = []
-        # for ret in get_member.invoice_id:
-        #     appends.append(ret.id)
-        # for rett in get_package.subscription:
-        #     appends2.append(rett.id)
-        # self.package = [(6,0, appends)]
-        # self.subscription = [(6,0,appends2)]
+         
     @api.one
     @api.depends('partner_id')
     def Domain_Member_Field(self):
@@ -114,8 +95,6 @@ class Suspend_Member(models.Model):
             
             if member:
                 for tec in member:
-                    self.main_house_cost = tec.main_house_cost
-                    self.account_id = tec.account_id.id
                     self.identification = tec.identification
                     self.email = tec.email
                     self.member_id = tec.id
@@ -143,12 +122,12 @@ class Suspend_Member(models.Model):
         memberx = self.env['member.app'].search([('partner_id', '=', self.partner_id.id)]) 
         if memberx:
             for rec in memberx:
-                rec.write({'state':"suspension", 'activity':'inact'})
+                rec.write({'state': "suspension", 'activity':'inact'})
             self.write({'state':'suspend', 'suspension_date':fields.Datetime.now()})
             
             spouse = self.env['register.spouse.member'].search([('sponsor','=',self.member_id.id)])
             for spouses in spouse:
-                return spouses.write({'active':True})
+                spouses.write({'active':False})
             
             self.send_mail_suspend()
         else:
@@ -177,8 +156,6 @@ class Suspend_Member(models.Model):
              Kindly </br><a href={}> </b>Click <a/> to review. Thanks"\
              .format(self.identification,fields.Datetime.now(),self.get_url(self.id, self._name))
         self.mail_sending(email_from,group_user_id,extra,bodyx) 
-        
-        
        
     @api.multi
     def send_mail_to_manager(self, force=False):
@@ -229,24 +206,24 @@ class Suspend_Member(models.Model):
             mail_id =  order.env['mail.mail'].create(mail_data)
             order.env['mail.mail'].send(mail_id)
     
-    def define_package_invoice_line(self,invoice):
-        products = self.env['product.product']
-        invoice_line_obj = self.env["account.invoice.line"]
+    # def define_package_invoice_line(self,invoice):
+    #     products = self.env['product.product']
+    #     invoice_line_obj = self.env["account.invoice.line"]
          
-        inv_id = invoice.id
-        for pack in self.package:
-            product_search = products.search([('name', '=ilike', pack.name)], limit=1)
-            if product_search:      
-                total = product_search.list_price # * self.number_period
-                curr_invoice_pack = {
-                                'product_id': product_search.id,
-                                'name': "Charge for "+ str(product_search.name),
-                                'price_unit': total, 
-                                'quantity': 1.0,
-                                'account_id': product_search.categ_id.property_account_income_categ_id.id or self.account_id.id,
-                                'invoice_id': inv_id,
-                                    }
-                invoice_line_obj.create(curr_invoice_pack) 
+    #     inv_id = invoice.id
+    #     for pack in self.package:
+    #         product_search = products.search([('name', '=ilike', pack.name)], limit=1)
+    #         if product_search:      
+    #             total = product_search.list_price # * self.number_period
+    #             curr_invoice_pack = {
+    #                             'product_id': product_search.id,
+    #                             'name': "Charge for "+ str(product_search.name),
+    #                             'price_unit': total, 
+    #                             'quantity': 1.0,
+    #                             'account_id': invoice.journal_id.default_credit_account_id.id, # product_search.categ_id.property_account_income_categ_id.id or self.account_id.id,
+    #                             'invoice_id': inv_id,
+    #                                 }
+    #             invoice_line_obj.create(curr_invoice_pack) 
   
     @api.multi
     def create_member_bill(self):
@@ -261,15 +238,16 @@ class Suspend_Member(models.Model):
         for inv in self:
             invoice = invoice_obj.create({
                 'partner_id': inv.partner_id.id,
-                'account_id': inv.partner_id.property_account_payable_id.id, 
+                'account_id': inv.partner_id.property_account_receivable_id.id,
                 'fiscal_position_id': inv.partner_id.property_account_position_id.id,
                 'branch_id': self.env.user.branch_id.id, 
                 'date_invoice': datetime.today(),
-                'type': 'out_invoice', # vendor
+                'type': 'out_invoice',  
                 # 'type': 'out_invoice', # customer
             }) 
              
-            self.define_package_invoice_line(invoice) 
+            self.define_invoice_line(invoice)
+            self.dependent_invoice_line(invoice)
             invoice_list.append(invoice.id) 
             member_get = self.env['member.app'].search([('id','=',self.member_id.id)])
             if member_get:       
@@ -289,6 +267,115 @@ class Suspend_Member(models.Model):
     @api.multi
     def payment_button(self):
         return self.create_member_bill()
+
+
+    def create_outstanding_line(self, inv_id):
+        invoice_line_obj = self.env["account.invoice.line"] 
+        members_search = self.env['member.app'].search([('id', '=', self.member_id.id)])
+        account_obj = self.env['account.invoice']
+        accounts = account_obj.browse([inv_id]).journal_id.default_credit_account_id.id
+        income_account = self.env['account.account'].search([('user_type_id.name', '=ilike', 'Income')], limit=1)
+        
+        balance = members_search.balance_total
+        if balance != 0: 
+            curr_invoice_subs = {
+                                'name': "Added Outstanding", 
+                                'price_unit': balance, 
+                                'quantity': 1,
+                                'account_id': accounts if accounts else income_account.id,
+                                'invoice_id': inv_id,
+                                }
+
+            invoice_line_obj.create(curr_invoice_subs)
+            members_search.balance_total -= balance
+
+            
+    def define_invoice_line(self,invoice):
+        inv_id = invoice.id
+        invoice_line_obj = self.env["account.invoice.line"]
+        journal = self.env['account.journal'].search([('type', '=', 'sale')], limit=1)
+        prd_account_id = journal.default_credit_account_id.id
+        self.create_outstanding_line(inv_id)
+
+        section_lines = self.member_id.mapped('section_line') #.filtered(lambda self: self.sub_payment_id.paytype in ['others'])
+        if section_lines:
+            for record in section_lines:
+                curr_invoice_line = {
+                        'name': "Member Charge for "+ str(record.sub_payment_id.name) + ' -- ' +str(record.section_ids.name),
+                        'price_unit': record.amount,
+                        'quantity': 1.0,
+                        'account_id': invoice.journal_id.default_credit_account_id.id if invoice.journal_id.default_credit_account_id else prd_account_id, #product_search.categ_id.property_account_income_categ_id.id,
+                        'invoice_id': inv_id,
+                            }
+                invoice_line_obj.create(curr_invoice_line)
+        else:
+            raise ValidationError('There is no section attached for this member. \n\
+                Kindly add one and continue.')
+
+    def dependent_invoice_line(self, invoice):
+        child_total = 0.0
+        spouse_total = 0.0
+        inv_id = invoice.id
+        percentage_cut = 50/100
+        invoice_line_obj = self.env["account.invoice.line"]
+         
+        if self.member_id.depend_name:
+            child_lines = self.member_id.mapped('depend_name').filtered(lambda self: self.relationship == 'Child')
+            spouse_lines = self.member_id.mapped('depend_name').filtered(lambda self: self.relationship != 'Child')
+            if child_lines:
+                for child in child_lines:
+                    
+                    section_lines = child.mapped('section_line')#.filtered(lambda self: self.sub_payment_id.paytype in ['special'])
+                    for sub2 in section_lines:
+                        total = 0.0
+                        if sub2.is_child != True:
+                            if sub2.sub_payment_id.paytype == "main_house" and child.mode in ["jun", "new"]:
+                                discount = percentage_cut * sub2.amount 
+                                total = (discount / 6) * self.member_id.number_period if self.member_id.duration_period == "Months" else (sub2.price_mainhouse * 2) * self.member_id.number_period 
+                                child_total += total
+
+                            else: # sub2.sub_payment_id.paytype == "main_house" and not child.mode in ["jun", "new"]:
+                                total = (sub2.amount / 6) * self.member_id.number_period if self.member_id.duration_period == "Months" else (sub2.amount * 2) * self.member_id.number_period 
+                                child_total += total
+                        else:
+                            total = 0
+                            child_total += 0
+                             
+                        curr_invoice_child_subs = {
+                            # 'product_id': product_child.id if product_child else False,
+                            'name': "Child Charge for "+ str(sub2.sub_payment_id.name) + ' -- ' + str(sub2.section_ids.name), # if product_child else sub2.subscription.name)+ ": Period-"+(self.subscription_period),
+                            'price_unit': total,
+                            'quantity': 1.0,
+                            'account_id': invoice.journal_id.default_credit_account_id.id,# product_child.categ_id.property_account_income_categ_id.id or record.account_id.id,
+                            'invoice_id': inv_id,
+                        }
+                        invoice_line_obj.create(curr_invoice_child_subs)
+                         
+            if spouse_lines:
+                for spouse in spouse_lines:
+                    section_lines = spouse.mapped('section_line')#.filtered(lambda self: self.sub_payment_id.paytype in ['special'])
+                    for sub2 in section_lines:
+                        if sub2.special_subscription != True:
+                            if sub2.sub_payment_id.paytype == "main_house" and spouse.mode in ["jun", "new"]:
+                                discount = percentage_cut * sub2.amount 
+                                spousetotal = (discount / 6) * self.member_id.number_period if self.member_id.duration_period == "Months" else (sub2.price_mainhouse * 2) * self.member_id.number_period 
+                                spouse_total += spousetotal
+
+                            else: # sub2.sub_payment_id.paytype == "main_house" and not child.mode in ["jun", "new"]:
+                                spousetotal = (sub2.amount / 6) * self.member_id.number_period if self.member_id.duration_period == "Months" else (sub2.amount * 2) * self.member_id.number_period 
+                                spouse_total += spousetotal
+                        else:
+                            spousetotal = sub2.amount
+                            spouse_total += spousetotal 
+                        curr_invoice_spouse_subs = {
+                            # 'product_id': product_child.id if product_child else False,
+                            'name': "Spouse Charge for "+ str(sub2.sub_payment_id.name) + ' -- ' + str(sub2.section_ids.name), # if product_child else sub2.subscription.name)+ ": Period-"+(self.subscription_period),
+                            'price_unit': spousetotal,
+                            'quantity': 1.0,
+                            'account_id': invoice.journal_id.default_credit_account_id.id,# product_child.categ_id.property_account_income_categ_id.id or record.account_id.id,
+                            'invoice_id': inv_id,
+                        }
+                        invoice_line_obj.create(curr_invoice_spouse_subs)
      
     @api.multi
     def button_payments(self,name,amount,level):#  Send memo back
@@ -327,13 +414,4 @@ class Suspend_Member(models.Model):
     def state_payment_inv(self):
         self.send_mail_officer_main()
         self.write({'state':'manager_approve'})
-        
-        
-    # @api.multi
-    # def payment_button(self):
-    #     name = "Self Suspension Payment Fee"
-    #     percent = 50/100
-    #     amountx = self.main_house_cost * percent
-    #     level = 'Suspension'
-    #     return self.button_payments(name,amountx,level)
          

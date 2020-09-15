@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE xml>
+<odoo>
+    <data> 
+        <record model="ir.ui.view" id="section_line_form_view">
+            <field name="name">section.line</field>
+            <field name="model">section.line</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <form string="Section "> 
+                    <header>
+                    </header>
+                    <sheet>
+                        
+                        <label for="section_ids" class="oe_edit_only"/>
+                        <h1>
+                            <field name="section_ids" default_focus="1"/>
+                        </h1>
+                    <group>
+                        <group>
+                            <field name="dependent_type"/>
+                            <field name="sub_payment_id"/>
+                            
+                        </group>
+                        <group>
+                           <field name="special_subscription"/>
+                            <field name="is_child"/>
+                            <field name="amount" widget="monetary"/>
+                            
+                        </group>
+                         
+                    </group>
+                </sheet>
+            </form>
+        </field>
+        </record>
+        <record model="ir.ui.view" id="section_line_tree">
+            <field name="name">Section Line</field>
+            <field name="model">section.line</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <tree string="Section">
+                    <field name="section_ids"/>
+                    <field name="dependent_type"/>
+                    <field name="sub_payment_id"/>
+                    <field name="special_subscription"/>
+                    <field name="is_child"/>
+                    <field name="amount" widget="monetary"/>
+                            
+                </tree>
+            </field>
+        </record>
+
+        <!-- <act_window id="subscription_main_action_main"
+            name="Subscription"
+            res_model="subscription.model"
+            domain="[]"
+            view_mode="tree,form"/> -->
+
+        <!-- <menuitem id ="menu_memapp_subscription" name="Subscription Renewal" parent="member_app.menu_memapp_all" sequence="5" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi"/>
+        <menuitem id ="menu_subs_member" name="Subscription" sequence="1" parent="menu_memapp_subscription" action="subscription_main_action_main"/> -->
+        
+
+    </data>
+ </odoo>

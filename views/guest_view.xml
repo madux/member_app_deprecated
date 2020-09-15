@@ -9,44 +9,43 @@
             <field name="priority">50</field>
             <field name="arch" type="xml">
                 <form string="Guest  "> 
-                     
-                            <header>
-                                <button name="button_send_hon" string="Apply" type="object" icon="fa-registered" class="btn-primary"
-                                attrs="{'invisible': [('state','not in',['draft'])]}" groups="member_app.membership_officer_ikoyi,member_app.manager_member_ikoyi"/>
+                    <header>
+                        <button name="button_send_hon" string="Apply" type="object" icon="fa-registered" class="btn-primary"
+                        attrs="{'invisible': [('state','not in',['draft'])]}" groups="member_app.membership_officer_ikoyi,member_app.manager_member_ikoyi"/>
 
-                                <button name="button_send_hon_invocie" string="Invoice" type="object" icon="fa-registered" class="btn-primary"
-                                 attrs="{'invisible': [('state','not in',['honourary'])]}" groups="member_app.membership_honour_ikoyi"/>
+                        <button name="button_send_hon_invocie" string="Invoice" type="object" icon="fa-registered" class="btn-primary"
+                            attrs="{'invisible': [('state','not in',['honourary'])]}" groups="member_app.membership_honour_ikoyi"/>
 
-                                <button name="button_send_invocie_wait" string="Make Payment and Verify" type="object" icon="fa-registered" class="btn-primary"
-                                attrs="{'invisible': [('state','not in',['invoice'])]}"/>
+                        <button name="button_send_invocie_wait" string="Make Payment and Verify" type="object" icon="fa-registered" class="btn-primary"
+                        attrs="{'invisible': [('state','not in',['invoice'])]}"/>
 
-                                <button name="button_send_gen_Manager" string="Send to GM" type="object" icon="fa-registered" class="btn-primary"
-                                attrs="{'invisible': [('state','not in',['wait'])]}" groups="member_app.membership_officer_ikoyi,member_app.manager_member_ikoyi"/>
+                        <button name="button_send_gen_Manager" string="Send to GM" type="object" icon="fa-registered" class="btn-primary"
+                        attrs="{'invisible': [('state','not in',['wait'])]}" groups="member_app.membership_officer_ikoyi,member_app.manager_member_ikoyi"/>
 
-                                <button name="button_gen_Manager_hon2" string="Approve" type="object" icon="fa-registered" class="btn-primary"
-                                 attrs="{'invisible': [('state','not in',['general_manager'])]}" groups="ikoyi_module.gm_ikoyi"/>
+                        <button name="button_gen_Manager_hon2" string="Approve" type="object" icon="fa-registered" class="btn-primary"
+                            attrs="{'invisible': [('state','not in',['general_manager'])]}" groups="ikoyi_module.gm_ikoyi"/>
 
-                                <button name="button_hon2_approve" string="Approve" type="object" icon="fa-registered" class="btn-primary"
-                                attrs="{'invisible': [('state','not in',['honourary_two'])]}" groups="member_app.membership_honour_ikoyi"/>
+                        <button name="button_hon2_approve" string="Approve" type="object" icon="fa-registered" class="btn-primary"
+                        attrs="{'invisible': [('state','not in',['honourary_two'])]}" groups="member_app.membership_honour_ikoyi"/>
 
-                                <button name="button_officer_confirm" string="Approve" type="object" icon="fa-registered" class="btn-primary"
-                                attrs="{'invisible': [('state','not in',['verify'])]}" groups="member_app.membership_officer_ikoyi,member_app.manager_member_ikoyi"/>
-                                
-                                <button type="object"  name="print_membership_payment_receipt"
-                                    class="oe_link" string="Print Payments Receipt"
-                                    attrs="{'invisible':[('payment_idss','=',[])]}"
-                                    />
-                                <field name="state" widget="statusbar" statusbar_visible="draft,wait,invoice,general_manager,confirm"/>
+                        <button name="button_officer_confirm" string="Approve" type="object" icon="fa-registered" class="btn-primary"
+                        attrs="{'invisible': [('state','not in',['verify'])]}" groups="member_app.membership_officer_ikoyi,member_app.manager_member_ikoyi"/>
+                        
+                        <button type="object"  name="print_membership_payment_receipt"
+                            class="oe_link" string="Print Payments Receipt"
+                            attrs="{'invisible':[('payment_idss','=',[])]}"
+                            />
+                        <field name="state" widget="statusbar" statusbar_visible="draft,wait,invoice,general_manager,confirm"/>
 
-                             </header>
+                        </header>
                     <sheet>
                         <div class="oe_button_box" name="button_box">
                                     
-                                    <button name="see_breakdown_invoice" string="View Payments" type="object" class="oe_stat_button" icon="fa-shirtsinbulk" attrs="{'invisible':[('state','=','draft')]}">
-                                            <!--<field name="see_invoice" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>-->
-                                        </button>
+                            <button name="see_breakdown_invoice" string="View Payments" type="object" class="oe_stat_button" icon="fa-shirtsinbulk" attrs="{'invisible':[('state','=','draft')]}">
+                                    <!--<field name="see_invoice" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>-->
+                            </button>
 
-                                    </div>
+                        </div>
                         <field name="image" widget="image" class="oe_avatar"/>
                         <label for="Name" class="oe_edit_only"/>
                         <h1>

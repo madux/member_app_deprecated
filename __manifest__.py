@@ -22,6 +22,7 @@
         'views/member_policy_view.xml',
         'views/spouse_exclusion_view.xml',
         'views/reinstatement_view.xml',
+        'views/section_line_view.xml',
         'wizard/subscription_wizard.xml',
         'reports/receipt_membership.xml',
         'reports/id_card_template.xml',
