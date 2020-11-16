@@ -45,7 +45,7 @@
                                 <field name="suspension_date"/>
                                 <field name="users_followers" widget="many2many_tags"/> 
                                 <field name="package" readonly="0" widget="many2many_tags" invisible="1" string="Sessions" required="0"/>
-                                <field name="balance_total" readonly="0"/>
+                                <field name="balance_total" invisible="1" readonly="0"/>
                                 
                                 <!-- <field name="invoice_id" invisible="0" string ="Invoices" widget="many2many_tags"/>
                                      -->

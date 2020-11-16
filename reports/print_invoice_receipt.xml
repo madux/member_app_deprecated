@@ -10,6 +10,7 @@
             name="member_app.receipt_invoice_template"
             file="member_app.receipt_invoice_template"
             menu="True"
+			attachment_use="True"
             />
 
 		<!-- Report Action -->
@@ -272,12 +273,12 @@
 										<t>
 											
 											<!-- <td>Total: </td> -->
-											 <td>
-												Total: <span t-esc="sum(line.price_subtotal for line in o.invoice_id[0].invoice_line_ids)" t-options='{"widget": "monetary", "display_currency": o.invoice_id[0].currency_id}'/>
-											
-											</td>
+											 
 											<td>
 												Outstanding: <span t-esc="o.invoice_id[0].residual" t-options='{"widget": "monetary", "display_currency": o.invoice_id[0].currency_id}'/>
+											</td>
+											<td>
+												Total: <span t-esc="sum(line.price_subtotal for line in o.invoice_id[0].invoice_line_ids)" t-options='{"widget": "monetary", "display_currency": o.invoice_id[0].currency_id}'/>
 											</td>
 										</t>
 										 

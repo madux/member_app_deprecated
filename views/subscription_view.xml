@@ -7,10 +7,9 @@
             <field name="model">subscription.model</field>
             <field name="priority">50</field>
             <field name="arch" type="xml">
-                <form string="Subscription ">   
+                <form string="Subscription "> 
                     <header>
-                             
-                        <button name="check_expiry" string='Check Expiry &amp; Renew' type="object" icon="fa-registered" class="btn-primary"
+                        <button name="check_expiry" string='Subscribe' type="object" icon="fa-registered" class="btn-primary"
                         attrs="{'invisible':[('state','not in',['draft','done'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" />
                         
                         <button name="print_receipt_sus" string='Print Receipt' type="object" icon="fa-registered" class="btn-primary"
@@ -35,99 +34,112 @@
                         <button name="generate_receipt" string='View Invoice/Payments' type="object" icon="fa-registered" class="btn-primary"
                         attrs="{'invisible': [('invoice_id', '!=', False),('state','not in',['done','fined','partial'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" />       
                         <field name="state" widget="statusbar" statusbar_visible="draft,suscription,done,fined"/>
+                    
                     </header>
-                    <sheet> 
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="see_breakdown_invoice" string="See Invoices" type="object" class="oe_stat_button" icon="fa-shirtsinbulk" attrs="{'invisible': [('state','in',['draft'])]}"></button>
+                        </div>
                         <label for="Name" class="oe_edit_only"/>
                         <h1>
                             <field name="partner_id" default_focus="1" required="1" placeholder="Name" options="{'limit': 1}" attrs="{'readonly':[('state','not in',['draft', 'done'])]}"/>
                         </h1>
-                    <group attrs="{'readonly': [('state','not in',['draft'])]}">
+                    <group>
                         <group>
                             <field name="member_id" string="Member Name" readonly ="1"/><!-- attrs="{'readonly':[('state','in',['draft'])]}" />-->
                             <field name="email" widget="email" readonly ="1"/>
                             <field name="account_id" required = "0" options="{&quot;no_open&quot;: True}" />
                             <field name="identification" string = "Member ID" readonly ="1"/>   
                             <!-- <field name="barcode" widget="BarCode128"/>          -->
-                        </group>
-                        <group> 
+                            <field name="date_end" invisible="1" readonly="1"/>     
+                            <field name="total" invisible="1"/>
+                            <field name="balance_total" invisible="1" readonly="1"/>
                             <field name="date" invisible = "1" string="Request Date" attrs="{'readonly':[('state','not in',['draft'])]}" />
+                            
+                        </group>
+                        <group>
                             <field name="date_of_last_sub" string="Last Subscription Date" attrs="{'invisible':[('state','not in',['draft'])]}" readonly="1"/>
-                            <field name="users_followers" widget="many2many_tags"/>
+                            <field name="users_followers" options="{&quot;no_open&quot;: True}" widget="many2many_tags"/>
                             <field name="periods_month" attrs="{'readonly':[('state','not in',['draft','suscription'])]}" />
-                            <field name="p_type" widget="radio" options ="{'horizontal':true}"/>
+                            <field name="p_type" widget="radio" options ="{'horizontal':true}" readonly="1"/>
                             <field name="invoice_id" string="Invoice" widget="many2many_tags" readonly="1"/>
                             <field name="duration_period" required="1" attrs="{'readonly': [('state', 'not in', ['draft', 'suscription'])]}"/>
                             <field name="number_period" attrs="{'required': [('duration_period','in',['Months','Full Year'])],'readonly': [('state', 'not in', ['draft', 'suscription'])], 'invisible': [('duration_period','not in',['Months','Full Year'])]}"/>
-                            <field name="date_end" invisible="1" readonly="1"/>     
-                            <field name="total" invisible="1"/>
-                            <field name="total_paid" readonly="1"/>
-                            <field name="balance_total" readonly="1"/>
+                            
+                            <field name="total_paid" invisible ="1" readonly="1"/>
+                            
                             <!--<field name="url_audio" widget="audio_field" options="{'show_on_edit_mode':True}"
                             />-->
                         </group>
-                        <p style="color: red;">
-                            <b>Note: The 'Number of Years/Months' and 'Duration' affects the calculated bills</b><br/>
-                        </p>
-
-                        <notebook colspan="4">
-                                    
-                            <page name="section_package" string="Sections">
-                                <field name="subscription" readonly="0" attrs="{'readonly': [('state', 'not in', ['draft', 'suscription'])]}">
-                                <p style="color: red;">* See Sections</p>
-                                <tree string="Sections" editable="bottom">
-                                    <field name="name"/>
-                                    <field name="member_price" string = "subscription Amount"/>                               
-                                    <field name="subscription_period" string="Subscription Period"/>
-                                    
-                                    <field name="mainhouse_price"/>
-                                    <field name="entry_price"/>
-                                    <field name="sub_levy"/>
-                                    <field name="special_levy"/>
-                                        
-                                </tree>
-                                </field>
-                                <!-- <separator string="Packages" colspan="4"/>
-                                <field name="package" readonly="0" attrs="{'readonly':[('state','not in',['draft'])]}" >
-                                <p style="color: red;">* See Payments</p>
-                                <tree string="Packages" editable="bottom">
-                                <field name="name"/>
-                                    <field name="package_cost" string = "Package Amount"/>                               
-                                    <field name="subscription_period" string="Subscription Period"/>
-                                    <field name="pdate" string="Date"/>
-                                    
-                                </tree>
-                                </field> -->
-                            </page>
-                            <page name="depends_mem" string="Spouse &amp; Dependants">
-                                <field name="depend_name" readonly ="0" widget="many2many_kanban">
-                                    <kanban quick_create="false" create="true" delete="true">
-                                        <field name="partner_id"/>
-                                        <field name="email"/>
-                                        <templates>
-                                        <t t-name="kanban-box">
-                                            <div class="oe_kanban_global_click" style="position: relative">
-                                                <a t-if="! read_only_mode" type="delete" style="position: absolute; right: 0; padding: 4px; diplay: inline-block">X</a>
-                                                <div class="oe_module_vignette">
-                                                    <!--<img t-att-src="kanban_image('res.users', 'image_small', record.id.value)" class="oe_avatar oe_kanban_avatar_smallbox"/>-->
-                                                    <img t-att-src="kanban_image('register.spouse.member', 'image', record.id.value)" class="oe_avatar oe_kanban_avatar_smallbox"/>
-
-                                                        <div class="o_kanban_tags_section oe_kanban_partner_categories"/>
-                                                            <b>Name:<field name="first_name"/>, <field name="surname"/></b><br/>
-                                                            <b>Email:<field name="email"/></b>
-
-                                                </div>
-                                            </div>
-                                        </t>
-                                        </templates>
-                                    </kanban>
-                                </field>
-                            </page>
-
-                        </notebook>
+                         
                     </group>
+                     <notebook>
+                         <page string="Section Line">
+                                <field name="section_line" domain="[('dependent_type', 'not in', ['spouse','child'])]" attrs="{'required': [('state', '=', ['temp','green', 'issue_green','green penalty', 'account'])]}">
+                                    <tree string="Section Lines">
+                                        <field name="sub_payment_id" required="0"/>
+                                        <field name="dependent_type" required="0"/>
+                                        <field name="section_ids" required="0"/>
+                                        <field name="amount" required="0"/>
+                                                
+                                    </tree>
+                                </field>
+                            </page>
+                        <page name="section_package" string="Sections" invisible="1">
+                            <field name="subscription">
+                            <p style="color: red;">* See Sections</p>
+                            <tree string="Sections" editable="bottom">
+                                <field name="name"/>
+                                <field name="member_price" string = "subscription Amount"/>                               
+                                <field name="subscription_period" string="Subscription Period"/>
+                                
+                                <field name="mainhouse_price"/>
+                                <field name="entry_price"/>
+                                <field name="sub_levy"/>
+                                <field name="special_levy"/>
+                                    
+                            </tree>
+                            </field>
+                            <!-- <separator string="Packages" colspan="4"/>
+                            <field name="package" readonly="0" attrs="{'readonly':[('state','not in',['draft'])]}" >
+                            <p style="color: red;">* See Payments</p>
+                            <tree string="Packages" editable="bottom">
+                            <field name="name"/>
+                                <field name="package_cost" string = "Package Amount"/>                               
+                                <field name="subscription_period" string="Subscription Period"/>
+                                <field name="pdate" string="Date"/>
+                                
+                            </tree>
+                            </field> -->
+                        </page>
+                        <page name="depends_mem" string="Spouse &amp; Dependants">
+                            <field name="depend_name" widget="many2many_kanban">
+                                <kanban quick_create="false" create="true" delete="true">
+                                    <field name="partner_id"/>
+                                    <field name="email"/>
+                                    <templates>
+                                    <t t-name="kanban-box">
+                                        <div class="oe_kanban_global_click" style="position: relative">
+                                            <a t-if="! read_only_mode" type="delete" style="position: absolute; right: 0; padding: 4px; diplay: inline-block">X</a>
+                                            <div class="oe_module_vignette">
+                                                <!--<img t-att-src="kanban_image('res.users', 'image_small', record.id.value)" class="oe_avatar oe_kanban_avatar_smallbox"/>-->
+                                                <img t-att-src="kanban_image('register.spouse.member', 'image', record.id.value)" class="oe_avatar oe_kanban_avatar_smallbox"/>
+
+                                                    <div class="o_kanban_tags_section oe_kanban_partner_categories"/>
+                                                        <b>Name:<field name="first_name"/>, <field name="surname"/></b><br/>
+                                                        <b>Email:<field name="email"/></b>
+
+                                            </div>
+                                        </div>
+                                    </t>
+                                    </templates>
+                                </kanban>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
-                </form>
-            </field>
+            </form>
+        </field>
         </record>
         <record model="ir.ui.view" id="subscription_maintreex">
             <field name="name">Subscription</field>

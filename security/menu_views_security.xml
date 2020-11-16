@@ -1,38 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-       <!-- <record model="ir.ui.menu" id="allocation_menu.property_sales_menu_root" parent="sales_team.menu_base_partner">
-            <field name="name">Properties</field>
-        </record>
-        <menuitem id="human_resource_custom" sequence="6" name="Human Resource"/>
-        <menuitem id="human_resource_custom_sub" sequence="4" name="Training" parent="human_resource_custom"/>
-        <menuitem id ="training_request.menu_training" name="Training" sequence="1" parent="human_resource_custom_sub"/>
-
-        <menuitem id="human_resource_custom_subone" sequence="2" name="Payroll" parent="human_resource_custom"/>
-        <menuitem id ="hr_payroll.menu_hr_payroll_root" name="Payroll" sequence="1" parent="human_resource_custom_subone"/>
-
-        <menuitem id="human_resource_custom_subtwo" sequence="3" name="Recruitment" parent="human_resource_custom"/>
-        <menuitem id ="hr_recruitment.menu_hr_recruitment_root" name="Recruitment" sequence="1" parent="human_resource_custom_subtwo"/>
-
-        <menuitem id="human_resource_custom_subthree" sequence="1" name="Employee" parent="human_resource_custom"/>
-        <menuitem id ="hr.menu_hr_root" name="Employee" sequence="1" parent="human_resource_custom_subthree"/>
-
-        <menuitem id="human_resource_custom_subfour" sequence="5" name="Leave" parent="human_resource_custom"/>
-        <menuitem id ="hr_holidays.menu_hr_holidays_root" name="Leave" sequence="1" parent="human_resource_custom_subfour"/>
-
-
-
-        '''financial_account_ikoyi
-account_boss_ikoyi
-audit_ikoyi
-audit_boss_ikoyi
-procurement_manager_ikoyi
-gm_ikoyi
-vice_chairman_ikoyi
-chairman_ikoyi
-store_keeper_ikoyi
-procurement_officer_ikoyi
-inventory_manager_ikoyi'''-->
+      
 
         <menuitem name="Procurement"
             id="purchase.menu_purchase_root"

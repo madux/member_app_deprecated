@@ -158,6 +158,9 @@ i am changing the model (LINE 148), id on LINE 146  -->
                             <field name="state" widget="statusbar" statusbar_visible="Draft,Generated"/>
                     </header>
                     <sheet> 
+                        <div class="oe_button_box" name="button_box">
+                            <button name="see_breakdown_invoice" string="See Invoices" type="object" class="oe_stat_button" icon="fa-shirtsinbulk"></button>
+                        </div>
                         <label for="member_id" class="oe_edit_only"/>
                         <h1>
                             <field name="member_id" string="Member Name"
@@ -178,7 +181,21 @@ i am changing the model (LINE 148), id on LINE 146  -->
                     </group>
                      
                     <notebook colspan="4">
-                        <page name="subscription_policy" string="Subscription">
+
+                        <page string="Section Line">
+                            <field name="section_line">
+                                <tree string="Section Lines" editable="bottom">
+                                    <field name="sub_payment_id" required="1"/>
+                                    <field name="dependent_type" required="1"/>
+                                    <field name="section_ids" required="1"/>
+                                    <field name="is_child" help="Used for sections such swimming or Library for child" required="0"/>
+                                    <field name="special_subscription" required="0"/>
+                                    <field name="amount" required="1"/>
+                                   
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="subscription_policy" string="Subscription" invisible="1">
                             <field name="subscription" attrs="{'readonly':[('state','not in',['Draft'])]}">
                                 <p style="color: red;">* See Members</p>
                                 <tree string="Members" editable="bottom">
@@ -221,7 +238,7 @@ i am changing the model (LINE 148), id on LINE 146  -->
                             </field>
                         </page>
 
-                        <page name="package_policy" string="Member Packages">
+                        <page name="package_policy" string="Member Packages" invisible="1">
                             <field name="package" attrs="{'readonly':[('state','not in',['Draft'])]}">
                                 <p style="color: red;">* See Members</p>
                                 <tree string="Members" editable="bottom">

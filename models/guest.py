@@ -173,30 +173,26 @@ class RegisterGuest(models.Model):
 
     def define_invoice_line(self, product_name,invoice, amount):
         products = self.env['product.product']
-        product_id = 0
         invoice_line_obj = self.env["account.invoice.line"]
         product_ids = products.search([('name', '=ilike', product_name)], limit=1)
-        if not product_ids:
-            product_id = products.create({'name': product_name, 'list_price': self.total}).id
-        product_id = product_ids.id
-        product_search = products.browse([product_id])
-        inv_id = invoice.id
-        journal = self.env['account.journal'].search([('type', '=', 'sale')], limit=1)
-        prd_account_id = journal.default_credit_account_id.id
+        # if not product_ids:
+        #     product_id = products.create({'name': product_name, 'list_price': self.total}).id
+        # product_id = product_ids.id
+        # product_search = products.browse([product_id])
+        # journal = self.env['account.journal'].search([('type', '=', 'sale')], limit=1)
+        prd_account_id = invoice.journal_id.default_credit_account_id.id
         curr_invoice_line = {
-                                'product_id': product_search.id,
-                                'name': "Charge for "+ str(product_search.name),
+                                'product_id': product_ids.id if product_ids else False,
+                                'name': "Charge for "+ str(product_ids.name) if product_ids else product_name,
                                 'price_unit': self.total,
                                 'quantity': 1.0,
                                 'price_subtotal': 1.0 * self.total,
-                                'account_id': product_search.categ_id.property_account_income_categ_id.id,
-                                'invoice_id': inv_id,
+                                'account_id': prd_account_id, # product_search.categ_id.property_account_income_categ_id.id,
+                                'invoice_id': invoice.id,
                                 'branch_id': self.env.user.branch_id.id,
                             }
 
         invoice_line_obj.create(curr_invoice_line)
-    
-    
        
     @api.multi
     def create_member_bill(self, product_name):
@@ -213,13 +209,14 @@ class RegisterGuest(models.Model):
         for inv in self:
             invoice = invoice_obj.create({
                 'partner_id': inv.partner_id.id,
-                'account_id': inv.account_id.id or inv.partner_id.property_account_payable_id.id, 
+                'account_id': inv.partner_id.property_account_receivable_id.id,  
                 'fiscal_position_id': inv.partner_id.property_account_position_id.id,
                 'branch_id': self.env.user.branch_id.id, 
                 'date_invoice': datetime.today(),
                 'type': 'out_invoice', # vendor
                 'residual': 1.0 * self.total,
                 'branch_id': self.env.user.branch_id.id,
+                'company_id': self.company_id.id,
                 
                 # 'type': 'out_invoice', # customer
             }) 
@@ -506,7 +503,8 @@ class RegisterGuest(models.Model):
                 #  partner.partner_id.property_account_receivable_id.id,
                 'account_id': partner.account_id.id,
                 'fiscal_position_id': partner.partner_id.property_account_position_id.id,
-                'branch_id': branch_id
+                'branch_id': branch_id,
+                'company_id': self.company_id.id,
             })
             line_values = {
                 'product_id': product_id,  # partner.product_id.id,

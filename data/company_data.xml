@@ -1,0 +1,15 @@
+<!-- <?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="0">
+    <data>
+
+        <record model="res.company" id="default_company_membership">
+            <field name="name">Company MemberShip</field>
+            <field name="currency_id">123</field>
+
+        </record>
+
+    </data>
+
+</odoo> -->
+
+

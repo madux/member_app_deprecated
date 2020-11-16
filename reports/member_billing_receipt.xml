@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <report id="member_billing_report"
+            string="Membership Bill"
+            model="member.app"
+            report_type="qweb-pdf"
+            name="member_app.member_billing_template"
+            file="member_app.member_billing_template"
+            menu="True"
+            />
+
+        <template id="member_billing_template">
+            <t t-call="report.html_container">
+				<t t-foreach="docs" t-as="o">
+					<t t-call="report.external_layout">
+						<div class="page">
+							<div class="row" style="font-size: 20px;">
+								<center><strong>Billing Notice</strong></center>
+
+								<div class="col-xs-6" style="border:solid; border-radius:15px; font-size: 14px;">
+									<p>MEMBER NAME: <span t-field="o.partner_id.name"/></p><br/>
+									<p>ADDRESS: <span t-field="o.partner_id.street"/></p><br/>
+								</div>
+								<div class="col-xs-4 pull-right mt8" name ="right_name" style="font-size: 11px;">
+									<p>Period: <span t-field="o.subscription_period"/></p><br/>
+                                    <strong>Membership No: <span t-field="o.partner_id.identification"/></strong><br/>
+									
+                                </div>
+									
+							</div><br/>
+							<div class="row" style="font-size: 16px;">		
+                                <strong><u>Subscription Fee</u></strong>
+                            </div><br/>
+							<div class="row" style="font-size: 16px;">		
+								<table class="table table-condensed"> 
+									<t t-if="o.summary_line">
+										<thead>
+											<tr>
+												<th><strong>Name</strong></th>
+												<th><strong>Member Cost</strong></th>
+                                                <th><strong>Spouse Cost</strong></th>
+												<th><strong>Child Cost</strong></th>
+                                                <th><strong>Sub Total</strong></th>
+											</tr>
+										</thead>
+										<t t-foreach="o.summary_line" t-as="sl">
+                                            <t t-if="sl.sub_payment_id.paytype == 'subscription'">
+                                                <tbody>
+                                                    <tr>
+                                                        <td> <span t-esc="sl.section_ids.name"/></td>
+                                                        <td> <span t-esc="sl.member_cost"/></td>
+                                                        <td> <span t-esc="sl.spouse_cost"/></td>
+                                                        <td> <span t-esc="sl.child_cost"/></td>
+                                                        <td> <span t-esc="sl.total"/></td>
+                                                        
+                                                    </tr>
+                                                </tbody>
+										    </t>
+										</t>
+									</t>
+								</table>								
+							</div>
+
+                            <div class="row" style="font-size: 16px;">		
+                                <strong><u>Levy Fee</u></strong>
+                            </div><br/>
+							<div class="row" style="font-size: 16px;">		
+								<table class="table table-condensed"> 
+									<t t-if="o.summary_line">
+										<thead>
+											<tr>
+												<th><strong>Name</strong></th>
+												<th><strong>Member Cost</strong></th>
+                                                <th><strong>Spouse Cost</strong></th>
+												<th><strong>Child Cost</strong></th>
+                                                <th><strong>Sub Total</strong></th>
+											</tr>
+										</thead>
+										<t t-foreach="o.summary_line" t-as="sl">
+                                            <t t-if="sl.sub_payment_id.paytype == 'levy'">
+                                                <tbody>
+                                                    <tr>
+                                                        <td> <span t-esc="sl.section_ids.name"/></td>
+                                                        <td> <span t-esc="sl.member_cost"/></td>
+                                                        <td> <span t-esc="sl.spouse_cost"/></td>
+                                                        <td> <span t-esc="sl.child_cost"/></td>
+                                                        <td> <span t-esc="sl.total"/></td>
+                                                    </tr>
+                                                </tbody>
+										    </t>
+										</t>
+									</t>
+								</table>
+							</div>
+
+                            <div class="row" style="font-size: 16px;">		
+                                <strong><u>Entry Fee</u></strong>
+                            </div><br/>
+							<div class="row" style="font-size: 16px;">		
+								<table class="table table-condensed"> 
+									<t t-if="o.summary_line">
+										<thead>
+											<tr>
+												<th><strong>Name</strong></th>
+												<th><strong>Member Cost</strong></th>
+                                                <th><strong>Spouse Cost</strong></th>
+												<th><strong>Child Cost</strong></th>
+                                                <th><strong>Sub Total</strong></th>
+											</tr>
+										</thead>
+										<t t-foreach="o.summary_line" t-as="sl">
+                                            <t t-if="sl.sub_payment_id.paytype == 'entry_fee'">
+                                                <tbody>
+                                                    <tr>
+                                                        <td> <span t-esc="sl.section_ids.name"/></td>
+                                                        <td> <span t-esc="sl.member_cost"/></td>
+                                                        <td> <span t-esc="sl.spouse_cost"/></td>
+                                                        <td> <span t-esc="sl.child_cost"/></td>
+                                                        <td> <span t-esc="sl.total"/></td>
+                                                        
+                                                    </tr>
+                                                </tbody>
+										    </t>
+										</t>
+									</t>
+								</table>
+                            </div>
+                            <div class="row" style="font-size: 16px;">		
+                                <strong><u>Other Fees</u></strong>
+                            </div><br/>
+							<div class="row" style="font-size: 16px;">		
+								<table class="table table-condensed"> 
+									<t t-if="o.summary_line">
+										<thead>
+											<tr>
+												<th><strong>Type</strong></th>
+												<th><strong>Name</strong></th>
+												<th><strong>Member Cost</strong></th>
+                                                <th><strong>Spouse Cost</strong></th>
+												<th><strong>Child Cost</strong></th>
+                                                <th><strong>Sub Total</strong></th>
+											</tr>
+										</thead>
+										<t t-foreach="o.summary_line" t-as="sl">
+                                            <t t-if="not (sl.sub_payment_id.paytype == 'entry_fee' or sl.sub_payment_id.paytype == 'levy' or sl.sub_payment_id.paytype == 'subscription')">
+                                                <tbody>
+                                                    <tr>
+                                                        <td> <span t-esc="sl.sub_payment_id.name"/></td>
+                                                        <td> <span t-esc="sl.section_ids.name"/></td>
+                                                        <td> <span t-esc="sl.member_cost"/></td>
+                                                        <td> <span t-esc="sl.spouse_cost"/></td>
+                                                        <td> <span t-esc="sl.child_cost"/></td>
+                                                        <td> <span t-esc="sl.total"/></td>
+                                                        
+                                                    </tr>
+                                                </tbody>
+										    </t>
+										</t>
+									</t>
+								</table>
+                                
+							</div>
+                            <div class="row" style="font-size: 16px;">
+                                <strong>Outstanding: <span t-esc="o.balance_total" t-options='{"widget": "monetary", "display_currency": o.invoice_id[0].currency_id}'/></strong>
+                            </div><br/>
+                            <div class="row pull-right" style="font-size: 16px;">
+                                <strong>Total: <span t-esc="sum(line.total for line in o.summary_line)" t-options='{"widget": "monetary", "display_currency": o.invoice_id[0].currency_id}'/></strong>
+                               
+                            </div>
+							 
+							<div class="row">
+								<div class="col-xs-12" style="font-size: 12px;">
+									<h5><strong>ATTENTION:-</strong></h5>
+									<p>
+										At the emergency meeting of the GC which held on the 6th of July, 2020 it was magnanimously
+
+										resolved that:
+										<ol> 
+											<li> That the increase of N10,000 in subscription for July/Dec 2020 cycle be reversed;</li>
+											<li> That Main House and Sectional levies be suspended for this July/Dec 2020 subscription cycle.</li>
+											<li> That fresh bills be issued to all members to replace the earlier ones, taking into consideration items (1) and (2) above; and </li>
+											<li> That members who have already paid the bills for July/Dec 2020 cycle be credited with the total amount of the reversed
+												subscription increase and suspended levies in the Jan/June 2021 bill.</li>
+										</ol>
+									</p>
+									<p>
+										<strong><u>MEDICAL INSURANCE SCHEME  (Optional)</u></strong><br/>
+										Medical Insurance Scheme payable at the rate of N2,500 per subscription cycle for N1,000,000(One Million
+
+										Naira) covers injury and death within the club premises for any participating member of the club.
+
+										Please pay immediately and update your bio-data form for proper record keeping.<br/>
+									
+										Bankers' cheque(s) should be addressed to Ikoyi Club 1938 with your name and membership number clearly stated at the back.<br/>
+										Membership Services Tel:01-2919507, 2919508. 07083709076 is for whatsapp only.<br/>
+										Email: membershipservices@ikoyiclub1938.net<br/>
+										Subscription shall be payable in advance and no member shall enjoy any privilege of membership one month
+										after the subscription is due for payment.<br/>
+									
+										Payment can also be made through any of the bank accounts stated below. However Membership Services must be notified of such payment immediately.
+										<ol>
+											<li> Union Bank of Nigeria a/c no - 0007278199(Operations)</li>
+											<li> United Bank of Africa a/c no - 100-041105-8</li>
+											<li> Guaranty Trust Bank a/c no - 0001859873</li>
+											<li> First Bank of Nigeria a/c no - 2001751035</li>
+											<li> Zenith Bank Plc  a/c no - 1010231837</li>
+										</ol>
+									</p>
+									<p>
+										For ease of payment, On-line payment option is now available on<br/>
+										<u>www.quickteller.com/ikoyiclub</u> or other quickteller enabled ATM.<br/>
+
+										N/B late payment after 3 months attracts a penalty of N10,000<br/>
+
+										<strong>PLEASE RETURN BILL WITH YOUR BANK DRAFT/EVIDENCE OF FUNDS TRANSFER</strong>
+									</p>
+
+
+								</div>                                
+							</div><br/>
+							
+							<div class="row">
+								<div class="col-xs-3" style="font-size: 17px;"><br/>
+									<strong>Signature:.....................</strong><br/>
+									<strong>General Manager</strong>
+
+								</div>
+							</div>
+						</div>
+					</t>
+				</t>
+			</t>
+		</template>
+
+	</data>
+</odoo>

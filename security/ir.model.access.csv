@@ -12,10 +12,6 @@ access_id_dependant1,access_namedependant1,member_app.model_register_spouse_memb
 access_id_dependant2,access_namedependant2,member_app.model_register_spouse_member,member_app.membership_officer_ikoyi,1,1,1,0
 access_id_dependant3,access_namedependant3,member_app.model_register_spouse_member,base.group_system,1,1,1,1
 
-access_id_plot1,access_namedplot1,member_app.model_plot_payment_breakdowns,member_app.manager_member_ikoyi,1,1,1,1
-access_id_plot2,access_nameplot2,member_app.model_plot_payment_breakdowns,member_app.membership_officer_ikoyi,1,1,1,0
-access_id_plot3,access_nameplot3,member_app.model_plot_payment_breakdowns,base.group_system,1,1,1,1
-access_id_plot3,access_nameplot3,member_app.model_plot_payment_breakdowns,,1,1,1,1
 
 access_id_member_payment,access_namemember_payment,member_app.model_member_payment,,1,1,1,1
 access_id_subscription_payment,access_name_subscription_payment,member_app.model_subscription_payment,,1,1,1,1
@@ -43,5 +39,7 @@ access_member_policy_id,access_member_policy_name,model_member_policy,,1,1,1,1
 access_member_policy_line_id,access_member_policy_line_name,model_member_policy_line,,1,1,1,1
 access_subscription_excel_id,access_subscription_excel_name,model_subscription_excel,,1,1,1,1
 access_generate_member_invoice_id,access_generate_member_invoice_name,model_generate_member_invoice,,1,1,1,1
-
+access_section_line_id,access_section_line_name,model_section_line,,1,1,1,1
+access_section_product_id,access_section_product_name,model_section_product,,1,1,1,1
+access_summary_section_line_id,access_summary_section_line_name,model_summary_section_line,,1,1,1,1
 

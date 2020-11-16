@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+
+        <record id="auto_account_migration_wizard" model="ir.ui.view">
+            <field name="name">account.migration.wizard</field>
+            <field name="model">account.migration.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Import">
+                    <header>
+                        Import
+                    </header>
+                    <group>
+                        <field name="data_file" filename="filename"/>
+                    </group>
+                    <group>
+                        <field name="filename" invisible="1"/>
+                    </group>
+
+                    <footer>
+                        <button name="import_data" string="Import" type="object"  class="oe_highlight" />
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_account_member_migration_wizard_import" model="ir.actions.act_window">
+            <field name="name">Import</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">account.migration.wizard</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+   <menuitem id ="import_menu_account_member_migration_wizard" groups="base.group_system" name="Membership account Migration" sequence="16" parent="member_app.menu_memapp_rec" action="action_account_member_migration_wizard_import"/>
+
+    </data>
+</odoo>

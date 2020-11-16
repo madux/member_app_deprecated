@@ -2,90 +2,70 @@
 <!DOCTYPE xml>
 <odoo>
     <data>
-
         <record model="ir.ui.view" id="reinstatement_formxfvv">
-                <field name="name">reinstatement</field>
-                <field name="model">reinstatement.model</field>
-                <field name="priority">50</field>
-                <field name="arch" type="xml">
-                    <form string="Reinstatement ">   
-                                <header>
-                                    <button name="button_create_invoice" string='Create invoice' confirm="Are you sure you want to Create Invoice?" type="object" icon="fa-registered" class="btn-primary"
-                                    attrs="{'invisible': [('state','not in',['draft'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" 
-        />
+            <field name="name">reinstatement</field>
+            <field name="model">reinstatement.model</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <form string="Reinstatement ">   
+                    <header>
+                        <button name="button_create_invoice" string='Create invoice' confirm="Are you sure you want to Create Invoice?" type="object" icon="fa-registered" class="btn-primary"
+                        attrs="{'invisible': [('state','not in',['draft'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" 
+                        />
 
-         <button name="button_send_to_IC" string='Send to Internal Control' confirm="Are you sure you want to Send to Internal Control?" type="object" icon="fa-registered" class="btn-primary"
-                                    attrs="{'invisible': [('state','not in',['draft'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" 
-        />
+                        <button name="button_send_to_IC" string='Send to Internal Control' confirm="Are you sure you want to Send to Internal Control?" type="object" icon="fa-registered" class="btn-primary"
+                                                    attrs="{'invisible': [('state','not in',['draft'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" 
+                        />
 
-        <button name="IC_send_to_memberofficer" confirm="Are you sure you want to Approve?" string='Approve' type="object" icon="fa-registered" class="btn-primary"  
-                                    attrs="{'invisible': [('state','not in',['internalcontrol'])]}" groups="base.group_system,ikoyi_module.audit_boss_ikoyi,ikoyi_module.internal_control_ikoyi" 
-        />
-        <button name="button_rejects" string='Reject' confirm="Are you sure you want to reject?" type="object" icon="fa-registered" class="btn-primary"  
-                                    attrs="{'invisible': [('state','not in',['internalcontrol'])]}" groups="base.group_system,ikoyi_module.audit_boss_ikoyi,ikoyi_module.internal_control_ikoyi" 
-        />
-
-
-        <button name="memberofficer_send_to_member" string='Send Invoice Notification' type="object" icon="fa-registered" class="btn-primary"  
-                                    attrs="{'invisible': [('state','not in',['mem_two'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" 
-        />
-
-        <button name="confirm_invoice_payment" string='Confirm Payment' confirm="Are you sure you want to confirm Payment?" type="object" icon="fa-registered" class="btn-primary"  
-                                    attrs="{'invisible': [('state','not in',['wait'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" 
-        />
-        <button name="send_mail_manager_biodata" string='Send to Manager' type="object" icon="fa-registered" class="btn-primary"  
-                                    attrs="{'invisible': [('state','not in',['paid'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" 
-        />
-        <button name="generate_bio_data" string='Print Bio data' type="object" icon="fa-registered" class="btn-primary"  
-                                    attrs="{'invisible': [('state','not in',['paid'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" 
-        />
-         
-
-        <button name="manager_send_approve" string='Approve' confirm="Are you sure you want to Approve?" type="object" icon="fa-registered" class="btn-primary"  
-                                    attrs="{'invisible': [('state','not in',['manager_approve'])]}" groups="base.group_system,member_app.manager_member_ikoyi" 
-        />
-        <button name="ano_send_fa" string='Anomaly' type="object" icon="fa-registered" class="btn-primary"  
-                                    attrs="{'invisible': [('state','not in',['done'])]}" groups="base.group_system,member_app.membership_officer_ikoyi,member_app.manager_member_ikoyi" 
-        />
-        <button name="send_Finmanager_Fine" string='Approve' type="object" confirm="Are you sure you want to Approve?" icon="fa-registered" class="btn-primary"  
-                                    attrs="{'invisible': [('state','not in',['finance'])]}" groups="base.group_system,ikoyi_module.account_boss_ikoyi" 
-        />
-         
-        <button name="send_back" string='Confirm Payment' confirm="Are you sure you want to Confirm?" type="object" icon="fa-registered" class="btn-primary"  
-                                    attrs="{'invisible': [('state','not in',['fined'])]}" groups="base.group_system,ikoyi_module.account_boss_ikoyi" 
-        />
-
-        
-
-                                    <!--<button name="button_anamoly" string="Anomaly" type="object" icon="fa-registered" class="btn-primary"
-                                    attrs="{'invisible': ['|',('p_type', 'in', ['ano']),('state','not in',['done'])]}" groups="base.group_system,member_app.manager_member_ikoyi"/>
-
-            <button name="payment_button_anormally" string="Payment for Anomaly" type="object" icon="fa-registered" class="btn-primary"
-                                    attrs="{'invisible': ['|',('p_type', 'not in', ['ano']),('state','not in',['suscription','fined'])]}" groups="base.group_system,member_app.membership_officer_ikoyi,member_app.manager_member_ikoyi"/>
+                        <button name="IC_send_to_memberofficer" confirm="Are you sure you want to Approve?" string='Approve' type="object" icon="fa-registered" class="btn-primary"  
+                                                    attrs="{'invisible': [('state','not in',['internalcontrol'])]}" groups="base.group_system,ikoyi_module.audit_boss_ikoyi,ikoyi_module.internal_control_ikoyi" 
+                        />
+                        <button name="button_rejects" string='Reject' confirm="Are you sure you want to reject?" type="object" icon="fa-registered" class="btn-primary"  
+                                                    attrs="{'invisible': [('state','not in',['internalcontrol'])]}" groups="base.group_system,ikoyi_module.audit_boss_ikoyi,ikoyi_module.internal_control_ikoyi" 
+                        />
 
 
-                                    <button name="send_Finmanager_Fine" string="Confirm Anomaly" type="object" icon="fa-registered" class="btn-primary"
-                                    attrs="{'invisible': [('state','not in',['manager_approve'])]}" groups="base.group_system,ikoyi_module.account_boss_ikoyi"/>
-                                    
-                                     <button name="payment_button_normal" string="Register Payment" type="object" icon="fa-registered" class="btn-primary"
-                                    attrs="{'invisible': ['|',('p_type', 'in', ['ano']),('state','not in',['suscription'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi"/>-->
+                        <button name="memberofficer_send_to_member" string='Send Invoice Notification' type="object" icon="fa-registered" class="btn-primary"  
+                                                    attrs="{'invisible': [('state','not in',['mem_two'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" 
+                        />
 
-                                    <field name="state" widget="statusbar" statusbar_visible="draft,internalcontrol,mem_two,done"/>
-                                </header>
-                        <sheet>
+                        <button name="confirm_invoice_payment" string='Confirm Payment' confirm="Are you sure you want to confirm Payment?" type="object" icon="fa-registered" class="btn-primary"  
+                                                    attrs="{'invisible': [('state','not in',['wait'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" 
+                        />
+                        <button name="send_mail_manager_biodata" string='Send to Manager' type="object" icon="fa-registered" class="btn-primary"  
+                                                    attrs="{'invisible': [('state','not in',['paid'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" 
+                        />
+                        <button name="generate_bio_data" string='Print Bio data' type="object" icon="fa-registered" class="btn-primary"  
+                                                    attrs="{'invisible': [('state','not in',['paid'])]}" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi" 
+                        />
+                        
+
+                        <button name="manager_send_approve" string='Approve' confirm="Are you sure you want to Approve?" type="object" icon="fa-registered" class="btn-primary"  
+                                                    attrs="{'invisible': [('state','not in',['manager_approve'])]}" groups="base.group_system,member_app.manager_member_ikoyi" 
+                        />
+                        <button name="ano_send_fa" string='Anomaly' type="object" icon="fa-registered" class="btn-primary"  
+                                                    attrs="{'invisible': [('state','not in',['done'])]}" groups="base.group_system,member_app.membership_officer_ikoyi,member_app.manager_member_ikoyi" 
+                        />
+                        <button name="send_Finmanager_Fine" string='Approve' type="object" confirm="Are you sure you want to Approve?" icon="fa-registered" class="btn-primary"  
+                                                    attrs="{'invisible': [('state','not in',['finance'])]}" groups="base.group_system,ikoyi_module.account_boss_ikoyi" 
+                        />
+                        
+                        <button name="send_back" string='Confirm Payment' confirm="Are you sure you want to Confirm?" type="object" icon="fa-registered" class="btn-primary"  
+                                                    attrs="{'invisible': [('state','not in',['fined'])]}" groups="base.group_system,ikoyi_module.account_boss_ikoyi" 
+                        />
+
+                        <field name="state" widget="statusbar" statusbar_visible="draft,internalcontrol,mem_two,done"/>
+                    </header>
+                    <sheet>
                         <div class="oe_button_box" name="button_box">
-                                    
-
-                                        <button name="view_and_send_invoice" string="See Invoice" groups="base.group_system,member_app.membership_officer_ikoyi" type="object" class="oe_stat_button" icon="fa-print">
-                                            <!--<field name="see_invoice" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>-->
-                                        </button>
-
-
-                                    </div>
-                            <label for="Name" class="oe_edit_only"/>
-                            <h1>
-                                <field name="member_id" domain="[('state', '=', 'suspension')]" default_focus="1" placeholder="Name" string="Member Name" attrs="{'readonly':[('state','not in',['draft'])]}" />
-                            </h1>
+                            <button name="view_and_send_invoice" string="See Invoice" groups="base.group_system,member_app.membership_officer_ikoyi" type="object" class="oe_stat_button" icon="fa-print">
+                                <!--<field name="see_invoice" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>-->
+                            </button>
+                        </div>
+                        <label for="Name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="member_id" domain="[('activity', 'in', ['inact','dom'])]" default_focus="1" placeholder="Name" string="Member Name" attrs="{'readonly':[('state','not in',['draft'])]}" />
+                        </h1>
                         <group colspan= "2" attrs="{'readonly': [('state','not in',['draft'])]}">
                             <group>
                                 <field name="binary_attach_letter" filename="binary_fname_letter" invisible="0"/>
@@ -93,91 +73,95 @@
                                 <field name="email" widget="email" attrs="{'readonly': [('state','not in',['draft'])]}"/>
                                 
                                 <field name="identification" string = "Member ID" attrs="{'readonly':[('state','not in',['draft'])]}"/> 
-                                <field name="account_id" options="{&quot;no_open&quot;: True}" />                     
+                                <!-- <field name="account_id" options="{&quot;no_open&quot;: True}" />                      -->
                             </group>
                             <group>
-                                    
+                                
                                 <field name="date" string="Request Date" attrs="{'readonly': [('state','not in',['draft'])]}"/>
                                 <field name="last_date" attrs="{'readonly': [('state','not in',['draft'])]}"/>
                                 <field name="invoice_id" attrs="{'readonly': [('state','not in',['draft'])]}"/>
                                 
                                 <field name="users_followers" widget="many2many_tags"/>
-                          
+                            
                                 <field name="addition" attrs="{'readonly': [('state','not in',['draft'])]}"/>
                                 
-                                <field name="balance" attrs="{'readonly': [('state','not in',['draft'])]}"/>
-                                <field name="binary_attach_proof" filename="binary_fname_proof" attrs="{'required':[('state','in',['wait'])]}" invisible="0"/>
+                                <field name="binary_attach_proof" filename="binary_fname_proof" invisible="0"/>
+                                 <!-- attrs="{'required':[('state','in',['wait'])]}" invisible="0"/> -->
                                 <field name="binary_fname_proof" required="0" invisible="1" /> 
                                 
                                 <!--<field name="p_type" widget="radio" options ="{'horizontal':true}"/>-->
                                 
-                                <field name="total" attrs="{'readonly': [('state','not in',['draft'])]}"/>
+                                <!-- <field name="total" attrs="{'readonly': [('state','not in',['draft'])]}"/> -->
                                     
                             </group>
                         </group>
 
                         <notebook colspan="4"> 
 
-                            <page name="payments_all" string="Sections">
-                                <field name="payments_all" attrs="{'readonly': [('state','not in',['draft'])]}">
+                            <page name="payments_all" string="Payments">
+                                <!-- <field name="payments_all" attrs="{'readonly': [('state','not in',['draft'])]}">
                                 <p style="color: red;">* See Sections</p>
                                 <tree string="Sections" editable="bottom">
                                     <field name="product_id"/>
                                     <field name="member_price" string="Price"/>
                                     <field name="paid_amount" string="Amount Paid"/>
                                     <field name="balance" string="Balance"/>
-                                     
+                                    
                                     <field name="pdate"/>
                                 </tree>
-                                </field>
-                                <separator string="Renewal payments" colspan="4"/>
+                                </field> -->
+                                <!--<separator string="Renewal payments" colspan="4"/>
                                 <field name="payment_renew" attrs="{'readonly': [('state','not in',['draft'])]}">
                                 <p style="color: red;">* See Payments</p>
                                 <tree string="Renewals" editable="bottom">
-                                     <field name="name"/>
-                                     
+                                    <field name="name"/>
+                                    
                                     <field name="sub_order" string ="Reference"/>
-                                    <!--<field name="periods_month" string ="Renewal Period"/>-->
+                                    <field name="periods_month" string ="Renewal Period"/>
                                     <field name="paid_amount" string ="Amount Paid"/>
                                     <field name="balance"/>
                                     <field name="pdate"/>
                                 </tree>
-                                </field>
+                                </field> 
+                            </page>-->
+                            <separator string="Payment History" colspan="4"/>
+                            <p style="color: red;">* See Payments</p>
+                                <field name="payment_ids" readonly="1"> 
+                                
+                                    <field name="name"/>
+                                    <field name="journal_id"/>
+                                    <field name="bank"/>
+                                    <field name="amount"/>
+                                    <field name="payment_date"/>
+                                    <field name="additional_ref"/>
+                                </field> 
                             </page>
+                            
                             <page string = "Refused Message Box">
                                 <field name="description_two" required="0" readonly="0" placeholder="Please Add Reason(s) ..." colspan="4"/>
                                 
                             </page>
-                       
 
                         </notebook>
 
                     </sheet>
-                    </form>
-                </field>
-            </record>
-            <record model="ir.ui.view" id="reinstatement_maintreex">
-                <field name="name">Reinstatement</field>
-                <field name="model">reinstatement.model</field>
-                <field name="priority">50</field>
-                <field name="arch" type="xml">
-                    <tree string="Reinstatement">
-                             
-                                    <field name="member_id"/>
-                                <field name="email" widget="email" />
-                                
-                                <field name="identification"/>  
-                                <field name="date"/>
-                                
-                                 <field name="total"/>
-                                  <field name="last_date"/>
-                                <field name="balance"/>
-                                
-                    </tree>
-                </field>
-            </record>
-
-
+                </form>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="reinstatement_maintreex">
+            <field name="name">Reinstatement</field>
+            <field name="model">reinstatement.model</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <tree string="Reinstatement">
+                    <field name="member_id"/>
+                    <field name="email" widget="email" />
+                    <field name="identification"/>  
+                    <field name="date"/>
+                    <field name="last_date"/>
+                </tree>
+            </field>
+        </record>
 
         <act_window id="reinstatement_main_action_main"
             name="Reinstatement"
@@ -186,7 +170,7 @@
             view_mode="tree,form"/>
 
         <menuitem id ="menu_memapp_reinstatement" name="Reinstatement" parent="member_app.menu_memapp_all" sequence="5" groups="base.group_system,member_app.manager_member_ikoyi,member_app.membership_officer_ikoyi"/>
-              <menuitem id ="menu_reinstatementmember" name="Reinstates" sequence="1" parent="menu_memapp_reinstatement" action="reinstatement_main_action_main"/>
+            <menuitem id ="menu_reinstatementmember" name="Reinstates" sequence="1" parent="menu_memapp_reinstatement" action="reinstatement_main_action_main"/>
         
 
 </data>

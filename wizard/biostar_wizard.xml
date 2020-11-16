@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+
+        <record id="import_biostar_wizard_view" model="ir.ui.view">
+            <field name="name">biostar.wizard</field>
+            <field name="model">biostar.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Import BioStar User ID">
+                    <header>
+                        Import BioStar User ID
+                    </header>
+                    <group>
+                        <field name="data_file" filename="name"/>
+                    </group>
+                    <group>
+                        <field name="filename" invisible="1"/> 
+                    </group>
+                    
+
+                    <footer>
+                        <button name="import_biostar_userid" string="Import" type="object"  class="oe_highlight" />
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+
+
+        <record id="action_wizard_import_biostar" model="ir.actions.act_window">
+            <field name="name">Import BioStar User ID</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">biostar.wizard</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem id ="import_menu_import_biostar" name="Import BioStar ID" sequence="16" parent="member_app.menu_memapp_all" action="action_wizard_import_biostar"/>
+
+    </data>
+</odoo>
